@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       
       return {
         type: "SERVICE",
-        name: `${companyName} - Revenue Growth Services`,
+        name: `${companyName} - ${serviceDescription}`,
         differentiatedValue: `Customized revenue growth strategy for ${companyName} in the ${industry} sector. Our approach addresses ${keyResponsibilities} challenges with ${competitiveEdge}.`,
         statusQuo: `${companyName} currently faces ${problems} that limit their revenue growth potential.`
       };
