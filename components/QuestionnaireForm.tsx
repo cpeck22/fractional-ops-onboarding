@@ -81,7 +81,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need to know the 1-3 tangible outputs of what you do. Many prospects like "things" (They need to know what they\'re paying you for). Remember, this isn\'t your Service or Product — it\'s the output of your services or products.',
-      example: 'Corporate Real Estate:\n• "Signed lease agreements with improved terms"\n\n• "Fully executed office relocation including vendor coordination"\n\n• "Implemented space management system with live floor plans"\n\nLegal Services:\n• "Finalized commercial contracts"\n\n• "Completed legal entity structure ready for launch"\n\n• "Clean cap tables and board consents for an upcoming raise"\n\nHR Consulting:\n• "Live performance review tool running inside their HRIS"\n\n• "New compensation bands rolled out to managers and employees"\n\n• "Working onboarding flow with automated tasks and templates"',
+      example: '**Corporate Real Estate:**\n• "Signed lease agreements with improved terms"\n\n• "Fully executed office relocation including vendor coordination"\n\n• "Implemented space management system with live floor plans"\n\n**Legal Services:**\n• "Finalized commercial contracts"\n\n• "Completed legal entity structure ready for launch"\n\n• "Clean cap tables and board consents for an upcoming raise"\n\n**HR Consulting:**\n• "Live performance review tool running inside their HRIS"\n\n• "New compensation bands rolled out to managers and employees"\n\n• "Working onboarding flow with automated tasks and templates"',
       questionNumber: 8
     },
     { 
@@ -91,7 +91,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'These are practical applications of your offering that describe how you deliver value. These should be the most common or most loved way people use your service or product.',
-      example: 'Corporate Real Estate:\n• "Negotiating lease renewals"\n\n• "Space strategy for hybrid work"\n\n• "Managing relocations and build-outs"\n\nLegal Services:\n• "Advising on M&A transactions"\n\n• "Drafting and reviewing commercial contracts"\n\n• "Providing ongoing legal counsel"\n\nHR Consulting:\n• "Redesigning performance systems"\n\n• "Installing compensation plans"\n\n• "Creating interview templates"',
+      example: '**Corporate Real Estate:**\n• "Negotiating lease renewals"\n\n• "Space strategy for hybrid work"\n\n• "Managing relocations and build-outs"\n\n**Legal Services:**\n• "Advising on M&A transactions"\n\n• "Drafting and reviewing commercial contracts"\n\n• "Providing ongoing legal counsel"\n\n**HR Consulting:**\n• "Redesigning performance systems"\n\n• "Installing compensation plans"\n\n• "Creating interview templates"',
       questionNumber: 9
     },
     { 
@@ -101,7 +101,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need to know this to help you proactively overcome these when I build your playbooks.',
-      example: 'Corporate Real Estate:\n• "Locked into long-term leases"\n\n• "Believe they can negotiate internally"\n\n• "Fear of switching providers"\n\nLegal Services:\n• "Have in-house counsel"\n\n• "Concerned about cost unpredictability"\n\n• "View legal help as reactive only"\n\nHR Consulting:\n• "Internal HR can handle it"\n\n• "Think results take too long"\n\n• "Had a bad vendor experience"',
+      example: '**Corporate Real Estate:**\n• "Locked into long-term leases"\n\n• "Believe they can negotiate internally"\n\n• "Fear of switching providers"\n\n**Legal Services:**\n• "Have in-house counsel"\n\n• "Concerned about cost unpredictability"\n\n• "View legal help as reactive only"\n\n**HR Consulting:**\n• "Internal HR can handle it"\n\n• "Think results take too long"\n\n• "Had a bad vendor experience"',
       questionNumber: 10
     },
     { 
@@ -111,7 +111,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'Sometimes, your biggest competitor is inaction. The prospect understands your benefits at a high level, but it can\'t answer the "what\'s in it for them." How would you paint a picture of the future in a way that makes it impossible for your prospect to avoid learning more? What\'s in it for them?',
-      example: 'Corporate Real Estate:\n• "Show cost savings on leases"\n\n• "Make faster, better decisions with clear data"\n\n• "Reduce time managing deals and vendors"\n\nLegal Services:\n• "Spend less time on low-risk contracts"\n\n• "Manage legal costs predictably"\n\n• "Reduce deal delays from legal backlogs"\n\nHR Consulting:\n• "Stop repeating performance issues"\n\n• "Show clear HR impact metrics"\n\n• "Recover credibility after failed initiatives"',
+      example: '**Corporate Real Estate:**\n• "Show cost savings on leases"\n\n• "Make faster, better decisions with clear data"\n\n• "Reduce time managing deals and vendors"\n\n**Legal Services:**\n• "Spend less time on low-risk contracts"\n\n• "Manage legal costs predictably"\n\n• "Reduce deal delays from legal backlogs"\n\n**HR Consulting:**\n• "Stop repeating performance issues"\n\n• "Show clear HR impact metrics"\n\n• "Recover credibility after failed initiatives"',
       questionNumber: 11
     }
   ],
@@ -196,7 +196,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'Proof Points are key pieces of evidence seen across all customers — think quantifiable results like cost savings, x% performance improvements, or even qualitative metrics. Ultimately, these are positive business outcomes you\'ve achieved for similar people.',
-      example: 'Corporate Real Estate:\n• "Clients save 15–25% on occupancy costs"\n\n• "Lease cycle times reduced by 30–40%"\n\n• "20% improvement in space utilization"\n\nLegal Services:\n• "Contract turnaround reduced by 25–35%"\n\n• "Identify and mitigate $250K+ legal risk exposure"\n\n• "100% on-time M&A closings"\n\nHR Consulting:\n• "15–20% employee engagement improvement"\n\n• "Time-to-hire reduced by 30%"\n\n• "Scaled headcount 2–4x with stable performance"',
+      example: '**Corporate Real Estate:**\n• "Clients save 15–25% on occupancy costs"\n\n• "Lease cycle times reduced by 30–40%"\n\n• "20% improvement in space utilization"\n\n**Legal Services:**\n• "Contract turnaround reduced by 25–35%"\n\n• "Identify and mitigate $250K+ legal risk exposure"\n\n• "100% on-time M&A closings"\n\n**HR Consulting:**\n• "15–20% employee engagement improvement"\n\n• "Time-to-hire reduced by 30%"\n\n• "Scaled headcount 2–4x with stable performance"',
       questionNumber: 19
     },
     { 
@@ -206,7 +206,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need 1-3 client references to start. Creating detailed reference clients will help me showcase how real people are succeeding with our service (or product) offering. I need you to either name the actual client and give me their website (I\'ll can gather more details behind the scenes for you) or if you can\'t name them, just describe them. If actually naming them, I need this format: [Client\'s Company Name] (Client\'s website url) [Describe the result]',
-      example: 'Corporate Real Estate:\n• FedEx (https://www.fedex.com) — Reduced real estate costs via consolidation\n\n• Global financial firm — Improved lease cycle time by 30%\n\nLegal Services:\n• Mid-market SaaS — Closed $100M acquisition with no compliance issues\n\n• PE firm ($2B AUM) — Standardized contracts across 6 entities\n\nHR Consulting:\n• Shopify (https://www.shopify.com) — Improved engagement by 18% in 6 months\n\n• PE-backed manufacturer — Designed review system across 5 plants',
+      example: '**Corporate Real Estate:**\n• FedEx (https://www.fedex.com) — Reduced real estate costs via consolidation\n\n• Global financial firm — Improved lease cycle time by 30%\n\n**Legal Services:**\n• Mid-market SaaS — Closed $100M acquisition with no compliance issues\n\n• PE firm ($2B AUM) — Standardized contracts across 6 entities\n\n**HR Consulting:**\n• Shopify (https://www.shopify.com) — Improved engagement by 18% in 6 months\n\n• PE-backed manufacturer — Designed review system across 5 plants',
       questionNumber: 20
     },
     { 
@@ -216,7 +216,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need a list of your competitors (at least 1–3 to start). All I need is the Company Name and Website.',
-      example: 'Corporate Real Estate:\n• CBRE — https://www.cbre.com\n\n• JLL — https://www.us.jll.com\n\n• Cushman & Wakefield — https://www.cushmanwakefield.com\n\nLegal Services:\n• Wilson Sonsini — https://www.wsgr.com\n\n• Cooley LLP — https://www.cooley.com\n\n• Latham & Watkins — https://www.lw.com\n\nHR Consulting:\n• Mercer — https://www.mercer.com\n\n• Korn Ferry — https://www.kornferry.com\n\n• Gallup — https://www.gallup.com',
+      example: '**Corporate Real Estate:**\n• CBRE — https://www.cbre.com\n\n• JLL — https://www.us.jll.com\n\n• Cushman & Wakefield — https://www.cushmanwakefield.com\n\n**Legal Services:**\n• Wilson Sonsini — https://www.wsgr.com\n\n• Cooley LLP — https://www.cooley.com\n\n• Latham & Watkins — https://www.lw.com\n\n**HR Consulting:**\n• Mercer — https://www.mercer.com\n\n• Korn Ferry — https://www.kornferry.com\n\n• Gallup — https://www.gallup.com',
       questionNumber: 21
     }
   ],
@@ -331,7 +331,7 @@ export default function QuestionnaireForm({
             {field.example && (
               <p className="text-sm text-fo-text-secondary italic mb-3 bg-fo-light p-3 rounded border-l-4 border-fo-secondary">
                 <span className="font-medium text-fo-primary">Examples:</span><br />
-                <span style={{ whiteSpace: 'pre-line' }}>{field.example}</span>
+                <span style={{ whiteSpace: 'pre-line' }} dangerouslySetInnerHTML={{ __html: field.example.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }}></span>
               </p>
             )}
             
