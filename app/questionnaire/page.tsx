@@ -47,22 +47,25 @@ export default function QuestionnairePage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-fo-primary mb-2">
-            Allbound GTM Campaign – Quick Launch Questionnaire
+            Ops Transformation System™ Questionnaire
           </h1>
-          <p className="text-fo-secondary">
+          <p className="text-fo-text-secondary font-light mb-2">
+            Tactical systems to drive reliable profits and turn chaos into clarity.
+          </p>
+          <p className="text-fo-text-secondary text-sm">
             Section {currentSection + 1} of {sections.length}: {sections[currentSection].title}
           </p>
         </div>
 
         {/* Progress Bar */}
         <div className="mb-8">
-          <div className="bg-gray-200 rounded-full h-2">
+          <div className="bg-fo-light rounded-full h-3">
             <div 
-              className="bg-fo-primary h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-fo-primary to-fo-secondary h-3 rounded-full transition-all duration-300"
               style={{ width: `${((currentSection + 1) / sections.length) * 100}%` }}
             ></div>
           </div>
-          <div className="flex justify-between text-sm text-fo-secondary mt-2">
+          <div className="flex justify-between text-sm text-fo-text-secondary mt-2 font-medium">
             <span>Progress</span>
             <span>{Math.round(((currentSection + 1) / sections.length) * 100)}%</span>
           </div>

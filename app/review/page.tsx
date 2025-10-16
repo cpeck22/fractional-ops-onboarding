@@ -93,9 +93,12 @@ export default function ReviewPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-fo-primary mb-2">
-            Review Your Onboarding Information
+            Review Your Ops Transformation System™
           </h1>
-          <p className="text-fo-secondary">
+          <p className="text-fo-text-secondary font-light mb-2">
+            Tactical systems to drive reliable profits and turn chaos into clarity.
+          </p>
+          <p className="text-fo-text-secondary text-sm">
             Please review all your answers before submitting to create your Octave workspace.
           </p>
         </div>
@@ -108,7 +111,7 @@ export default function ReviewPage() {
               
               return (
                 <div key={section.id}>
-                  <h3 className="text-xl font-semibold text-fo-primary mb-4">
+                  <h3 className="text-xl font-bold text-fo-primary mb-4">
                     {index + 1}. {section.title}
                   </h3>
                   <div className="space-y-3 text-sm">
@@ -126,8 +129,8 @@ export default function ReviewPage() {
                       
                       return (
                         <div key={field.key}>
-                          <span className="font-medium text-fo-secondary">{field.label}:</span>
-                          <p className="text-gray-700 mt-1 whitespace-pre-wrap">
+                          <span className="font-semibold text-fo-text">{field.label}:</span>
+                          <p className="text-fo-text-secondary mt-1 whitespace-pre-wrap font-light">
                             {displayValue}
                           </p>
                         </div>
@@ -135,7 +138,7 @@ export default function ReviewPage() {
                     })}
                   </div>
                   {index < sectionTitles.length - 1 && (
-                    <div className="border-t border-gray-200 mt-6"></div>
+                    <div className="border-t border-fo-light mt-6"></div>
                   )}
                 </div>
               );
@@ -148,7 +151,7 @@ export default function ReviewPage() {
           <button
             type="button"
             onClick={handleEdit}
-            className="px-6 py-2 border border-gray-300 rounded-md text-fo-secondary hover:bg-gray-50"
+            className="px-6 py-2 border border-fo-light rounded-md text-fo-text-secondary hover:bg-fo-light font-medium"
           >
             Edit Responses
           </button>
@@ -157,7 +160,7 @@ export default function ReviewPage() {
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-8 py-2 bg-gradient-to-r from-fo-primary to-fo-accent text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fo-accent disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-8 py-2 bg-gradient-to-r from-fo-primary to-fo-secondary text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fo-primary disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
           >
             {isSubmitting ? (
               <div className="flex items-center">

@@ -42,7 +42,10 @@ export default function Home() {
           <h2 className="mt-6 text-3xl font-bold text-fo-primary">
             Welcome to Fractional Ops
           </h2>
-          <p className="mt-2 text-sm text-fo-secondary">
+          <p className="mt-2 text-sm text-fo-text-secondary font-light">
+            Actionable systems. Fast results. No drama.
+          </p>
+          <p className="mt-1 text-xs text-fo-text-secondary font-light">
             {showSignup 
               ? 'Create your account to begin onboarding'
               : 'Please log in to begin your onboarding process'

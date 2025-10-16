@@ -313,26 +313,27 @@ export default function QuestionnaireForm({
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-fo-primary mb-2">{section.title}</h2>
-        <p className="text-fo-secondary">{section.description}</p>
+        <p className="text-fo-text-secondary font-light">{section.description}</p>
       </div>
 
       <div className="space-y-6">
         {fields.map((field, index) => (
-          <div key={field.key} className="bg-white p-6 rounded-lg border border-gray-200">
-            <label className="block text-sm font-medium text-fo-secondary mb-2">
+          <div key={field.key} className="bg-white p-6 rounded-lg border border-fo-light shadow-sm">
+            <label className="block text-sm font-semibold text-fo-text mb-2">
               {`Question ${field.questionNumber}: `}
               {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
+              {field.required && <span className="text-fo-orange ml-1">*</span>}
             </label>
             
             {field.description && (
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-fo-text-secondary font-light mb-2">
                 {field.description}
               </p>
             )}
             
             {field.example && (
-              <p className="text-sm text-gray-500 italic mb-3 bg-gray-50 p-2 rounded">
+              <p className="text-sm text-fo-text-secondary italic mb-3 bg-fo-light p-3 rounded border-l-4 border-fo-secondary">
+                <span className="font-medium text-fo-primary">Examples:</span><br />
                 {field.example}
               </p>
             )}
@@ -344,14 +345,14 @@ export default function QuestionnaireForm({
                 placeholder={field.placeholder}
                 rows={4}
                 required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-fo-accent focus:border-fo-accent resize-vertical text-fo-primary"
+                className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary focus:border-fo-primary resize-vertical text-fo-text"
               />
             ) : field.type === 'dropdown' ? (
               <select
                 value={formData[field.key] || ''}
                 onChange={(e) => handleFieldChange(field.key, e.target.value)}
                 required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-fo-accent focus:border-fo-accent text-fo-primary"
+                className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary focus:border-fo-primary text-fo-text"
               >
                 <option value="">{field.placeholder}</option>
                 {field.options?.map((option) => (
@@ -376,9 +377,9 @@ export default function QuestionnaireForm({
                             : currentValues.filter((val: string) => val !== option);
                           handleFieldChange(field.key, newValues);
                         }}
-                        className="rounded border-gray-300 text-fo-accent focus:ring-fo-accent"
+                        className="rounded border-fo-light text-fo-primary focus:ring-fo-primary"
                       />
-                      <span className="text-sm text-fo-primary">{option}</span>
+                      <span className="text-sm text-fo-text font-medium">{option}</span>
                     </label>
                   ))}
                 </div>
@@ -393,7 +394,7 @@ export default function QuestionnaireForm({
                   }
                 }}
                 multiple
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-fo-accent focus:border-fo-accent text-fo-primary"
+                className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary focus:border-fo-primary text-fo-text"
               />
             ) : (
               <input
@@ -402,7 +403,7 @@ export default function QuestionnaireForm({
                 onChange={(e) => handleFieldChange(field.key, e.target.value)}
                 placeholder={field.placeholder}
                 required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-fo-accent focus:border-fo-accent text-fo-primary"
+                className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary focus:border-fo-primary text-fo-text"
               />
             )}
           </div>
@@ -410,12 +411,12 @@ export default function QuestionnaireForm({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between pt-6 border-t border-gray-200">
+      <div className="flex justify-between pt-6 border-t border-fo-light">
         <button
           type="button"
           onClick={onPrevious}
           disabled={isFirstSection}
-          className="px-6 py-2 border border-gray-300 rounded-md text-fo-secondary hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-6 py-2 border border-fo-light rounded-md text-fo-text-secondary hover:bg-fo-light disabled:opacity-50 disabled:cursor-not-allowed font-medium"
         >
           Previous
         </button>
@@ -423,7 +424,7 @@ export default function QuestionnaireForm({
         <button
           type="button"
           onClick={onNext}
-          className="px-6 py-2 bg-gradient-to-r from-fo-primary to-fo-accent text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fo-accent"
+          className="px-8 py-2 bg-gradient-to-r from-fo-primary to-fo-secondary text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fo-primary font-semibold"
         >
           {isLastSection ? 'Review & Submit' : 'Next Section'}
         </button>
