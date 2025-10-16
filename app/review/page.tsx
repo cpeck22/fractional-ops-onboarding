@@ -10,47 +10,40 @@ const sectionTitles = [
     { key: 'companyName', label: 'Company Name' },
     { key: 'companyDomain', label: 'Company Domain' }
   ]},
-  { id: 'serviceInfo', title: 'Service Information', fields: [
-    { key: 'industry', label: 'Industry' },
-    { key: 'keyResponsibilities', label: 'Key Responsibilities' },
-    { key: 'competitiveEdge', label: 'Competitive Edge' },
-    { key: 'commonProblems', label: 'Common Problems' },
-    { key: 'serviceDescription', label: 'Service Description' }
-  ]},
   { id: 'basicInfo', title: 'Basic Information', fields: [
-    { key: 'industry', label: 'Industry' },
-    { key: 'whatYouDo', label: 'What You Do' },
-    { key: 'howYouDoIt', label: 'How You Do It' },
-    { key: 'uniqueValue', label: 'Unique Value' },
-    { key: 'mainService', label: 'Main Service' },
-    { key: 'whatYouDeliver', label: 'What You Deliver' },
-    { key: 'topUseCases', label: 'Top Use Cases' },
-    { key: 'barriers', label: 'Barriers' },
-    { key: 'whyMoveAway', label: 'Why Move Away' }
+    { key: 'industry', label: 'What industry does your company operate in?' },
+    { key: 'whatYouDo', label: 'Describe what you do. Explain it to me like I\'m 10 years old' },
+    { key: 'howYouDoIt', label: 'Describe how you do it. Explain it to me like I\'m 10 years old' },
+    { key: 'uniqueValue', label: 'What makes your company unique or different from competitors?' },
+    { key: 'mainService', label: 'How would you describe your main service or product?' },
+    { key: 'whatYouDeliver', label: 'What do you actually deliver?' },
+    { key: 'topUseCases', label: 'What are the top 3 use cases of your service or product?' },
+    { key: 'barriers', label: 'What are all the reasons someone would not take you up on your offer? What gets in their way?' },
+    { key: 'whyMoveAway', label: 'Why should they move away from the status quo?' }
   ]},
   { id: 'icp', title: 'ICP (Ideal Customer Profile)', fields: [
-    { key: 'seniorityLevel', label: 'Seniority Level' },
-    { key: 'jobTitles', label: 'Job Titles' },
-    { key: 'companySize', label: 'Company Size' },
-    { key: 'geographicMarkets', label: 'Geographic Markets' },
-    { key: 'preferredEngagement', label: 'Preferred Engagement' },
-    { key: 'decisionMakerResponsibilities', label: 'Decision Maker Responsibilities' },
-    { key: 'prospectChallenges', label: 'Prospect Challenges' }
+    { key: 'seniorityLevel', label: 'Role Seniority & Titles: Who specifically makes the buying decision?' },
+    { key: 'jobTitles', label: 'Specific Job Titles' },
+    { key: 'companySize', label: 'Which employee size, revenue range (or funding stage) do you typically work with?' },
+    { key: 'geographicMarkets', label: 'What geographic market(s) do you focus on?' },
+    { key: 'preferredEngagement', label: 'How do these decision-makers prefer to be initially engaged?' },
+    { key: 'decisionMakerResponsibilities', label: 'What are the main responsibilities of the decision-makers you sell to?' },
+    { key: 'prospectChallenges', label: 'What are the main challenges or pain your prospects currently face?' }
   ]},
   { id: 'socialProof', title: 'Social Proof', fields: [
-    { key: 'proofPoints', label: 'Proof Points' },
-    { key: 'clientReferences', label: 'Client References' },
-    { key: 'competitors', label: 'Competitors' }
+    { key: 'proofPoints', label: 'Why should they believe you?' },
+    { key: 'clientReferences', label: 'Who has gotten these results?' },
+    { key: 'competitors', label: 'Who else can solve this for them?' }
   ]},
   { id: 'callToAction', title: 'Call to Action', fields: [
-    { key: 'leadMagnet', label: 'Lead Magnet' },
-    { key: 'emailExample1', label: 'Email Example 1' },
-    { key: 'emailExample2', label: 'Email Example 2' },
-    { key: 'emailExample3', label: 'Email Example 3' }
+    { key: 'leadMagnet', label: 'What can we offer in exchange for someone interacting with us?' },
+    { key: 'emailExample1', label: 'What emails have received positive responses in the past? Example 1' },
+    { key: 'emailExample2', label: 'What emails have received positive responses in the past? Example 2' },
+    { key: 'emailExample3', label: 'What emails have received positive responses in the past? Example 3' }
   ]},
   { id: 'brand', title: 'Your Brand', fields: [
-    { key: 'brandDocuments', label: 'Brand Documents' },
-    { key: 'additionalFiles', label: 'Additional Files' }
+    { key: 'brandDocuments', label: 'Upload any brand documents you have' },
+    { key: 'additionalFiles', label: 'You may have other files that didn\'t quite fit into my initial questions' }
   ]}
 ];
 

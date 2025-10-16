@@ -16,13 +16,6 @@ const initialData: QuestionnaireData = {
     companyName: '',
     companyDomain: ''
   },
-  serviceInfo: {
-    industry: '',
-    keyResponsibilities: '',
-    competitiveEdge: '',
-    commonProblems: '',
-    serviceDescription: ''
-  },
   basicInfo: {
     industry: '',
     whatYouDo: '',

@@ -18,57 +18,10 @@ interface QuestionnaireFormProps {
   isLastSection: boolean;
 }
 
-const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea' | 'dropdown' | 'multiselect' | 'file', required?: boolean, description?: string, example?: string, options?: string[]}>> = {
+const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea' | 'dropdown' | 'multiselect' | 'file', required?: boolean, description?: string, example?: string, options?: string[], questionNumber?: number}>> = {
   companyInfo: [
-    { key: 'companyName', label: 'Company Name', placeholder: 'Enter your company name', type: 'text', required: true },
-    { key: 'companyDomain', label: 'Company Domain', placeholder: 'e.g., example.com (without https://)', type: 'text', required: true }
-  ],
-  serviceInfo: [
-    { 
-      key: 'industry', 
-      label: 'What industry does your company operate in?', 
-      placeholder: 'e.g., Healthcare, Technology, Manufacturing, Logistics, etc.', 
-      type: 'text', 
-      required: true,
-      description: 'This helps us understand your business context and create industry-specific solutions.',
-      example: 'Example: "Healthcare Technology" or "Trucking and Logistics"'
-    },
-    { 
-      key: 'keyResponsibilities', 
-      label: 'What are the main responsibilities of your decision-makers?', 
-      placeholder: 'Describe what your key stakeholders do day-to-day...', 
-      type: 'textarea', 
-      required: true,
-      description: 'Understanding daily responsibilities helps us tailor our approach to their workflow.',
-      example: 'Example: "Managing fleet operations, coordinating driver schedules, and optimizing delivery routes"'
-    },
-    { 
-      key: 'competitiveEdge', 
-      label: 'What makes your company unique or different from competitors?', 
-      placeholder: 'Describe your unique value proposition...', 
-      type: 'textarea', 
-      required: true,
-      description: 'Your competitive advantages help us highlight what sets you apart in the market.',
-      example: 'Example: "Real-time GPS tracking, fuel optimization algorithms, and 24/7 customer support"'
-    },
-    { 
-      key: 'commonProblems', 
-      label: 'What are the main challenges your company currently faces?', 
-      placeholder: 'Describe your biggest operational or business challenges...', 
-      type: 'textarea', 
-      required: true,
-      description: 'Identifying current problems helps us create targeted solutions for your specific needs.',
-      example: 'Example: "High fuel costs, driver retention issues, and inefficient route planning"'
-    },
-    { 
-      key: 'serviceDescription', 
-      label: 'How would you describe your main service or product?', 
-      placeholder: 'Provide a brief description of what your company offers...', 
-      type: 'textarea', 
-      required: true,
-      description: 'This helps us create accurate service descriptions for your Octave workspace.',
-      example: 'Example: "We provide nationwide freight transportation services with real-time tracking and guaranteed delivery times"'
-    }
+    { key: 'companyName', label: 'Company Name', placeholder: 'Enter your company name', type: 'text', required: true, questionNumber: 1 },
+    { key: 'companyDomain', label: 'Company Domain', placeholder: 'e.g., example.com (without https://)', type: 'text', required: true, questionNumber: 2 }
   ],
   basicInfo: [
     { 
@@ -78,7 +31,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'This helps me understand your business context and create industry-specific solutions.',
-      example: '"Corporate Real Estate Services", "Legal Services", "HR Consulting Services"'
+      example: '"Corporate Real Estate Services", "Legal Services", "HR Consulting Services"',
+      questionNumber: 3
     },
     { 
       key: 'whatYouDo', 
@@ -87,7 +41,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I\'ll build this out in way more detail for you behind the scenes, but I just need the basics for now.',
-      example: '"We help companies find and set up offices so their teams have a good place to work and they don\'t waste money."'
+      example: '"We help companies find and set up offices so their teams have a good place to work and they don\'t waste money."',
+      questionNumber: 4
     },
     { 
       key: 'howYouDoIt', 
@@ -96,7 +51,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'Again, I just need the basics in plain English for now.',
-      example: '"We look at all the offices a company has, figure out which ones cost too much or don\'t work well, and help them find better spaces or better deals."'
+      example: '"We look at all the offices a company has, figure out which ones cost too much or don\'t work well, and help them find better spaces or better deals."',
+      questionNumber: 5
     },
     { 
       key: 'uniqueValue', 
@@ -105,7 +61,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need to know what actually sets you apart. This isn\'t aspirational. I need to know the real answer.',
-      example: '"We built an internal lease benchmarking database that gives clients real-time market leverage"'
+      example: '"We built an internal lease benchmarking database that gives clients real-time market leverage"',
+      questionNumber: 6
     },
     { 
       key: 'mainService', 
@@ -114,7 +71,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'We need to focus on your primary service or product to start. This is often the one you make the most revenue from. Be very specific. (Don\'t worry, we\'ll be adding your other services later).',
-      example: '"Lease negotiation", "Employment law advisory", "Implementing performance management systems"'
+      example: '"Lease negotiation", "Employment law advisory", "Implementing performance management systems"',
+      questionNumber: 7
     },
     { 
       key: 'whatYouDeliver', 
@@ -123,7 +81,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need to know the 1-3 tangible outputs of what you do. Many prospects like "things" (They need to know what they\'re paying you for).',
-      example: '"Signed lease agreements with improved terms", "A fully-executed office relocation, including vendor coordination and move management"'
+      example: '"Signed lease agreements with improved terms", "A fully-executed office relocation, including vendor coordination and move management"',
+      questionNumber: 8
     },
     { 
       key: 'topUseCases', 
@@ -132,7 +91,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'These are practical applications of your offering that describe how you deliver value. These should be the most common or most loved way people use your service or product.',
-      example: '"Negotiating lease renewals", "Space strategy for hybrid work models", "Managing relocations and build-outs for new offices"'
+      example: '"Negotiating lease renewals", "Space strategy for hybrid work models", "Managing relocations and build-outs for new offices"',
+      questionNumber: 9
     },
     { 
       key: 'barriers', 
@@ -141,7 +101,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need to know this to help you proactively overcome these when I build your playbooks.',
-      example: '"They\'re locked into long-term leases and don\'t see an immediate need", "They believe they can handle negotiations internally"'
+      example: '"They\'re locked into long-term leases and don\'t see an immediate need", "They believe they can handle negotiations internally"',
+      questionNumber: 10
     },
     { 
       key: 'whyMoveAway', 
@@ -150,7 +111,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'Sometimes, your biggest competitor is inaction. The prospect understands your benefits at a high level, but it can\'t answer the "what\'s in it for them."',
-      example: '"You\'ll be able to show cost savings on leases leadership assumed were fixed", "You\'ll make faster, better decisions with clear data instead of guesswork"'
+      example: '"You\'ll be able to show cost savings on leases leadership assumed were fixed", "You\'ll make faster, better decisions with clear data instead of guesswork"',
+      questionNumber: 11
     }
   ],
   icp: [
@@ -162,7 +124,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       required: true,
       options: ['Owner', 'Founder', 'C-Suite', 'Partner', 'Vp', 'Head', 'Director', 'Manager', 'Senior', 'Entry', 'Intern'],
       description: 'This is important for when we start building lists of people to target.',
-      example: 'VP / Director — VP of Corporate Real Estate, Director of Workplace Strategy'
+      example: 'VP / Director — VP of Corporate Real Estate, Director of Workplace Strategy',
+      questionNumber: 12
     },
     { 
       key: 'jobTitles', 
@@ -171,7 +134,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'Provide the actual job titles of your decision-makers.',
-      example: 'VP of Corporate Real Estate, Director of Workplace Strategy'
+      example: 'VP of Corporate Real Estate, Director of Workplace Strategy',
+      questionNumber: 13
     },
     { 
       key: 'companySize', 
@@ -180,7 +144,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'We don\'t want to target people who can\'t afford us, and we also don\'t want to target companies where the roles you just picked aren\'t personally involved in buying our services.',
-      example: '"1000–8,000 employees and $100M–$1B in annual revenue"'
+      example: '"1000–8,000 employees and $100M–$1B in annual revenue"',
+      questionNumber: 14
     },
     { 
       key: 'geographicMarkets', 
@@ -189,7 +154,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'I don\'t want to launch campaigns in London if you can only service New York, Boston, and Philadelphia.',
-      example: '"New York, Chicago, and San Francisco"'
+      example: '"New York, Chicago, and San Francisco"',
+      questionNumber: 15
     },
     { 
       key: 'preferredEngagement', 
@@ -198,7 +164,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'Think about how your contacts usually respond to you. Do they answer your calls? Respond to LinkedIn DMs? Email you back?',
-      example: '"Email Outreach", "LinkedIn DMs", "Phone calls", "In-person"'
+      example: '"Email Outreach", "LinkedIn DMs", "Phone calls", "In-person"',
+      questionNumber: 16
     },
     { 
       key: 'decisionMakerResponsibilities', 
@@ -207,7 +174,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need to know this to map the answers to my next questions to their daily realities.',
-      example: '"Overseeing property acquisitions, lease negotiations, and client portfolio management"'
+      example: '"Overseeing property acquisitions, lease negotiations, and client portfolio management"',
+      questionNumber: 17
     },
     { 
       key: 'prospectChallenges', 
@@ -216,7 +184,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'Identifying current problems helps me create targeted solutions to solve their problems.',
-      example: '"Difficulty optimizing their real estate footprint while reducing operational costs"'
+      example: '"Difficulty optimizing their real estate footprint while reducing operational costs"',
+      questionNumber: 18
     }
   ],
   socialProof: [
@@ -227,7 +196,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'Proof Points are key pieces of evidence seen across all customers — think quantifiable results like cost savings, x% performance improvements, or even qualitative metrics.',
-      example: '"Clients typically save 15–25% on occupancy costs through lease renegotiations and portfolio optimization"'
+      example: '"Clients typically save 15–25% on occupancy costs through lease renegotiations and portfolio optimization"',
+      questionNumber: 19
     },
     { 
       key: 'clientReferences', 
@@ -236,7 +206,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need 1-3 client references to start. Creating detailed reference clients will help me showcase how real people are succeeding with our service (or product) offering.',
-      example: 'FedEx (https://www.fedex.com) reduced real estate costs by consolidating regional offices'
+      example: 'FedEx (https://www.fedex.com) reduced real estate costs by consolidating regional offices',
+      questionNumber: 20
     },
     { 
       key: 'competitors', 
@@ -245,7 +216,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need a list of your competitors (at least 1–3 to start). All I need is the Company Name and Website.',
-      example: 'CBRE — https://www.cbre.com'
+      example: 'CBRE — https://www.cbre.com',
+      questionNumber: 21
     }
   ],
   callToAction: [
@@ -256,7 +228,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'We need to entice people with something tangible. They don\'t know us yet and have no reason to care unless we give them one.',
-      example: '"An online lease savings calculator that shows how much they could save based on current square footage, headcount, and location"'
+      example: '"An online lease savings calculator that shows how much they could save based on current square footage, headcount, and location"',
+      questionNumber: 22
     },
     { 
       key: 'emailExample1', 
@@ -265,7 +238,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'Share emails that have worked well for you in the past.',
-      example: 'Copy and paste your email example here...'
+      example: 'Copy and paste your email example here...',
+      questionNumber: 23
     },
     { 
       key: 'emailExample2', 
@@ -274,7 +248,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: false,
       description: 'Share another email that has worked well for you.',
-      example: 'Copy and paste your email example here...'
+      example: 'Copy and paste your email example here...',
+      questionNumber: 24
     },
     { 
       key: 'emailExample3', 
@@ -283,7 +258,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: false,
       description: 'Share a third email that has worked well for you.',
-      example: 'Copy and paste your email example here...'
+      example: 'Copy and paste your email example here...',
+      questionNumber: 25
     }
   ],
   brand: [
@@ -294,7 +270,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'file', 
       required: false,
       description: 'We shouldn\'t launch any campaigns or make social content that don\'t sound like you.',
-      example: 'Upload files like Tone of Voice, Brand Standards, Writing Guidelines, etc.'
+      example: 'Upload files like Tone of Voice, Brand Standards, Writing Guidelines, etc.',
+      questionNumber: 26
     },
     { 
       key: 'additionalFiles', 
@@ -303,7 +280,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'file', 
       required: false,
       description: 'Upload any other relevant files that didn\'t fit into the previous questions.',
-      example: 'Upload any additional relevant files'
+      example: 'Upload any additional relevant files',
+      questionNumber: 27
     }
   ]
 };
@@ -342,7 +320,7 @@ export default function QuestionnaireForm({
         {fields.map((field, index) => (
           <div key={field.key} className="bg-white p-6 rounded-lg border border-gray-200">
             <label className="block text-sm font-medium text-fo-secondary mb-2">
-              {`Question ${index + 1}: `}
+              {`Question ${field.questionNumber}: `}
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>

@@ -5,15 +5,6 @@ export interface QuestionnaireData {
     companyDomain: string;
   };
 
-  // Service Information (Required for Octave API)
-  serviceInfo: {
-    industry: string;
-    keyResponsibilities: string;
-    competitiveEdge: string;
-    commonProblems: string;
-    serviceDescription: string;
-  };
-
   // Basic Information (Corey's Section 1)
   basicInfo: {
     industry: string;

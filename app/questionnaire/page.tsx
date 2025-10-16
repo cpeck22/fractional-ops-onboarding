@@ -13,7 +13,6 @@ export default function QuestionnairePage() {
 
   const sections = [
     { id: 'companyInfo', title: 'Company Information', description: 'Tell us about your company' },
-    { id: 'serviceInfo', title: 'Service Information', description: 'Help us customize your Octave workspace' },
     { id: 'basicInfo', title: 'Basic Information', description: 'Core business details and positioning' },
     { id: 'icp', title: 'ICP (Ideal Customer Profile)', description: 'Define your ideal customer profile' },
     { id: 'socialProof', title: 'Social Proof', description: 'Proof points and client references' },
@@ -59,7 +58,7 @@ export default function QuestionnairePage() {
         <div className="mb-8">
           <div className="bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-fo-gradient h-2 rounded-full transition-all duration-300"
+              className="bg-fo-primary h-2 rounded-full transition-all duration-300"
               style={{ width: `${((currentSection + 1) / sections.length) * 100}%` }}
             ></div>
           </div>
