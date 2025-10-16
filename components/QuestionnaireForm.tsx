@@ -18,7 +18,7 @@ interface QuestionnaireFormProps {
   isLastSection: boolean;
 }
 
-const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea' | 'dropdown' | 'file', required?: boolean, description?: string, example?: string, options?: string[]}>> = {
+const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea' | 'dropdown' | 'multiselect' | 'file', required?: boolean, description?: string, example?: string, options?: string[]}>> = {
   companyInfo: [
     { key: 'companyName', label: 'Company Name', placeholder: 'Enter your company name', type: 'text', required: true },
     { key: 'companyDomain', label: 'Company Domain', placeholder: 'e.g., example.com (without https://)', type: 'text', required: true }
@@ -157,8 +157,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'seniorityLevel', 
       label: 'Role Seniority & Titles: Who specifically makes the buying decision?', 
-      placeholder: 'Select seniority level', 
-      type: 'dropdown', 
+      placeholder: 'Select seniority levels', 
+      type: 'multiselect', 
       required: true,
       options: ['Owner', 'Founder', 'C suite', 'Partner', 'Vp', 'Head', 'Director', 'Manager', 'Senior', 'Entry', 'Intern'],
       description: 'This is important for when we start building lists of people to target.',
@@ -323,7 +323,7 @@ export default function QuestionnaireForm({
     setFormData(data || {});
   }, [data]);
 
-  const handleFieldChange = (key: string, value: string) => {
+  const handleFieldChange = (key: string, value: string | string[]) => {
     const newData = { ...formData, [key]: value };
     setFormData(newData);
     onDataChange(newData);
@@ -380,6 +380,31 @@ export default function QuestionnaireForm({
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
+            ) : field.type === 'multiselect' ? (
+              <div className="space-y-2">
+                <div className="text-sm text-gray-600 mb-2">
+                  Selected: {Array.isArray(formData[field.key]) ? formData[field.key].join(', ') : 'None'}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {field.options?.map((option) => (
+                    <label key={option} className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={Array.isArray(formData[field.key]) && formData[field.key].includes(option)}
+                        onChange={(e) => {
+                          const currentValues = Array.isArray(formData[field.key]) ? formData[field.key] : [];
+                          const newValues = e.target.checked
+                            ? [...currentValues, option]
+                            : currentValues.filter((val: string) => val !== option);
+                          handleFieldChange(field.key, newValues);
+                        }}
+                        className="rounded border-gray-300 text-fo-accent focus:ring-fo-accent"
+                      />
+                      <span className="text-sm text-fo-primary">{option}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
             ) : field.type === 'file' ? (
               <input
                 type="file"
