@@ -18,7 +18,7 @@ interface QuestionnaireFormProps {
   isLastSection: boolean;
 }
 
-const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea', required?: boolean, description?: string, example?: string}>> = {
+const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea' | 'dropdown' | 'file', required?: boolean, description?: string, example?: string, options?: string[]}>> = {
   companyInfo: [
     { key: 'companyName', label: 'Company Name', placeholder: 'Enter your company name', type: 'text', required: true },
     { key: 'companyDomain', label: 'Company Domain', placeholder: 'e.g., example.com (without https://)', type: 'text', required: true }
@@ -70,91 +70,241 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       example: 'Example: "We provide nationwide freight transportation services with real-time tracking and guaranteed delivery times"'
     }
   ],
+  basicInfo: [
+    { 
+      key: 'industry', 
+      label: 'What industry does your company operate in?', 
+      placeholder: 'Corporate Real Estate Services, Legal Services, HR Consulting Services', 
+      type: 'text', 
+      required: true,
+      description: 'This helps me understand your business context and create industry-specific solutions.',
+      example: '"Corporate Real Estate Services", "Legal Services", "HR Consulting Services"'
+    },
+    { 
+      key: 'whatYouDo', 
+      label: 'Describe what you do. Explain it to me like I\'m 10 years old', 
+      placeholder: 'We help companies find and set up offices so their teams have a good place to work and they don\'t waste money.', 
+      type: 'textarea', 
+      required: true,
+      description: 'I\'ll build this out in way more detail for you behind the scenes, but I just need the basics for now.',
+      example: '"We help companies find and set up offices so their teams have a good place to work and they don\'t waste money."'
+    },
+    { 
+      key: 'howYouDoIt', 
+      label: 'Describe how you do it. Explain it to me like I\'m 10 years old', 
+      placeholder: 'We look at all the offices a company has, figure out which ones cost too much or don\'t work well, and help them find better spaces or better deals.', 
+      type: 'textarea', 
+      required: true,
+      description: 'Again, I just need the basics in plain English for now.',
+      example: '"We look at all the offices a company has, figure out which ones cost too much or don\'t work well, and help them find better spaces or better deals."'
+    },
+    { 
+      key: 'uniqueValue', 
+      label: 'What makes your company unique or different from competitors?', 
+      placeholder: 'We built an internal lease benchmarking database that gives clients real-time market leverage', 
+      type: 'textarea', 
+      required: true,
+      description: 'I need to know what actually sets you apart. This isn\'t aspirational. I need to know the real answer.',
+      example: '"We built an internal lease benchmarking database that gives clients real-time market leverage"'
+    },
+    { 
+      key: 'mainService', 
+      label: 'How would you describe your main service or product?', 
+      placeholder: 'Lease negotiation', 
+      type: 'text', 
+      required: true,
+      description: 'We need to focus on your primary service or product to start. This is often the one you make the most revenue from. Be very specific. (Don\'t worry, we\'ll be adding your other services later).',
+      example: '"Lease negotiation", "Employment law advisory", "Implementing performance management systems"'
+    },
+    { 
+      key: 'whatYouDeliver', 
+      label: 'What do you actually deliver?', 
+      placeholder: 'Signed lease agreements with improved terms', 
+      type: 'textarea', 
+      required: true,
+      description: 'I need to know the 1-3 tangible outputs of what you do. Many prospects like "things" (They need to know what they\'re paying you for).',
+      example: '"Signed lease agreements with improved terms", "A fully-executed office relocation, including vendor coordination and move management"'
+    },
+    { 
+      key: 'topUseCases', 
+      label: 'What are the top 3 use cases of your service or product?', 
+      placeholder: 'Negotiating lease renewals', 
+      type: 'textarea', 
+      required: true,
+      description: 'These are practical applications of your offering that describe how you deliver value. These should be the most common or most loved way people use your service or product.',
+      example: '"Negotiating lease renewals", "Space strategy for hybrid work models", "Managing relocations and build-outs for new offices"'
+    },
+    { 
+      key: 'barriers', 
+      label: 'What are all the reasons someone would not take you up on your offer? What gets in their way?', 
+      placeholder: 'They\'re locked into long-term leases and don\'t see an immediate need', 
+      type: 'textarea', 
+      required: true,
+      description: 'I need to know this to help you proactively overcome these when I build your playbooks.',
+      example: '"They\'re locked into long-term leases and don\'t see an immediate need", "They believe they can handle negotiations internally"'
+    },
+    { 
+      key: 'whyMoveAway', 
+      label: 'Why should they move away from the status quo?', 
+      placeholder: 'You\'ll be able to show cost savings on leases leadership assumed were fixed', 
+      type: 'textarea', 
+      required: true,
+      description: 'Sometimes, your biggest competitor is inaction. The prospect understands your benefits at a high level, but it can\'t answer the "what\'s in it for them."',
+      example: '"You\'ll be able to show cost savings on leases leadership assumed were fixed", "You\'ll make faster, better decisions with clear data instead of guesswork"'
+    }
+  ],
   icp: [
-    { key: 'roleTitle', label: 'Role & Title: Who specifically makes the buying decision?', placeholder: 'Typically C-Level or VP-Level Executives...', type: 'textarea' },
-    { key: 'companyStage', label: 'Company Stage: Which company size, revenue range, or funding stage do you typically target?', placeholder: 'See Spreadsheet', type: 'textarea' },
-    { key: 'keyResponsibilities', label: 'Key Responsibilities: What do these decision-makers do on a day-to-day basis?', placeholder: 'Our Services are only needed during very finite portions...', type: 'textarea' },
-    { key: 'locationIndustry', label: 'Location & Industry: Are there geographic or vertical markets you focus on?', placeholder: 'Most of our services are concentrated on companies operating in North America...', type: 'textarea' },
-    { key: 'relationshipDynamics', label: 'Relationship Dynamics: How do these decision-makers prefer to be engaged?', placeholder: 'Quick view content, whitepapers, blogs, and other industry trends...', type: 'textarea' }
+    { 
+      key: 'seniorityLevel', 
+      label: 'Role Seniority & Titles: Who specifically makes the buying decision?', 
+      placeholder: 'Select seniority level', 
+      type: 'dropdown', 
+      required: true,
+      options: ['Owner', 'Founder', 'C suite', 'Partner', 'Vp', 'Head', 'Director', 'Manager', 'Senior', 'Entry', 'Intern'],
+      description: 'This is important for when we start building lists of people to target.',
+      example: 'VP / Director — VP of Corporate Real Estate, Director of Workplace Strategy'
+    },
+    { 
+      key: 'jobTitles', 
+      label: 'Specific Job Titles', 
+      placeholder: 'VP of Corporate Real Estate, Director of Workplace Strategy', 
+      type: 'text', 
+      required: true,
+      description: 'Provide the actual job titles of your decision-makers.',
+      example: 'VP of Corporate Real Estate, Director of Workplace Strategy'
+    },
+    { 
+      key: 'companySize', 
+      label: 'Which employee size, revenue range (or funding stage) do you typically work with?', 
+      placeholder: '1000–8,000 employees and $100M–$1B in annual revenue', 
+      type: 'text', 
+      required: true,
+      description: 'We don\'t want to target people who can\'t afford us, and we also don\'t want to target companies where the roles you just picked aren\'t personally involved in buying our services.',
+      example: '"1000–8,000 employees and $100M–$1B in annual revenue"'
+    },
+    { 
+      key: 'geographicMarkets', 
+      label: 'What geographic market(s) do you focus on?', 
+      placeholder: 'New York, Chicago, and San Francisco', 
+      type: 'text', 
+      required: true,
+      description: 'I don\'t want to launch campaigns in London if you can only service New York, Boston, and Philadelphia.',
+      example: '"New York, Chicago, and San Francisco"'
+    },
+    { 
+      key: 'preferredEngagement', 
+      label: 'How do these decision-makers prefer to be initially engaged?', 
+      placeholder: 'Email Outreach', 
+      type: 'text', 
+      required: true,
+      description: 'Think about how your contacts usually respond to you. Do they answer your calls? Respond to LinkedIn DMs? Email you back?',
+      example: '"Email Outreach", "LinkedIn DMs", "Phone calls", "In-person"'
+    },
+    { 
+      key: 'decisionMakerResponsibilities', 
+      label: 'What are the main responsibilities of the decision-makers you sell to?', 
+      placeholder: 'Overseeing property acquisitions, lease negotiations, and client portfolio management', 
+      type: 'textarea', 
+      required: true,
+      description: 'I need to know this to map the answers to my next questions to their daily realities.',
+      example: '"Overseeing property acquisitions, lease negotiations, and client portfolio management"'
+    },
+    { 
+      key: 'prospectChallenges', 
+      label: 'What are the main challenges or pain your prospects currently face?', 
+      placeholder: 'Difficulty optimizing their real estate footprint while reducing operational costs', 
+      type: 'textarea', 
+      required: true,
+      description: 'Identifying current problems helps me create targeted solutions to solve their problems.',
+      example: '"Difficulty optimizing their real estate footprint while reducing operational costs"'
+    }
   ],
-  icpSegments: [
-    { key: 'microSegments', label: 'Micro-Segments: Within your ICP, do you have sub-groups that buy for different reasons?', placeholder: 'Yes, depending on the target industry and campaign...', type: 'textarea' },
-    { key: 'highestLTGP', label: 'Highest Lifetime Gross Profit (LTGP): Which segment delivers the highest LTGP?', placeholder: 'Projects that utilize all of our core services are the largest profit driver...', type: 'textarea' },
-    { key: 'fastestToClose', label: 'Fastest to Close: Which segment moves through your pipeline quickest?', placeholder: 'The lifecycle of a project typically is 6 to 12 months...', type: 'textarea' },
-    { key: 'specialRequirements', label: 'Special Requirements: Do certain segments require compliance or specialized features?', placeholder: 'Enter any special requirements...', type: 'textarea' },
-    { key: 'tailoredMessaging', label: 'Tailored Messaging: What are the 1–2 key differentiators for each sub-group?', placeholder: 'We will provide our scripts and email templates...', type: 'textarea' }
+  socialProof: [
+    { 
+      key: 'proofPoints', 
+      label: 'Why should they believe you?', 
+      placeholder: 'Clients typically save 15–25% on occupancy costs through lease renegotiations and portfolio optimization', 
+      type: 'textarea', 
+      required: true,
+      description: 'Proof Points are key pieces of evidence seen across all customers — think quantifiable results like cost savings, x% performance improvements, or even qualitative metrics.',
+      example: '"Clients typically save 15–25% on occupancy costs through lease renegotiations and portfolio optimization"'
+    },
+    { 
+      key: 'clientReferences', 
+      label: 'Who has gotten these results?', 
+      placeholder: 'FedEx (https://www.fedex.com) reduced real estate costs by consolidating regional offices', 
+      type: 'textarea', 
+      required: true,
+      description: 'I need 1-3 client references to start. Creating detailed reference clients will help me showcase how real people are succeeding with our service (or product) offering.',
+      example: 'FedEx (https://www.fedex.com) reduced real estate costs by consolidating regional offices'
+    },
+    { 
+      key: 'competitors', 
+      label: 'Who else can solve this for them?', 
+      placeholder: 'CBRE — https://www.cbre.com', 
+      type: 'textarea', 
+      required: true,
+      description: 'I need a list of your competitors (at least 1–3 to start). All I need is the Company Name and Website.',
+      example: 'CBRE — https://www.cbre.com'
+    }
   ],
-  reasonsToBuy: [
-    { key: 'pastWins', label: 'Past Wins: Why have your top 5 customers historically chosen you over competitors?', placeholder: '1. Conflict free advisory services and solutions...', type: 'textarea' },
-    { key: 'compellingEvents', label: 'Compelling Events: What triggers urgency in their decision to purchase?', placeholder: 'There are triggering events such as a lease expiration...', type: 'textarea' },
-    { key: 'emotionalDrivers', label: 'Emotional Drivers: What emotional factors push them to say "yes"?', placeholder: 'Lack market knowledge or ability to find the information...', type: 'textarea' },
-    { key: 'competitiveEdge', label: 'Competitive Edge: What is one thing only you can do for them?', placeholder: 'Helping companies make unbiased location decisions...', type: 'textarea' },
-    { key: 'proofOutcomes', label: 'Proof & Outcomes: What hard data or results do you use to validate?', placeholder: 'Case studies, track records, client recommendations...', type: 'textarea' }
+  callToAction: [
+    { 
+      key: 'leadMagnet', 
+      label: 'What can we offer in exchange for someone interacting with us?', 
+      placeholder: 'An online lease savings calculator that shows how much they could save based on current square footage, headcount, and location', 
+      type: 'textarea', 
+      required: true,
+      description: 'We need to entice people with something tangible. They don\'t know us yet and have no reason to care unless we give them one.',
+      example: '"An online lease savings calculator that shows how much they could save based on current square footage, headcount, and location"'
+    },
+    { 
+      key: 'emailExample1', 
+      label: 'What emails have received positive responses in the past? Example 1', 
+      placeholder: 'Copy and paste your email example here...', 
+      type: 'textarea', 
+      required: true,
+      description: 'Share emails that have worked well for you in the past.',
+      example: 'Copy and paste your email example here...'
+    },
+    { 
+      key: 'emailExample2', 
+      label: 'What emails have received positive responses in the past? Example 2', 
+      placeholder: 'Copy and paste your email example here...', 
+      type: 'textarea', 
+      required: false,
+      description: 'Share another email that has worked well for you.',
+      example: 'Copy and paste your email example here...'
+    },
+    { 
+      key: 'emailExample3', 
+      label: 'What emails have received positive responses in the past? Example 3', 
+      placeholder: 'Copy and paste your email example here...', 
+      type: 'textarea', 
+      required: false,
+      description: 'Share a third email that has worked well for you.',
+      example: 'Copy and paste your email example here...'
+    }
   ],
-  dreamOutcome: [
-    { key: 'idealResult', label: 'Ideal Result: If your client woke up in 12 months with perfect outcome, what does that look like?', placeholder: 'Industrial – Our facility is fully operational...', type: 'textarea' },
-    { key: 'longTermValue', label: 'Long-Term Value: What\'s the impact on their revenue, time saved, or process improvement?', placeholder: 'Similar to the above.', type: 'textarea' },
-    { key: 'strategicAdvantage', label: 'Strategic Advantage: How does this "dream outcome" position them against competitors?', placeholder: 'SSG\'s strategic advice on where to locate allowed us...', type: 'textarea' },
-    { key: 'scalability', label: 'Scalability: How does success open up future growth opportunities?', placeholder: 'SSG allows us to be more scalable as we are able...', type: 'textarea' },
-    { key: 'visionAlignment', label: 'Vision Alignment: How does your solution tie into their broader vision?', placeholder: 'Creating a better workplace for their employees and customers', type: 'textarea' }
-  ],
-  problemsBarriers: [
-    { key: 'commonObjections', label: 'Common Objections: What do prospects usually say that stops them?', placeholder: '"We have a broker or someone who handles real estate already"', type: 'textarea' },
-    { key: 'internalRoadblocks', label: 'Internal Roadblocks: Are there political or organizational barriers?', placeholder: 'It is important that we are speaking to a decision maker...', type: 'textarea' },
-    { key: 'misconceptions', label: 'Misconceptions: Are there industry myths that hurt conversions?', placeholder: 'Sometimes people mistake us for a software as a service firm.', type: 'textarea' },
-    { key: 'technicalGaps', label: 'Technical Gaps: Do prospects worry about integrations or compatibility?', placeholder: 'No', type: 'textarea' },
-    { key: 'riskFactors', label: 'Risk Factors: What potential pitfalls make them hesitant?', placeholder: 'They think they can do it themselves inhouse.', type: 'textarea' }
-  ],
-  solutions: [
-    { key: 'keyDifferentiators', label: 'Key Differentiators: How does your product/service address major problems?', placeholder: 'SSG offers a broader service platform than a traditional...', type: 'textarea' },
-    { key: 'technicalIntegration', label: 'Technical Integration: What built-in integrations or APIs do you have?', placeholder: 'N/A', type: 'textarea' },
-    { key: 'implementationSupport', label: 'Implementation Support: How do you ensure smooth onboarding?', placeholder: 'N/A', type: 'textarea' },
-    { key: 'roiProofPoints', label: 'ROI Proof Points: What hard metrics or case studies do you share?', placeholder: 'Provided in marketing material and website content...', type: 'textarea' },
-    { key: 'futureProofing', label: 'Future-Proofing: How will your solution evolve to meet changing needs?', placeholder: 'We typically start with a pilot project...', type: 'textarea' }
-  ],
-  timeDelay: [
-    { key: 'averageDeploymentTimeline', label: 'Average Deployment Timeline: From contract signing to implementation?', placeholder: '1 week to have a kick off call. A typically engagement takes 6 to 12 months.', type: 'textarea' },
-    { key: 'initialWins', label: 'Initial Wins: When do clients start seeing noticeable results?', placeholder: 'We can typically provide some preliminary saving estimates...', type: 'textarea' },
-    { key: 'longTermResults', label: 'Long-Term Results: How long before they see full ROI?', placeholder: 'Our clients are easily break-even on the cost of our services...', type: 'textarea' },
-    { key: 'bottlenecks', label: 'Bottlenecks: What common delays occur in onboarding?', placeholder: 'The clients are not ready. Internal delays on their side.', type: 'textarea' },
-    { key: 'expeditedOptions', label: 'Expedited Options: Do you have "fast-track" pathways?', placeholder: 'We can circumvent project questionnaires and dive into the project...', type: 'textarea' }
-  ],
-  measurements: [
-    { key: 'coreMetrics', label: 'Core Metrics: Which 1–3 KPIs are most important for your clients?', placeholder: 'It depends on the project type...', type: 'textarea' },
-    { key: 'reportingCadence', label: 'Reporting Cadence: How often do clients expect updates?', placeholder: 'Varies by project type', type: 'textarea' },
-    { key: 'attributionModel', label: 'Attribution Model: How do they attribute success to your solution?', placeholder: '?', type: 'textarea' },
-    { key: 'leadingVsLaggingIndicators', label: 'Leading vs. Lagging Indicators: What leading indicators do they watch?', placeholder: 'CRE & DFW - Real estate vacancy rates...', type: 'textarea' },
-    { key: 'industryBenchmarks', label: 'Industry Benchmarks: Are there standard performance benchmarks?', placeholder: '???', type: 'textarea' }
-  ],
-  kpisCurrentResults: [
-    { key: 'currentBaseline', label: 'Current Baseline: What are their existing KPIs and where are they now?', placeholder: 'We target 200 warm leads per month with 70% conversion...', type: 'textarea' },
-    { key: 'historicalTrends', label: 'Historical Trends: How have these KPIs changed in the last 6–12 months?', placeholder: 'Slightly below', type: 'textarea' },
-    { key: 'targetsGoals', label: 'Targets & Goals: What are their short-term and long-term targets?', placeholder: 'Target 50% increase and warm leads and appointments', type: 'textarea' },
-    { key: 'conversionBreakdowns', label: 'Conversion Breakdowns: Which funnel stages are strongest and weakest?', placeholder: 'DFW and Economic Incentive campaigns perform the worst.', type: 'textarea' },
-    { key: 'gapAnalysis', label: 'Gap Analysis: What prevents them from hitting current KPIs?', placeholder: 'DFW is very competitive and our value proposition is relatively weak.', type: 'textarea' }
-  ],
-  techStack: [
-    { key: 'corePlatforms', label: 'Core Platforms: Which CRM, marketing automation tools do you use?', placeholder: 'Already provided.', type: 'textarea' },
-    { key: 'supportTools', label: 'Support Tools: Do you use LinkedIn automation, cold email tools?', placeholder: 'Already provided', type: 'textarea' },
-    { key: 'integrationStatus', label: 'Integration Status: How well are these tools integrated?', placeholder: 'Enter integration status...', type: 'textarea' },
-    { key: 'analyticsDashboards', label: 'Analytics & Dashboards: How do you aggregate metrics?', placeholder: 'Enter analytics setup...', type: 'textarea' },
-    { key: 'openaiUsage', label: 'OpenAI Usage: Have you experimented with AI-driven content?', placeholder: 'Enter AI usage details...', type: 'textarea' }
-  ],
-  teamMembers: [
-    { key: 'orgChart', label: 'Org Chart: Who\'s responsible for marketing, sales, ops, and analytics?', placeholder: 'King White, CEO oversees all of the above...', type: 'textarea' },
-    { key: 'keyDecisionMakers', label: 'Key Decision-Makers: Which team members have final say?', placeholder: 'King has final say on budget and strategy...', type: 'textarea' },
-    { key: 'skillGaps', label: 'Skill Gaps: Where might they lack expertise?', placeholder: 'Patrick is technically savvy when it comes to CRM\'s...', type: 'textarea' },
-    { key: 'trainingNeeds', label: 'Training Needs: Who needs ongoing training after implementation?', placeholder: 'Patrick will lead post-implementation functions too...', type: 'textarea' },
-    { key: 'handoffPlan', label: 'Handoff Plan: How do they prefer knowledge transfer?', placeholder: 'All of the above work but live trainings would likely go the farthest...', type: 'textarea' }
-  ],
-  outboundGTM: [
-    { key: 'bestCaseStudies', label: 'Best Case Studies: Company names and their stories', placeholder: 'Enter case study details...', type: 'textarea' },
-    { key: 'currentOffer', label: 'Current Offer: What do customers get in exchange for their money?', placeholder: 'We provide companies with services that allow them...', type: 'textarea' },
-    { key: 'clientAcquisitionSales', label: 'Client Acquisition & Sales: How are you getting new clients?', placeholder: 'We currently have a call center in the Dominican Republic...', type: 'textarea' },
-    { key: 'idealCustomerProfile', label: 'Ideal Customer Profile: Describe your ideal customer', placeholder: 'See Spreadsheet, varies based on industry.', type: 'textarea' },
-    { key: 'leadMagnet', label: 'Lead Magnet: What could your company offer for free?', placeholder: 'Enter lead magnet ideas...', type: 'textarea' },
-    { key: 'prospectingSignals', label: 'Prospecting Signals: What company signals indicate need?', placeholder: 'Enter prospecting signals...', type: 'textarea' },
-    { key: 'copywriting', label: 'Copywriting: Research and email writing approach', placeholder: 'Typically, we are researching their linkedin, company website...', type: 'textarea' }
+  brand: [
+    { 
+      key: 'brandDocuments', 
+      label: 'Upload any brand documents you have, such as: Tone of Voice, Brand Standards and Guidelines, Writing Guidelines, Core Values, Manifestos, Founder Story', 
+      placeholder: 'Upload your brand documents', 
+      type: 'file', 
+      required: false,
+      description: 'We shouldn\'t launch any campaigns or make social content that don\'t sound like you.',
+      example: 'Upload files like Tone of Voice, Brand Standards, Writing Guidelines, etc.'
+    },
+    { 
+      key: 'additionalFiles', 
+      label: 'You may have other files that didn\'t quite fit into my initial questions. Upload all of them here', 
+      placeholder: 'Upload additional files', 
+      type: 'file', 
+      required: false,
+      description: 'Upload any other relevant files that didn\'t fit into the previous questions.',
+      example: 'Upload any additional relevant files'
+    }
   ]
 };
 
@@ -217,6 +367,30 @@ export default function QuestionnaireForm({
                 rows={4}
                 required={field.required}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-fo-accent focus:border-fo-accent resize-vertical text-fo-primary"
+              />
+            ) : field.type === 'dropdown' ? (
+              <select
+                value={formData[field.key] || ''}
+                onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                required={field.required}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-fo-accent focus:border-fo-accent text-fo-primary"
+              >
+                <option value="">{field.placeholder}</option>
+                {field.options?.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            ) : field.type === 'file' ? (
+              <input
+                type="file"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files && files.length > 0) {
+                    handleFieldChange(field.key, Array.from(files).map(file => file.name).join(', '));
+                  }
+                }}
+                multiple
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-fo-accent focus:border-fo-accent text-fo-primary"
               />
             ) : (
               <input

@@ -14,18 +14,11 @@ export default function QuestionnairePage() {
   const sections = [
     { id: 'companyInfo', title: 'Company Information', description: 'Tell us about your company' },
     { id: 'serviceInfo', title: 'Service Information', description: 'Help us customize your Octave workspace' },
+    { id: 'basicInfo', title: 'Basic Information', description: 'Core business details and positioning' },
     { id: 'icp', title: 'ICP (Ideal Customer Profile)', description: 'Define your ideal customer profile' },
-    { id: 'icpSegments', title: 'ICP Segments', description: 'Break down your customer segments' },
-    { id: 'reasonsToBuy', title: 'Reasons to Buy', description: 'Understand what drives purchases' },
-    { id: 'dreamOutcome', title: 'Dream Outcome', description: 'Define the ideal client result' },
-    { id: 'problemsBarriers', title: 'Problems & Barriers', description: 'Identify common obstacles' },
-    { id: 'solutions', title: 'Your Solutions', description: 'Describe your solution approach' },
-    { id: 'timeDelay', title: 'Time Delay', description: 'Timeline and deployment expectations' },
-    { id: 'measurements', title: 'Measurements', description: 'How clients measure success' },
-    { id: 'kpisCurrentResults', title: 'KPIs & Current Results', description: 'Current performance metrics' },
-    { id: 'techStack', title: 'Existing Tech Stack', description: 'Current technology infrastructure' },
-    { id: 'teamMembers', title: 'Team Members', description: 'Organizational structure and roles' },
-    { id: 'outboundGTM', title: 'Outbound GTM Readiness', description: 'Go-to-market readiness assessment' }
+    { id: 'socialProof', title: 'Social Proof', description: 'Proof points and client references' },
+    { id: 'callToAction', title: 'Call to Action', description: 'Lead magnets and email examples' },
+    { id: 'brand', title: 'Your Brand', description: 'Brand documents and additional materials' }
   ];
 
   const handleNext = () => {
