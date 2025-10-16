@@ -238,7 +238,6 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'Share emails that have worked well for you in the past.',
-      example: '(make a box)',
       questionNumber: 23
     },
     { 
@@ -248,7 +247,6 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: false,
       description: 'Share another email that has worked well for you.',
-      example: '(make a box)',
       questionNumber: 24
     },
     { 
@@ -258,7 +256,6 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: false,
       description: 'Share a third email that has worked well for you.',
-      example: '(make a box)',
       questionNumber: 25
     }
   ],
@@ -334,7 +331,7 @@ export default function QuestionnaireForm({
             {field.example && (
               <p className="text-sm text-fo-text-secondary italic mb-3 bg-fo-light p-3 rounded border-l-4 border-fo-secondary">
                 <span className="font-medium text-fo-primary">Examples:</span><br />
-                {field.example}
+                <span style={{ whiteSpace: 'pre-line' }}>{field.example}</span>
               </p>
             )}
             
