@@ -37,7 +37,7 @@ export const createOctaveWorkspace = async (
 
     return response.data;
   } catch (_error) {
-    console.error('Error creating Octave workspace:', error);
+    console.error('Error creating Octave workspace:', _error);
     throw new Error('Failed to create Octave workspace');
   }
 };
