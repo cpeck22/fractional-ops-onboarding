@@ -36,7 +36,7 @@ export const createOctaveWorkspace = async (
     });
 
     return response.data;
-  } catch (error) {
+  } catch (_error) {
     console.error('Error creating Octave workspace:', error);
     throw new Error('Failed to create Octave workspace');
   }
@@ -53,7 +53,7 @@ interface User {
 }
 
 // In-memory user storage (in production, this would be a database)
-let users: User[] = [
+const users: User[] = [
   {
     id: '1',
     username: 'revops.client@fractionalops.com',
@@ -107,7 +107,7 @@ export const createUser = async (userData: {
       message: 'Account created successfully! You can now log in.',
       userId: newUser.id
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, message: 'Failed to create account. Please try again.' };
   }
 };
