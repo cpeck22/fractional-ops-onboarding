@@ -9,6 +9,13 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Fractional Ops - Client Onboarding',
   description: 'Streamlined client onboarding for Fractional Ops revenue services',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: ['/icon.svg'],
+    apple: ['/icon.svg'],
+  },
 }
 
 export default function RootLayout({

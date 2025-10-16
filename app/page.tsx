@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import LoginForm from '@/components/LoginForm';
 import SignupForm from '@/components/SignupForm';
+import Logo from './Fractional-Ops_Symbol_Main.png';
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -28,8 +30,14 @@ export default function Home() {
     <main className="min-h-screen flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-fo-primary to-fo-accent rounded-full flex items-center justify-center">
-            <span className="text-white text-2xl font-bold">FO</span>
+          <div className="mx-auto h-16 w-16">
+            <Image
+              src={Logo}
+              alt="Fractional Ops logo"
+              width={64}
+              height={64}
+              priority
+            />
           </div>
           <h2 className="mt-6 text-3xl font-bold text-fo-primary">
             Welcome to Fractional Ops

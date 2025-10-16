@@ -189,9 +189,10 @@ export default function QuestionnaireForm({
       </div>
 
       <div className="space-y-6">
-        {fields.map((field) => (
+        {fields.map((field, index) => (
           <div key={field.key} className="bg-white p-6 rounded-lg border border-gray-200">
             <label className="block text-sm font-medium text-fo-secondary mb-2">
+              {`Question ${index + 1}: `}
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
