@@ -17,91 +17,40 @@ const sectionTitles = [
     { key: 'commonProblems', label: 'Common Problems' },
     { key: 'serviceDescription', label: 'Service Description' }
   ]},
+  { id: 'basicInfo', title: 'Basic Information', fields: [
+    { key: 'industry', label: 'Industry' },
+    { key: 'whatYouDo', label: 'What You Do' },
+    { key: 'howYouDoIt', label: 'How You Do It' },
+    { key: 'uniqueValue', label: 'Unique Value' },
+    { key: 'mainService', label: 'Main Service' },
+    { key: 'whatYouDeliver', label: 'What You Deliver' },
+    { key: 'topUseCases', label: 'Top Use Cases' },
+    { key: 'barriers', label: 'Barriers' },
+    { key: 'whyMoveAway', label: 'Why Move Away' }
+  ]},
   { id: 'icp', title: 'ICP (Ideal Customer Profile)', fields: [
-    { key: 'roleTitle', label: 'Role & Title' },
-    { key: 'companyStage', label: 'Company Stage' },
-    { key: 'keyResponsibilities', label: 'Key Responsibilities' },
-    { key: 'locationIndustry', label: 'Location & Industry' },
-    { key: 'relationshipDynamics', label: 'Relationship Dynamics' }
+    { key: 'seniorityLevel', label: 'Seniority Level' },
+    { key: 'jobTitles', label: 'Job Titles' },
+    { key: 'companySize', label: 'Company Size' },
+    { key: 'geographicMarkets', label: 'Geographic Markets' },
+    { key: 'preferredEngagement', label: 'Preferred Engagement' },
+    { key: 'decisionMakerResponsibilities', label: 'Decision Maker Responsibilities' },
+    { key: 'prospectChallenges', label: 'Prospect Challenges' }
   ]},
-  { id: 'icpSegments', title: 'ICP Segments', fields: [
-    { key: 'microSegments', label: 'Micro-Segments' },
-    { key: 'highestLTGP', label: 'Highest Lifetime Gross Profit' },
-    { key: 'fastestToClose', label: 'Fastest to Close' },
-    { key: 'specialRequirements', label: 'Special Requirements' },
-    { key: 'tailoredMessaging', label: 'Tailored Messaging' }
+  { id: 'socialProof', title: 'Social Proof', fields: [
+    { key: 'proofPoints', label: 'Proof Points' },
+    { key: 'clientReferences', label: 'Client References' },
+    { key: 'competitors', label: 'Competitors' }
   ]},
-  { id: 'reasonsToBuy', title: 'Reasons to Buy', fields: [
-    { key: 'pastWins', label: 'Past Wins' },
-    { key: 'compellingEvents', label: 'Compelling Events' },
-    { key: 'emotionalDrivers', label: 'Emotional Drivers' },
-    { key: 'competitiveEdge', label: 'Competitive Edge' },
-    { key: 'proofOutcomes', label: 'Proof & Outcomes' }
-  ]},
-  { id: 'dreamOutcome', title: 'Dream Outcome', fields: [
-    { key: 'idealResult', label: 'Ideal Result' },
-    { key: 'longTermValue', label: 'Long-Term Value' },
-    { key: 'strategicAdvantage', label: 'Strategic Advantage' },
-    { key: 'scalability', label: 'Scalability' },
-    { key: 'visionAlignment', label: 'Vision Alignment' }
-  ]},
-  { id: 'problemsBarriers', title: 'Problems & Barriers', fields: [
-    { key: 'commonObjections', label: 'Common Objections' },
-    { key: 'internalRoadblocks', label: 'Internal Roadblocks' },
-    { key: 'misconceptions', label: 'Misconceptions' },
-    { key: 'technicalGaps', label: 'Technical Gaps' },
-    { key: 'riskFactors', label: 'Risk Factors' }
-  ]},
-  { id: 'solutions', title: 'Your Solutions', fields: [
-    { key: 'keyDifferentiators', label: 'Key Differentiators' },
-    { key: 'technicalIntegration', label: 'Technical Integration' },
-    { key: 'implementationSupport', label: 'Implementation Support' },
-    { key: 'roiProofPoints', label: 'ROI Proof Points' },
-    { key: 'futureProofing', label: 'Future-Proofing' }
-  ]},
-  { id: 'timeDelay', title: 'Time Delay', fields: [
-    { key: 'averageDeploymentTimeline', label: 'Average Deployment Timeline' },
-    { key: 'initialWins', label: 'Initial Wins' },
-    { key: 'longTermResults', label: 'Long-Term Results' },
-    { key: 'bottlenecks', label: 'Bottlenecks' },
-    { key: 'expeditedOptions', label: 'Expedited Options' }
-  ]},
-  { id: 'measurements', title: 'Measurements', fields: [
-    { key: 'coreMetrics', label: 'Core Metrics' },
-    { key: 'reportingCadence', label: 'Reporting Cadence' },
-    { key: 'attributionModel', label: 'Attribution Model' },
-    { key: 'leadingVsLaggingIndicators', label: 'Leading vs. Lagging Indicators' },
-    { key: 'industryBenchmarks', label: 'Industry Benchmarks' }
-  ]},
-  { id: 'kpisCurrentResults', title: 'KPIs & Current Results', fields: [
-    { key: 'currentBaseline', label: 'Current Baseline' },
-    { key: 'historicalTrends', label: 'Historical Trends' },
-    { key: 'targetsGoals', label: 'Targets & Goals' },
-    { key: 'conversionBreakdowns', label: 'Conversion Breakdowns' },
-    { key: 'gapAnalysis', label: 'Gap Analysis' }
-  ]},
-  { id: 'techStack', title: 'Existing Tech Stack', fields: [
-    { key: 'corePlatforms', label: 'Core Platforms' },
-    { key: 'supportTools', label: 'Support Tools' },
-    { key: 'integrationStatus', label: 'Integration Status' },
-    { key: 'analyticsDashboards', label: 'Analytics & Dashboards' },
-    { key: 'openaiUsage', label: 'OpenAI Usage' }
-  ]},
-  { id: 'teamMembers', title: 'Team Members', fields: [
-    { key: 'orgChart', label: 'Org Chart' },
-    { key: 'keyDecisionMakers', label: 'Key Decision-Makers' },
-    { key: 'skillGaps', label: 'Skill Gaps' },
-    { key: 'trainingNeeds', label: 'Training Needs' },
-    { key: 'handoffPlan', label: 'Handoff Plan' }
-  ]},
-  { id: 'outboundGTM', title: 'Outbound GTM Readiness', fields: [
-    { key: 'bestCaseStudies', label: 'Best Case Studies' },
-    { key: 'currentOffer', label: 'Current Offer' },
-    { key: 'clientAcquisitionSales', label: 'Client Acquisition & Sales' },
-    { key: 'idealCustomerProfile', label: 'Ideal Customer Profile' },
+  { id: 'callToAction', title: 'Call to Action', fields: [
     { key: 'leadMagnet', label: 'Lead Magnet' },
-    { key: 'prospectingSignals', label: 'Prospecting Signals' },
-    { key: 'copywriting', label: 'Copywriting' }
+    { key: 'emailExample1', label: 'Email Example 1' },
+    { key: 'emailExample2', label: 'Email Example 2' },
+    { key: 'emailExample3', label: 'Email Example 3' }
+  ]},
+  { id: 'brand', title: 'Your Brand', fields: [
+    { key: 'brandDocuments', label: 'Brand Documents' },
+    { key: 'additionalFiles', label: 'Additional Files' }
   ]}
 ];
 
@@ -170,14 +119,27 @@ export default function ReviewPage() {
                     {index + 1}. {section.title}
                   </h3>
                   <div className="space-y-3 text-sm">
-                    {section.fields.map((field) => (
-                      <div key={field.key}>
-                        <span className="font-medium text-fo-secondary">{field.label}:</span>
-                        <p className="text-gray-700 mt-1 whitespace-pre-wrap">
-                          {sectionData?.[field.key] || 'Not provided'}
-                        </p>
-                      </div>
-                    ))}
+                    {section.fields.map((field) => {
+                      const value = sectionData?.[field.key];
+                      let displayValue = 'Not provided';
+                      
+                      if (value) {
+                        if (Array.isArray(value)) {
+                          displayValue = value.join(', ');
+                        } else {
+                          displayValue = value;
+                        }
+                      }
+                      
+                      return (
+                        <div key={field.key}>
+                          <span className="font-medium text-fo-secondary">{field.label}:</span>
+                          <p className="text-gray-700 mt-1 whitespace-pre-wrap">
+                            {displayValue}
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                   {index < sectionTitles.length - 1 && (
                     <div className="border-t border-gray-200 mt-6"></div>

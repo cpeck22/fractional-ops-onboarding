@@ -160,7 +160,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Select seniority levels', 
       type: 'multiselect', 
       required: true,
-      options: ['Owner', 'Founder', 'C suite', 'Partner', 'Vp', 'Head', 'Director', 'Manager', 'Senior', 'Entry', 'Intern'],
+      options: ['Owner', 'Founder', 'C-Suite', 'Partner', 'Vp', 'Head', 'Director', 'Manager', 'Senior', 'Entry', 'Intern'],
       description: 'This is important for when we start building lists of people to target.',
       example: 'VP / Director — VP of Corporate Real Estate, Director of Workplace Strategy'
     },
