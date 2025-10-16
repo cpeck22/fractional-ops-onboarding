@@ -1,5 +1,5 @@
 export interface QuestionnaireData {
-  // Company Information (Required)
+  // Company Information (Required for Octave API)
   companyInfo: {
     companyName: string;
     companyDomain: string;
@@ -14,114 +14,49 @@ export interface QuestionnaireData {
     serviceDescription: string;
   };
 
-  // Section 1: ICP (Ideal Customer Profile)
+  // Basic Information (Corey's Section 1)
+  basicInfo: {
+    industry: string;
+    whatYouDo: string;
+    howYouDoIt: string;
+    uniqueValue: string;
+    mainService: string;
+    whatYouDeliver: string;
+    topUseCases: string;
+    barriers: string;
+    whyMoveAway: string;
+  };
+
+  // ICP (Ideal Customer Profile) (Corey's Section 2)
   icp: {
-    roleTitle: string;
-    companyStage: string;
-    keyResponsibilities: string;
-    locationIndustry: string;
-    relationshipDynamics: string;
+    seniorityLevel: string[];
+    jobTitles: string;
+    companySize: string;
+    geographicMarkets: string;
+    preferredEngagement: string;
+    decisionMakerResponsibilities: string;
+    prospectChallenges: string;
   };
 
-  // Section 2: ICP Segments
-  icpSegments: {
-    microSegments: string;
-    highestLTGP: string;
-    fastestToClose: string;
-    specialRequirements: string;
-    tailoredMessaging: string;
+  // Social Proof (Corey's Section 3)
+  socialProof: {
+    proofPoints: string;
+    clientReferences: string;
+    competitors: string;
   };
 
-  // Section 3: ICP Reasons to Buy (RTB)
-  reasonsToBuy: {
-    pastWins: string;
-    compellingEvents: string;
-    emotionalDrivers: string;
-    competitiveEdge: string;
-    proofOutcomes: string;
-  };
-
-  // Section 4: ICP Dream Outcome
-  dreamOutcome: {
-    idealResult: string;
-    longTermValue: string;
-    strategicAdvantage: string;
-    scalability: string;
-    visionAlignment: string;
-  };
-
-  // Section 5: Problems/Barriers
-  problemsBarriers: {
-    commonObjections: string;
-    internalRoadblocks: string;
-    misconceptions: string;
-    technicalGaps: string;
-    riskFactors: string;
-  };
-
-  // Section 6: Your Solutions
-  solutions: {
-    keyDifferentiators: string;
-    technicalIntegration: string;
-    implementationSupport: string;
-    roiProofPoints: string;
-    futureProofing: string;
-  };
-
-  // Section 7: Time Delay
-  timeDelay: {
-    averageDeploymentTimeline: string;
-    initialWins: string;
-    longTermResults: string;
-    bottlenecks: string;
-    expeditedOptions: string;
-  };
-
-  // Section 8: Measurements
-  measurements: {
-    coreMetrics: string;
-    reportingCadence: string;
-    attributionModel: string;
-    leadingVsLaggingIndicators: string;
-    industryBenchmarks: string;
-  };
-
-  // Section 9: KPIs and Current Results
-  kpisCurrentResults: {
-    currentBaseline: string;
-    historicalTrends: string;
-    targetsGoals: string;
-    conversionBreakdowns: string;
-    gapAnalysis: string;
-  };
-
-  // Section 10: Existing Tech Stack
-  techStack: {
-    corePlatforms: string;
-    supportTools: string;
-    integrationStatus: string;
-    analyticsDashboards: string;
-    openaiUsage: string;
-  };
-
-  // Section 11: Existing Team Members
-  teamMembers: {
-    orgChart: string;
-    keyDecisionMakers: string;
-    skillGaps: string;
-    trainingNeeds: string;
-    handoffPlan: string;
-  };
-
-  // Section 12: Outbound GTM Readiness Due Diligence
-  outboundGTM: {
-    bestCaseStudies: string;
-    currentOffer: string;
-    clientAcquisitionSales: string;
-    idealCustomerProfile: string;
+  // Call to Action (Corey's Section 4)
+  callToAction: {
     leadMagnet: string;
-    prospectingSignals: string;
-    copywriting: string;
+    emailExample1: string;
+    emailExample2: string;
+    emailExample3: string;
+  };
+
+  // Brand (Corey's Section 5)
+  brand: {
+    brandDocuments: string;
+    additionalFiles: string;
   };
 }
 
