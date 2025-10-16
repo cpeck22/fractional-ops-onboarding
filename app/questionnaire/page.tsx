@@ -66,8 +66,8 @@ export default function QuestionnairePage() {
             ></div>
           </div>
           <div className="flex justify-between text-sm text-fo-text-secondary mt-2 font-medium">
-            <span>Progress</span>
-            <span>{Math.round(((currentSection + 1) / sections.length) * 100)}%</span>
+            <span>Estimated Time To Finish: {Math.round((25 * (sections.length - currentSection - 1)) / sections.length)} minutes</span>
+            <span>{Math.round(((sections.length - currentSection - 1) / sections.length) * 100)}% Remaining</span>
           </div>
         </div>
 
