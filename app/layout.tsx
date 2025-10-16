@@ -12,9 +12,10 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/Fractional-Ops_Symbol_Main.png', type: 'image/png', sizes: '512x512' },
     ],
-    shortcut: ['/icon.svg'],
-    apple: ['/icon.svg'],
+    shortcut: ['/icon.svg', '/Fractional-Ops_Symbol_Main.png'],
+    apple: ['/Fractional-Ops_Symbol_Main.png'],
   },
 }
 
