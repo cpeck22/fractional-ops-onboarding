@@ -31,7 +31,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'This helps me understand your business context and create industry-specific solutions.',
-      example: '"Corporate Real Estate Services", "Legal Services", "HR Consulting Services"',
+      example: '"Corporate Real Estate Services"\n"Legal Services"\n"HR Consulting Services"',
       questionNumber: 3
     },
     { 
@@ -41,7 +41,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I\'ll build this out in way more detail for you behind the scenes, but I just need the basics for now.',
-      example: '"We help companies find and set up offices so their teams have a good place to work and they don\'t waste money."',
+      example: '"We help companies find and set up offices so their teams have a good place to work and they don\'t waste money."\n"We help companies make sure their business deals and contracts are done the right way so they don\'t get into trouble."\n"We help companies fix how they hire, manage, and grow their teams so people actually enjoy working there."',
       questionNumber: 4
     },
     { 
@@ -51,7 +51,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'Again, I just need the basics in plain English for now.',
-      example: '"We look at all the offices a company has, figure out which ones cost too much or don\'t work well, and help them find better spaces or better deals."',
+      example: '"We look at all the offices a company has, figure out which ones cost too much or don\'t work well, and help them find better spaces or better deals."\n"We read the contracts and rules for the company, make sure everything is fair and legal, and help them fix anything that could cause problems later."\n"We talk to the company\'s leaders, see what\'s not working with their people, and help them set up better ways to hire, manage, and grow their teams."',
       questionNumber: 5
     },
     { 
@@ -61,7 +61,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need to know what actually sets you apart. This isn\'t aspirational. I need to know the real answer.',
-      example: '"We built an internal lease benchmarking database that gives clients real-time market leverage"',
+      example: '"We built an internal lease benchmarking database that gives clients real-time market leverage"\n"We use a proprietary risk assessment model to identify compliance gaps faster than traditional methods"\n"We developed a repeatable framework for diagnosing and restructuring underperforming teams in under 30 days"',
       questionNumber: 6
     },
     { 
@@ -71,7 +71,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'We need to focus on your primary service or product to start. This is often the one you make the most revenue from. Be very specific. (Don\'t worry, we\'ll be adding your other services later).',
-      example: '"Lease negotiation", "Employment law advisory", "Implementing performance management systems"',
+      example: '"Lease negotiation"\n"Employment law advisory"\n"Implementing performance management systems"',
       questionNumber: 7
     },
     { 
@@ -80,8 +80,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Signed lease agreements with improved terms', 
       type: 'textarea', 
       required: true,
-      description: 'I need to know the 1-3 tangible outputs of what you do. Many prospects like "things" (They need to know what they\'re paying you for).',
-      example: '"Signed lease agreements with improved terms", "A fully-executed office relocation, including vendor coordination and move management"',
+      description: 'I need to know the 1-3 tangible outputs of what you do. Many prospects like "things" (They need to know what they\'re paying you for). Remember, this isn\'t your Service or Product — it\'s the output of your services or products.',
+      example: 'From a Corporate Real Estate Services company:\n"Signed lease agreements with improved terms"\n"A fully-executed office relocation, including vendor coordination and move management"\n"An implemented space management system with live floor plans and seat assignments"\n\nFrom a Legal Services company:\n"Finalized and executed commercial contracts"\n"A completed legal entity structure, ready for launch"\n"Clean cap tables and board consents prepared for an upcoming raise"\n\nFrom a HR Consulting Services company:\n"A live performance review tool running inside their HRIS"\n"New compensation bands rolled out to managers and employees"\n"A working onboarding flow with automated tasks and templates"',
       questionNumber: 8
     },
     { 
@@ -91,7 +91,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'These are practical applications of your offering that describe how you deliver value. These should be the most common or most loved way people use your service or product.',
-      example: '"Negotiating lease renewals", "Space strategy for hybrid work models", "Managing relocations and build-outs for new offices"',
+      example: 'From a Corporate Real Estate Services company:\n"Negotiating lease renewals"\n"Space strategy for hybrid work models"\n"Managing relocations and build-outs for new offices"\n\nFrom a Legal Services company:\n"Advising on M&A transactions and due diligence"\n"Drafting and reviewing commercial contracts"\n"Providing ongoing legal counsel for corporate governance"\n\nFrom a HR Consulting Services company:\n"Redesigning performance management systems"\n"Installing structured compensation plans"\n"Creating Interview Templates"',
       questionNumber: 9
     },
     { 
@@ -101,7 +101,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need to know this to help you proactively overcome these when I build your playbooks.',
-      example: '"They\'re locked into long-term leases and don\'t see an immediate need", "They believe they can handle negotiations internally"',
+      example: 'From a Corporate Real Estate Services company:\n"They\'re locked into long-term leases and don\'t see an immediate need"\n"They believe they can handle negotiations internally"\n"They think switching providers will create too much disruption"\n\nFrom a Legal Services company:\n"They already have in-house counsel and don\'t see the value in external support"\n"They\'re concerned about high hourly rates and unpredictable costs"\n"They think legal help is only needed reactively, not proactively"\n\nFrom a HR Consulting Services company:\n"They believe their internal HR team can handle it"\n"They think results will take too long"\n"They\'ve had a bad experience with a previous HR vendor"',
       questionNumber: 10
     },
     { 
@@ -110,8 +110,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'You\'ll be able to show cost savings on leases leadership assumed were fixed', 
       type: 'textarea', 
       required: true,
-      description: 'Sometimes, your biggest competitor is inaction. The prospect understands your benefits at a high level, but it can\'t answer the "what\'s in it for them."',
-      example: '"You\'ll be able to show cost savings on leases leadership assumed were fixed", "You\'ll make faster, better decisions with clear data instead of guesswork"',
+      description: 'Sometimes, your biggest competitor is inaction. The prospect understands your benefits at a high level, but it can\'t answer the "what\'s in it for them." How would you paint a picture of the future in a way that makes it impossible for your prospect to avoid learning more? What\'s in it for them?',
+      example: 'From a Corporate Real Estate Services company:\n"You\'ll be able to show cost savings on leases leadership assumed were fixed"\n"You\'ll make faster, better decisions with clear data instead of guesswork"\n"You\'ll reduce time spent managing deals and vendors"\n\nFrom a Legal Services company:\n"You\'ll spend less time reviewing low-risk contracts and more on strategic work"\n"You\'ll manage legal costs with more predictability"\n"You\'ll reduce deal delays tied to legal backlogs"\n\nFrom a HR Consulting Services company:\n"You\'ll stop repeating the same performance and engagement issues"\n"You\'ll show clear metrics to prove HR\'s impact"\n"You\'ll recover credibility after a past failed HR initiative"',
       questionNumber: 11
     }
   ],
@@ -124,7 +124,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       required: true,
       options: ['Owner', 'Founder', 'C-Suite', 'Partner', 'Vp', 'Head', 'Director', 'Manager', 'Senior', 'Entry', 'Intern'],
       description: 'This is important for when we start building lists of people to target.',
-      example: 'VP / Director — VP of Corporate Real Estate, Director of Workplace Strategy',
+      example: 'VP / Director — VP of Corporate Real Estate, Director of Workplace Strategy\nManaging Partner / Senior Partner — Managing Partner, Head of Employment Law\nC-Suite / Director — Chief People Officer, Director of HR Strategy',
       questionNumber: 12
     },
     { 
@@ -144,7 +144,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'We don\'t want to target people who can\'t afford us, and we also don\'t want to target companies where the roles you just picked aren\'t personally involved in buying our services.',
-      example: '"1000–8,000 employees and $100M–$1B in annual revenue"',
+      example: '"1000–8,000 employees and $100M–$1B in annual revenue"\n"100-200 employees $15-30M in annual revenue"\n"200–1,000 employees, Series A or higher"',
       questionNumber: 14
     },
     { 
@@ -154,7 +154,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'I don\'t want to launch campaigns in London if you can only service New York, Boston, and Philadelphia.',
-      example: '"New York, Chicago, and San Francisco"',
+      example: '"New York, Chicago, and San Francisco"\n"Northeast U.S., primarily Boston and Philadelphia"\n"National coverage across the U.S. and major Canadian cities"',
       questionNumber: 15
     },
     { 
@@ -164,7 +164,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'Think about how your contacts usually respond to you. Do they answer your calls? Respond to LinkedIn DMs? Email you back?',
-      example: '"Email Outreach", "LinkedIn DMs", "Phone calls", "In-person"',
+      example: '"Email Outreach"\n"LinkedIn DMs"\n"Phone calls"\n"In-person"',
       questionNumber: 16
     },
     { 
@@ -174,7 +174,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need to know this to map the answers to my next questions to their daily realities.',
-      example: '"Overseeing property acquisitions, lease negotiations, and client portfolio management"',
+      example: '"Overseeing property acquisitions, lease negotiations, and client portfolio management"\n"Managing litigation strategy, client relationships, and legal compliance"\n"Advising clients on workforce strategy, overseeing talent assessments, and ensuring compliance with HR regulations"',
       questionNumber: 17
     },
     { 
@@ -184,7 +184,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'Identifying current problems helps me create targeted solutions to solve their problems.',
-      example: '"Difficulty optimizing their real estate footprint while reducing operational costs"',
+      example: '"Difficulty optimizing their real estate footprint while reducing operational costs"\n"Navigating complex legal issues without in-house counsel or specialized expertise"\n"Struggling to build scalable HR processes during periods of rapid growth"',
       questionNumber: 18
     }
   ],
@@ -195,8 +195,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Clients typically save 15–25% on occupancy costs through lease renegotiations and portfolio optimization', 
       type: 'textarea', 
       required: true,
-      description: 'Proof Points are key pieces of evidence seen across all customers — think quantifiable results like cost savings, x% performance improvements, or even qualitative metrics.',
-      example: '"Clients typically save 15–25% on occupancy costs through lease renegotiations and portfolio optimization"',
+      description: 'Proof Points are key pieces of evidence seen across all customers — think quantifiable results like cost savings, x% performance improvements, or even qualitative metrics. Ultimately, these are positive business outcomes you\'ve achieved for similar people.',
+      example: 'From a Corporate Real Estate Services company:\n"Clients typically save 15–25% on occupancy costs through lease renegotiations and portfolio optimization"\n"Average lease cycle times reduced by 30–40% with our transaction management process"\n"Most clients see a 20% improvement in space utilization after implementing our hybrid workplace strategies"\n\nFrom a Legal Services company:\n"Clients reduce contract turnaround time by 25–35% using our standardized templates and workflows"\n"On average, we help clients identify and mitigate legal risks that could result in $250K+ in exposure"\n"We consistently support M&A transactions with 100% on-time closings and full compliance"\n\nFrom an HR Consulting Services company:\n"Clients often see a 15–20% improvement in employee engagement within the first 6 months"\n"Time-to-hire is typically reduced by 30% after implementing our process improvements"\n"Most clients scale headcount 2–4x without a drop in performance or culture"',
       questionNumber: 19
     },
     { 
@@ -205,8 +205,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'FedEx (https://www.fedex.com) reduced real estate costs by consolidating regional offices', 
       type: 'textarea', 
       required: true,
-      description: 'I need 1-3 client references to start. Creating detailed reference clients will help me showcase how real people are succeeding with our service (or product) offering.',
-      example: 'FedEx (https://www.fedex.com) reduced real estate costs by consolidating regional offices',
+      description: 'I need 1-3 client references to start. Creating detailed reference clients will help me showcase how real people are succeeding with our service (or product) offering. I need you to either name the actual client and give me their website (I\'ll can gather more details behind the scenes for you) or if you can\'t name them, just describe them. If actually naming them, I need this format: [Client\'s Company Name] (Client\'s website url) [Describe the result]',
+      example: 'From a Corporate Real Estate Services company:\nFedEx (https://www.fedex.com) reduced real estate costs by consolidating regional offices\nA global financial services firm with 10,000+ employees — Improved lease cycle time by over 30%\nA fast-growing tech company with offices in 12 U.S. cities — Scaled their real estate footprint to support 3x headcount growth\n\nFrom a Legal Services company:\nA mid-market SaaS company in the healthcare space — Closed a $100M acquisition with no compliance issues\nA private equity firm with $2B AUM — Standardized portfolio company contracts across 6 entities\nA National logistics company — Reduced legal review turnaround time by 35% through process streamlining\n\nFrom an HR Consulting Services company:\nShopify (https://www.shopify.com) improved employee engagement scores by 18% in 6 months\nA PE-backed manufacturing company — Designed a performance review system used across 5 plants\nA professional services firm post-acquisition — Unified two teams under one talent framework in under 90 days',
       questionNumber: 20
     },
     { 
@@ -216,7 +216,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need a list of your competitors (at least 1–3 to start). All I need is the Company Name and Website.',
-      example: 'CBRE — https://www.cbre.com',
+      example: 'From a Corporate Real Estate Services company:\nCBRE — https://www.cbre.com\nJLL — https://www.us.jll.com\nCushman & Wakefield — https://www.cushmanwakefield.com\n\nFrom a Legal Services company:\nWilson Sonsini — https://www.wsgr.com\nCooley LLP — https://www.cooley.com\nLatham & Watkins — https://www.lw.com\n\nFrom an HR Consulting Services company:\nMercer — https://www.mercer.com\nKorn Ferry — https://www.kornferry.com\nGallup — https://www.gallup.com',
       questionNumber: 21
     }
   ],
@@ -227,45 +227,45 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'An online lease savings calculator that shows how much they could save based on current square footage, headcount, and location', 
       type: 'textarea', 
       required: true,
-      description: 'We need to entice people with something tangible. They don\'t know us yet and have no reason to care unless we give them one.',
-      example: '"An online lease savings calculator that shows how much they could save based on current square footage, headcount, and location"',
+      description: 'We need to entice people with something tangible. They don\'t know us yet and have no reason to care unless we give them one. These could be as simple as a proprietary report or as big as a complementary service. Some people refer to these as "Lead Magnets." The best versions of these are something that you have actually charged for, that you can give away for free. And ideally something that you have (or could) charge $2–10k for. The worst versions are "audits". From your last answers, I already know you\'re great, but these prospects don\'t know you, so they won\'t care about a service from an unproven and unknown random (even if it\'s free). PS. Don\'t worry, if you only have the simple ones right now (like white papers or reports), I\'ll help you operationalize these into something more valuable later.',
+      example: '"An online lease savings calculator that shows how much they could save based on current square footage, headcount, and location"\n"A deal checklist and data room folder structure we use to prep companies for M&A — fully editable and ready to use"\n"A complete performance review toolkit with templates, timelines, and manager guides that automatically integrates into your HRIS"',
       questionNumber: 22
     },
     { 
       key: 'emailExample1', 
-      label: 'What emails have received positive responses in the past? Example 1', 
+      label: 'What emails have received positive responses in the past? Copy and paste the examples below: Example 1', 
       placeholder: 'Copy and paste your email example here...', 
       type: 'textarea', 
       required: true,
       description: 'Share emails that have worked well for you in the past.',
-      example: 'Copy and paste your email example here...',
+      example: '(make a box)',
       questionNumber: 23
     },
     { 
       key: 'emailExample2', 
-      label: 'What emails have received positive responses in the past? Example 2', 
+      label: 'What emails have received positive responses in the past? Copy and paste the examples below: Example 2', 
       placeholder: 'Copy and paste your email example here...', 
       type: 'textarea', 
       required: false,
       description: 'Share another email that has worked well for you.',
-      example: 'Copy and paste your email example here...',
+      example: '(make a box)',
       questionNumber: 24
     },
     { 
       key: 'emailExample3', 
-      label: 'What emails have received positive responses in the past? Example 3', 
+      label: 'What emails have received positive responses in the past? Copy and paste the examples below: Example 3', 
       placeholder: 'Copy and paste your email example here...', 
       type: 'textarea', 
       required: false,
       description: 'Share a third email that has worked well for you.',
-      example: 'Copy and paste your email example here...',
+      example: '(make a box)',
       questionNumber: 25
     }
   ],
   brand: [
     { 
       key: 'brandDocuments', 
-      label: 'Upload any brand documents you have, such as: Tone of Voice, Brand Standards and Guidelines, Writing Guidelines, Core Values, Manifestos, Founder Story', 
+      label: 'Almost done (I promise). I need to know how you speak! We shouldn\'t launch any campaigns or make social content that don\'t sound like you. This step is simple: just upload any brand documents you have, such as: Tone of Voice, Brand Standards and Guidelines, Writing Guidelines, Core Values, Manifestos, Founder Story', 
       placeholder: 'Upload your brand documents', 
       type: 'file', 
       required: false,
@@ -275,7 +275,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     },
     { 
       key: 'additionalFiles', 
-      label: 'You may have other files that didn\'t quite fit into my initial questions. Upload all of them here', 
+      label: '…and what else? You may have other files that didn\'t quite fit into my initial questions. Upload all of them here👇', 
       placeholder: 'Upload additional files', 
       type: 'file', 
       required: false,
