@@ -13,6 +13,7 @@ export default function QuestionnairePage() {
 
   const sections = [
     { id: 'companyInfo', title: 'Company Information', description: 'Tell us about your company' },
+    { id: 'serviceInfo', title: 'Service Information', description: 'Help us customize your Octave workspace' },
     { id: 'icp', title: 'ICP (Ideal Customer Profile)', description: 'Define your ideal customer profile' },
     { id: 'icpSegments', title: 'ICP Segments', description: 'Break down your customer segments' },
     { id: 'reasonsToBuy', title: 'Reasons to Buy', description: 'Understand what drives purchases' },

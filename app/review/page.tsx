@@ -10,6 +10,13 @@ const sectionTitles = [
     { key: 'companyName', label: 'Company Name' },
     { key: 'companyDomain', label: 'Company Domain' }
   ]},
+  { id: 'serviceInfo', title: 'Service Information', fields: [
+    { key: 'industry', label: 'Industry' },
+    { key: 'keyResponsibilities', label: 'Key Responsibilities' },
+    { key: 'competitiveEdge', label: 'Competitive Edge' },
+    { key: 'commonProblems', label: 'Common Problems' },
+    { key: 'serviceDescription', label: 'Service Description' }
+  ]},
   { id: 'icp', title: 'ICP (Ideal Customer Profile)', fields: [
     { key: 'roleTitle', label: 'Role & Title' },
     { key: 'companyStage', label: 'Company Stage' },

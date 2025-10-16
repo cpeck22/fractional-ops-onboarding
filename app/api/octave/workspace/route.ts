@@ -35,11 +35,12 @@ export async function POST(request: NextRequest) {
     const generateOffering = (data: QuestionnaireData) => {
       const companyName = data.companyInfo?.companyName || 'Client Company';
       
-      // Extract key business information from questionnaire
-      const industry = data.icp?.locationIndustry || 'B2B services';
-      const keyResponsibilities = data.icp?.keyResponsibilities || 'business operations';
-      const competitiveEdge = data.reasonsToBuy?.competitiveEdge || 'unique value proposition';
-      const problems = data.problemsBarriers?.commonObjections || 'operational challenges';
+      // Use the new serviceInfo fields for more accurate data
+      const industry = data.serviceInfo?.industry || data.icp?.locationIndustry || 'B2B services';
+      const keyResponsibilities = data.serviceInfo?.keyResponsibilities || data.icp?.keyResponsibilities || 'business operations';
+      const competitiveEdge = data.serviceInfo?.competitiveEdge || data.reasonsToBuy?.competitiveEdge || 'unique value proposition';
+      const problems = data.serviceInfo?.commonProblems || data.problemsBarriers?.commonObjections || 'operational challenges';
+      const serviceDescription = data.serviceInfo?.serviceDescription || 'revenue growth services';
       
       return {
         type: "SERVICE",

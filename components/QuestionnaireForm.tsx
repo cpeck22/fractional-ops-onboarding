@@ -18,10 +18,57 @@ interface QuestionnaireFormProps {
   isLastSection: boolean;
 }
 
-const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea', required?: boolean}>> = {
+const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea', required?: boolean, description?: string, example?: string}>> = {
   companyInfo: [
     { key: 'companyName', label: 'Company Name', placeholder: 'Enter your company name', type: 'text', required: true },
     { key: 'companyDomain', label: 'Company Domain', placeholder: 'e.g., example.com (without https://)', type: 'text', required: true }
+  ],
+  serviceInfo: [
+    { 
+      key: 'industry', 
+      label: 'What industry does your company operate in?', 
+      placeholder: 'e.g., Healthcare, Technology, Manufacturing, Logistics, etc.', 
+      type: 'text', 
+      required: true,
+      description: 'This helps us understand your business context and create industry-specific solutions.',
+      example: 'Example: "Healthcare Technology" or "Trucking and Logistics"'
+    },
+    { 
+      key: 'keyResponsibilities', 
+      label: 'What are the main responsibilities of your decision-makers?', 
+      placeholder: 'Describe what your key stakeholders do day-to-day...', 
+      type: 'textarea', 
+      required: true,
+      description: 'Understanding daily responsibilities helps us tailor our approach to their workflow.',
+      example: 'Example: "Managing fleet operations, coordinating driver schedules, and optimizing delivery routes"'
+    },
+    { 
+      key: 'competitiveEdge', 
+      label: 'What makes your company unique or different from competitors?', 
+      placeholder: 'Describe your unique value proposition...', 
+      type: 'textarea', 
+      required: true,
+      description: 'Your competitive advantages help us highlight what sets you apart in the market.',
+      example: 'Example: "Real-time GPS tracking, fuel optimization algorithms, and 24/7 customer support"'
+    },
+    { 
+      key: 'commonProblems', 
+      label: 'What are the main challenges your company currently faces?', 
+      placeholder: 'Describe your biggest operational or business challenges...', 
+      type: 'textarea', 
+      required: true,
+      description: 'Identifying current problems helps us create targeted solutions for your specific needs.',
+      example: 'Example: "High fuel costs, driver retention issues, and inefficient route planning"'
+    },
+    { 
+      key: 'serviceDescription', 
+      label: 'How would you describe your main service or product?', 
+      placeholder: 'Provide a brief description of what your company offers...', 
+      type: 'textarea', 
+      required: true,
+      description: 'This helps us create accurate service descriptions for your Octave workspace.',
+      example: 'Example: "We provide nationwide freight transportation services with real-time tracking and guaranteed delivery times"'
+    }
   ],
   icp: [
     { key: 'roleTitle', label: 'Role & Title: Who specifically makes the buying decision?', placeholder: 'Typically C-Level or VP-Level Executives...', type: 'textarea' },
@@ -143,11 +190,24 @@ export default function QuestionnaireForm({
 
       <div className="space-y-6">
         {fields.map((field) => (
-          <div key={field.key}>
+          <div key={field.key} className="bg-white p-6 rounded-lg border border-gray-200">
             <label className="block text-sm font-medium text-fo-secondary mb-2">
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
+            
+            {field.description && (
+              <p className="text-sm text-gray-600 mb-2">
+                {field.description}
+              </p>
+            )}
+            
+            {field.example && (
+              <p className="text-sm text-gray-500 italic mb-3 bg-gray-50 p-2 rounded">
+                {field.example}
+              </p>
+            )}
+            
             {field.type === 'textarea' ? (
               <textarea
                 value={formData[field.key] || ''}

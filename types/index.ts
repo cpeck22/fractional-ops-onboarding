@@ -5,6 +5,15 @@ export interface QuestionnaireData {
     companyDomain: string;
   };
 
+  // Service Information (Required for Octave API)
+  serviceInfo: {
+    industry: string;
+    keyResponsibilities: string;
+    competitiveEdge: string;
+    commonProblems: string;
+    serviceDescription: string;
+  };
+
   // Section 1: ICP (Ideal Customer Profile)
   icp: {
     roleTitle: string;
