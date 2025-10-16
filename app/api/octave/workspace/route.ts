@@ -70,8 +70,16 @@ export async function POST(request: NextRequest) {
       createDefaultAgents: true
     };
 
+    console.log('=== OCTAVE API CALL DETAILS ===');
+    console.log('API URL:', OCTAVE_API_URL);
+    console.log('API Key:', apiKey ? `${apiKey.substring(0, 10)}...${apiKey.substring(apiKey.length - 4)}` : 'NOT FOUND');
+    console.log('Request Headers:', {
+      'Content-Type': 'application/json',
+      'api_key': apiKey ? `${apiKey.substring(0, 10)}...${apiKey.substring(apiKey.length - 4)}` : 'NOT FOUND'
+    });
+    console.log('Full Workspace Request:', JSON.stringify(workspaceRequest, null, 2));
     console.log('Generated Offering:', JSON.stringify(workspaceRequest.offering, null, 2));
-
+    console.log('Runtime Context (Questionnaire Data):', JSON.stringify(questionnaireData, null, 2));
     console.log('Making request to Octave API...');
     
     const response = await axios.post(OCTAVE_API_URL, workspaceRequest, {
@@ -81,7 +89,10 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    console.log('Octave API Response:', response.status, response.data);
+    console.log('=== OCTAVE API RESPONSE ===');
+    console.log('Response Status:', response.status);
+    console.log('Response Headers:', response.headers);
+    console.log('Response Data:', JSON.stringify(response.data, null, 2));
 
     return NextResponse.json({
       success: true,
@@ -89,6 +100,13 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: any) {
+    console.log('=== OCTAVE API ERROR ===');
+    console.log('Error Message:', error.message);
+    console.log('Error Response Status:', error.response?.status);
+    console.log('Error Response Headers:', error.response?.headers);
+    console.log('Error Response Data:', JSON.stringify(error.response?.data, null, 2));
+    console.log('Full Error Object:', error);
+    
     console.error('Error creating Octave workspace:', error.response?.data || error.message);
     
     return NextResponse.json(
