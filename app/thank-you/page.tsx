@@ -79,7 +79,7 @@ export default function ThankYouPage() {
               </div>
               <div>
                 <div className="font-semibold mb-2">2. GTM Strategy</div>
-                <p>We'll develop a customized go-to-market strategy based on your questionnaire responses.</p>
+                <p>We&apos;ll develop a customized go-to-market strategy based on your questionnaire responses.</p>
               </div>
               <div>
                 <div className="font-semibold mb-2">3. Implementation</div>
