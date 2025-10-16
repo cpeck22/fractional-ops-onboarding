@@ -31,6 +31,24 @@ export async function POST(request: NextRequest) {
     console.log('Workspace Name:', workspaceName);
     console.log('Workspace URL:', workspaceUrl);
 
+    // Generate dynamic offering based on client's business
+    const generateOffering = (data: QuestionnaireData) => {
+      const companyName = data.companyInfo?.companyName || 'Client Company';
+      
+      // Extract key business information from questionnaire
+      const industry = data.icp?.locationIndustry || 'B2B services';
+      const keyResponsibilities = data.icp?.keyResponsibilities || 'business operations';
+      const competitiveEdge = data.reasonsToBuy?.competitiveEdge || 'unique value proposition';
+      const problems = data.problemsBarriers?.commonObjections || 'operational challenges';
+      
+      return {
+        type: "SERVICE",
+        name: `${companyName} - Revenue Growth Services`,
+        differentiatedValue: `Customized revenue growth strategy for ${companyName} in the ${industry} sector. Our approach addresses ${keyResponsibilities} challenges with ${competitiveEdge}.`,
+        statusQuo: `${companyName} currently faces ${problems} that limit their revenue growth potential.`
+      };
+    };
+
     const workspaceRequest: OctaveWorkspaceRequest = {
       workspace: {
         name: workspaceName,
@@ -38,16 +56,13 @@ export async function POST(request: NextRequest) {
         addExistingUsers: true,
         agentOIds: []
       },
-      offering: {
-        type: "SERVICE",
-        name: "Fractional Revenue Officer Services",
-        differentiatedValue: "Our unique approach to fractional revenue leadership combines strategic expertise with hands-on execution to drive measurable growth for B2B clients.",
-        statusQuo: "Companies struggle with revenue growth due to lack of experienced revenue leadership and systematic go-to-market execution."
-      },
+      offering: generateOffering(questionnaireData),
       runtimeContext: JSON.stringify(questionnaireData),
       brandVoiceOId: "bv_fractional_ops",
       createDefaultAgents: true
     };
+
+    console.log('Generated Offering:', JSON.stringify(workspaceRequest.offering, null, 2));
 
     console.log('Making request to Octave API...');
     
