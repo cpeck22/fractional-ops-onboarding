@@ -4,7 +4,7 @@ A streamlined client onboarding web application for Fractional Ops that integrat
 
 ## 🚀 Live Demo
 
-- **Production**: https://fractional-ops-onboarding.vercel.app (temporary Vercel URL)
+- **Production**: https://revops-onboarding-fractionalops-333h3ivny.vercel.app (live Vercel URL)
 - **Custom Domain**: gtmonboarding.fractionalops.com (pending DNS configuration)
 
 ## Features
