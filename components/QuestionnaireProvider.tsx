@@ -23,91 +23,40 @@ const initialData: QuestionnaireData = {
     commonProblems: '',
     serviceDescription: ''
   },
+  basicInfo: {
+    industry: '',
+    whatYouDo: '',
+    howYouDoIt: '',
+    uniqueValue: '',
+    mainService: '',
+    whatYouDeliver: '',
+    topUseCases: '',
+    barriers: '',
+    whyMoveAway: ''
+  },
   icp: {
-    roleTitle: '',
-    companyStage: '',
-    keyResponsibilities: '',
-    locationIndustry: '',
-    relationshipDynamics: ''
+    seniorityLevel: [],
+    jobTitles: '',
+    companySize: '',
+    geographicMarkets: '',
+    preferredEngagement: '',
+    decisionMakerResponsibilities: '',
+    prospectChallenges: ''
   },
-  icpSegments: {
-    microSegments: '',
-    highestLTGP: '',
-    fastestToClose: '',
-    specialRequirements: '',
-    tailoredMessaging: ''
+  socialProof: {
+    proofPoints: '',
+    clientReferences: '',
+    competitors: ''
   },
-  reasonsToBuy: {
-    pastWins: '',
-    compellingEvents: '',
-    emotionalDrivers: '',
-    competitiveEdge: '',
-    proofOutcomes: ''
-  },
-  dreamOutcome: {
-    idealResult: '',
-    longTermValue: '',
-    strategicAdvantage: '',
-    scalability: '',
-    visionAlignment: ''
-  },
-  problemsBarriers: {
-    commonObjections: '',
-    internalRoadblocks: '',
-    misconceptions: '',
-    technicalGaps: '',
-    riskFactors: ''
-  },
-  solutions: {
-    keyDifferentiators: '',
-    technicalIntegration: '',
-    implementationSupport: '',
-    roiProofPoints: '',
-    futureProofing: ''
-  },
-  timeDelay: {
-    averageDeploymentTimeline: '',
-    initialWins: '',
-    longTermResults: '',
-    bottlenecks: '',
-    expeditedOptions: ''
-  },
-  measurements: {
-    coreMetrics: '',
-    reportingCadence: '',
-    attributionModel: '',
-    leadingVsLaggingIndicators: '',
-    industryBenchmarks: ''
-  },
-  kpisCurrentResults: {
-    currentBaseline: '',
-    historicalTrends: '',
-    targetsGoals: '',
-    conversionBreakdowns: '',
-    gapAnalysis: ''
-  },
-  techStack: {
-    corePlatforms: '',
-    supportTools: '',
-    integrationStatus: '',
-    analyticsDashboards: '',
-    openaiUsage: ''
-  },
-  teamMembers: {
-    orgChart: '',
-    keyDecisionMakers: '',
-    skillGaps: '',
-    trainingNeeds: '',
-    handoffPlan: ''
-  },
-  outboundGTM: {
-    bestCaseStudies: '',
-    currentOffer: '',
-    clientAcquisitionSales: '',
-    idealCustomerProfile: '',
+  callToAction: {
     leadMagnet: '',
-    prospectingSignals: '',
-    copywriting: ''
+    emailExample1: '',
+    emailExample2: '',
+    emailExample3: ''
+  },
+  brand: {
+    brandDocuments: '',
+    additionalFiles: ''
   }
 };
 
