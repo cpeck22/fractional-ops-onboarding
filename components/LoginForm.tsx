@@ -59,7 +59,7 @@ export default function LoginForm({ onLoginSuccess, onSwitchToSignup }: LoginFor
               required
               value={credentials.username}
               onChange={handleChange}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm"
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm text-fo-primary"
               placeholder="Enter your email"
             />
           </div>
@@ -77,7 +77,7 @@ export default function LoginForm({ onLoginSuccess, onSwitchToSignup }: LoginFor
               required
               value={credentials.password}
               onChange={handleChange}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm"
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm text-fo-primary"
               placeholder="Enter your password"
             />
           </div>

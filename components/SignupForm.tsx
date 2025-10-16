@@ -84,7 +84,7 @@ export default function SignupForm({ onSignupSuccess, onSwitchToLogin }: SignupF
               required
               value={formData.username}
               onChange={handleChange}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm"
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm text-fo-primary"
               placeholder="Choose a username"
             />
           </div>
@@ -102,7 +102,7 @@ export default function SignupForm({ onSignupSuccess, onSwitchToLogin }: SignupF
               required
               value={formData.email}
               onChange={handleChange}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm"
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm text-fo-primary"
               placeholder="Enter your email"
             />
           </div>
@@ -120,7 +120,7 @@ export default function SignupForm({ onSignupSuccess, onSwitchToLogin }: SignupF
               required
               value={formData.companyName}
               onChange={handleChange}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm"
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm text-fo-primary"
               placeholder="Enter your company name"
             />
           </div>
@@ -138,7 +138,7 @@ export default function SignupForm({ onSignupSuccess, onSwitchToLogin }: SignupF
               required
               value={formData.password}
               onChange={handleChange}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm"
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm text-fo-primary"
               placeholder="Create a password (min 6 characters)"
             />
           </div>
@@ -156,7 +156,7 @@ export default function SignupForm({ onSignupSuccess, onSwitchToLogin }: SignupF
               required
               value={formData.confirmPassword}
               onChange={handleChange}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm"
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-fo-accent focus:border-fo-accent sm:text-sm text-fo-primary"
               placeholder="Confirm your password"
             />
           </div>

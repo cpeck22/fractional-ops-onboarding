@@ -36,3 +36,12 @@ body {
 .fo-shadow {
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
+
+/* Fix invisible text in production */
+input, textarea, select {
+  color: #1a365d !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #9ca3af !important;
+}

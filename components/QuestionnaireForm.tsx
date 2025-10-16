@@ -155,7 +155,7 @@ export default function QuestionnaireForm({
                 placeholder={field.placeholder}
                 rows={4}
                 required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-fo-accent focus:border-fo-accent resize-vertical"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-fo-accent focus:border-fo-accent resize-vertical text-fo-primary"
               />
             ) : (
               <input
@@ -164,7 +164,7 @@ export default function QuestionnaireForm({
                 onChange={(e) => handleFieldChange(field.key, e.target.value)}
                 placeholder={field.placeholder}
                 required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-fo-accent focus:border-fo-accent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-fo-accent focus:border-fo-accent text-fo-primary"
               />
             )}
           </div>
