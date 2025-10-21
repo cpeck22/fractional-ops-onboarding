@@ -292,7 +292,7 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
           }}
           className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
-          {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign In"}
+          {isLogin ? "Don&apos;t have an account? Sign up" : "Already have an account? Sign In"}
         </button>
       </div>
 
