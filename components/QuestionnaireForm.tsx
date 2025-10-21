@@ -21,14 +21,14 @@ interface QuestionnaireFormProps {
 
 const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea' | 'dropdown' | 'multiselect' | 'file', required?: boolean, description?: string, example?: string, options?: string[], questionNumber?: number}>> = {
   companyInfo: [
-    { key: 'companyName', label: 'Company Name', placeholder: 'Enter your company name', type: 'text', required: true, questionNumber: 1 },
-    { key: 'companyDomain', label: 'Company Domain', placeholder: 'e.g., example.com (without https://)', type: 'text', required: true, questionNumber: 2 }
+    { key: 'companyName', label: 'Company Name', placeholder: 'Please Type Your Answer here', type: 'text', required: true, questionNumber: 1 },
+    { key: 'companyDomain', label: 'Company Domain', placeholder: 'Please Type Your Answer here', type: 'text', required: true, questionNumber: 2 }
   ],
   basicInfo: [
     { 
       key: 'industry', 
       label: 'What industry does your company operate in?', 
-      placeholder: 'Corporate Real Estate Services, Legal Services, HR Consulting Services', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'text', 
       required: true,
       description: 'This helps me understand your business context and create industry-specific solutions.',
@@ -38,7 +38,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'whatYouDo', 
       label: 'Describe what you do. Explain it to me like I\'m 10 years old', 
-      placeholder: 'We help companies find and set up offices so their teams have a good place to work and they don\'t waste money.', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'I\'ll build this out in way more detail for you behind the scenes, but I just need the basics for now.',
@@ -48,7 +48,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'howYouDoIt', 
       label: 'Describe how you do it. Explain it to me like I\'m 10 years old', 
-      placeholder: 'We look at all the offices a company has, figure out which ones cost too much or don\'t work well, and help them find better spaces or better deals.', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'Again, I just need the basics in plain English for now.',
@@ -58,7 +58,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'uniqueValue', 
       label: 'What makes your company unique or different from competitors?', 
-      placeholder: 'We built an internal lease benchmarking database that gives clients real-time market leverage', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'I need to know what actually sets you apart. This isn\'t aspirational. I need to know the real answer.',
@@ -68,7 +68,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'mainService', 
       label: 'How would you describe your main service or product?', 
-      placeholder: 'Lease negotiation', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'text', 
       required: true,
       description: 'We need to focus on your primary service or product to start. This is often the one you make the most revenue from. Be very specific. (Don\'t worry, we\'ll be adding your other services later).',
@@ -78,7 +78,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'whatYouDeliver', 
       label: 'What do you actually deliver?', 
-      placeholder: 'Signed lease agreements with improved terms', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'I need to know the 1-3 tangible outputs of what you do. Many prospects like "things" (They need to know what they\'re paying you for). Remember, this isn\'t your Service or Product — it\'s the output of your services or products.',
@@ -88,7 +88,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'topUseCases', 
       label: 'What are the top 3 use cases of your service or product?', 
-      placeholder: 'Negotiating lease renewals', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'These are practical applications of your offering that describe how you deliver value. These should be the most common or most loved way people use your service or product.',
@@ -98,7 +98,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'barriers', 
       label: 'What are all the reasons someone would not take you up on your offer? What gets in their way?', 
-      placeholder: 'They\'re locked into long-term leases and don\'t see an immediate need', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'I need to know this to help you proactively overcome these when I build your playbooks.',
@@ -108,7 +108,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'whyMoveAway', 
       label: 'Why should they move away from the status quo?', 
-      placeholder: 'You\'ll be able to show cost savings on leases leadership assumed were fixed', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'Sometimes, your biggest competitor is inaction. The prospect understands your benefits at a high level, but it can\'t answer the "what\'s in it for them." How would you paint a picture of the future in a way that makes it impossible for your prospect to avoid learning more? What\'s in it for them?',
@@ -131,7 +131,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'jobTitles', 
       label: 'Specific Job Titles', 
-      placeholder: 'VP of Corporate Real Estate, Director of Workplace Strategy', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'text', 
       required: true,
       description: 'Provide the actual job titles of your decision-makers.',
@@ -141,7 +141,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'companySize', 
       label: 'Which employee size, revenue range (or funding stage) do you typically work with?', 
-      placeholder: '1000–8,000 employees and $100M–$1B in annual revenue', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'text', 
       required: true,
       description: 'We don\'t want to target people who can\'t afford us, and we also don\'t want to target companies where the roles you just picked aren\'t personally involved in buying our services.',
@@ -151,7 +151,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'geographicMarkets', 
       label: 'What geographic market(s) do you focus on?', 
-      placeholder: 'New York, Chicago, and San Francisco', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'text', 
       required: true,
       description: 'I don\'t want to launch campaigns in London if you can only service New York, Boston, and Philadelphia.',
@@ -161,7 +161,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'preferredEngagement', 
       label: 'How do these decision-makers prefer to be initially engaged?', 
-      placeholder: 'Email Outreach', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'text', 
       required: true,
       description: 'Think about how your contacts usually respond to you. Do they answer your calls? Respond to LinkedIn DMs? Email you back?',
@@ -171,7 +171,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'decisionMakerResponsibilities', 
       label: 'What are the main responsibilities of the decision-makers you sell to?', 
-      placeholder: 'Overseeing property acquisitions, lease negotiations, and client portfolio management', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'I need to know this to map the answers to my next questions to their daily realities.',
@@ -181,7 +181,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'prospectChallenges', 
       label: 'What are the main challenges or pain your prospects currently face?', 
-      placeholder: 'Difficulty optimizing their real estate footprint while reducing operational costs', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'Identifying current problems helps me create targeted solutions to solve their problems.',
@@ -193,7 +193,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'proofPoints', 
       label: 'Why should they believe you?', 
-      placeholder: 'Clients typically save 15–25% on occupancy costs through lease renegotiations and portfolio optimization', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'Proof Points are key pieces of evidence seen across all customers — think quantifiable results like cost savings, x% performance improvements, or even qualitative metrics. Ultimately, these are positive business outcomes you\'ve achieved for similar people.',
@@ -203,7 +203,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'clientReferences', 
       label: 'Who has gotten these results?', 
-      placeholder: 'FedEx (https://www.fedex.com) reduced real estate costs by consolidating regional offices', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'I need 1-3 client references to start. Creating detailed reference clients will help me showcase how real people are succeeding with our service (or product) offering. I need you to either name the actual client and give me their website (I\'ll can gather more details behind the scenes for you) or if you can\'t name them, just describe them. If actually naming them, I need this format: [Client\'s Company Name] (Client\'s website url) [Describe the result]',
@@ -213,7 +213,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'competitors', 
       label: 'Who else can solve this for them?', 
-      placeholder: 'CBRE — https://www.cbre.com', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'I need a list of your competitors (at least 1–3 to start). All I need is the Company Name and Website.',
@@ -225,7 +225,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'leadMagnet', 
       label: 'What can we offer in exchange for someone interacting with us?', 
-      placeholder: 'An online lease savings calculator that shows how much they could save based on current square footage, headcount, and location', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'We need to entice people with something tangible. They don\'t know us yet and have no reason to care unless we give them one. These could be as simple as a proprietary report or as big as a complementary service. Some people refer to these as "Lead Magnets." The best versions of these are something that you have actually charged for, that you can give away for free. And ideally something that you have (or could) charge $2–10k for. The worst versions are "audits". From your last answers, I already know you\'re great, but these prospects don\'t know you, so they won\'t care about a service from an unproven and unknown random (even if it\'s free). PS. Don\'t worry, if you only have the simple ones right now (like white papers or reports), I\'ll help you operationalize these into something more valuable later.',
@@ -235,7 +235,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'emailExample1', 
       label: 'What emails have received positive responses in the past? Copy and paste the examples below: Example 1', 
-      placeholder: 'Copy and paste your email example here...', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
       description: 'Share emails that have worked well for you in the past.',
@@ -244,7 +244,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'emailExample2', 
       label: 'What emails have received positive responses in the past? Copy and paste the examples below: Example 2', 
-      placeholder: 'Copy and paste your email example here...', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: false,
       description: 'Share another email that has worked well for you.',
@@ -253,7 +253,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'emailExample3', 
       label: 'What emails have received positive responses in the past? Copy and paste the examples below: Example 3', 
-      placeholder: 'Copy and paste your email example here...', 
+      placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: false,
       description: 'Share a third email that has worked well for you.',
