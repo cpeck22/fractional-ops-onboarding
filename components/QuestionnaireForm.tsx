@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuestionnaire } from './QuestionnaireProvider';
+import toast from 'react-hot-toast';
 
 interface Section {
   id: string;
@@ -326,6 +327,23 @@ export default function QuestionnaireForm({
   };
 
   const handleNext = async () => {
+    // Validate required fields before proceeding
+    const requiredFields = fields.filter(field => field.required);
+    const missingFields = requiredFields.filter(field => {
+      const value = formData[field.key];
+      // Check if field is empty or (for multiselect) if array is empty
+      if (Array.isArray(value)) {
+        return value.length === 0;
+      }
+      return !value || value.trim() === '';
+    });
+
+    if (missingFields.length > 0) {
+      const fieldNames = missingFields.map(f => `Question ${f.questionNumber}`).join(', ');
+      toast.error(`Please fill out all required fields: ${fieldNames}`);
+      return;
+    }
+
     // Save progress before moving to next section
     await saveCurrentData();
     onNext();
