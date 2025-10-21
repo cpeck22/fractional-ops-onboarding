@@ -235,10 +235,30 @@ export const loadUserQuestionnaireData = async (userId: string) => {
 }
 
 export const checkEmailExists = async (email: string) => {
-  // Temporarily disable email checking to prevent unwanted account creation
-  // We'll handle duplicate emails at signup time instead
-  console.log('🔍 checkEmailExists: Email checking disabled to prevent unwanted account creation');
-  return false;
+  console.log('🔍 Checking if email exists:', email);
+  
+  try {
+    const response = await fetch('/api/check-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email })
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('🔍 API error:', result.error);
+      return false; // Default to false on error to allow signup attempt
+    }
+    
+    console.log('🔍 Email exists result:', result.exists);
+    return result.exists;
+  } catch (error) {
+    console.error('🔍 Error checking email:', error);
+    return false; // Default to false on error to allow signup attempt
+  }
 }
 
 // Test function to verify database table exists and is accessible

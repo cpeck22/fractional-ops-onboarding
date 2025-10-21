@@ -87,84 +87,34 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
           return;
         }
         
+        // Check if email already exists BEFORE attempting signup
+        console.log('🔍 Checking if email exists before signup:', email);
+        const emailAlreadyExists = await checkEmailExists(email);
+        
+        if (emailAlreadyExists) {
+          console.log('🔍 Email already exists, showing message');
+          toast.error('Good news! You already have an account. Please sign in instead.');
+          setIsLogin(true);
+          setEmailExists(true);
+          setLoading(false);
+          return;
+        }
+        
+        console.log('🔍 Email is new, proceeding with signup');
         const { data, error } = await signUpWithEmail(email, password);
-        console.log('🔍 Signup attempt result:', { error: error?.message, data: data });
         
         if (error) {
-          // Handle specific error cases for duplicate emails
-          console.log('🔍 Checking error message:', error.message);
-          if (error.message?.includes('already registered') || 
-              error.message?.includes('User already registered') ||
-              error.message?.includes('already exists') ||
-              error.message?.includes('already been registered') ||
-              error.message?.includes('duplicate') ||
-              error.message?.includes('email address is already')) {
-            console.log('🔍 Duplicate email detected via error, showing error message');
-            toast.error('Good news! You already have an account. Please sign in instead.');
-            setIsLogin(true);
-            setEmailExists(true);
-            setLoading(false);
-            return;
-          }
-          console.log('🔍 Non-duplicate error, throwing:', error.message);
+          console.log('🔍 Signup error:', error.message);
           throw error;
         }
         
-        // Check if signup succeeded but returned null data (duplicate email case)
-        if (!data || !data.user) {
-          console.log('🔍 Signup succeeded but no user data returned - likely duplicate email');
-          toast.error('Good news! You already have an account. Please sign in instead.');
-          setIsLogin(true);
-          setEmailExists(true);
-          setLoading(false);
-          return;
-        }
-        
-        console.log('🔍 Signup successful with user data:', data.user);
-        console.log('🔍 User created_at:', data.user.created_at);
-        console.log('🔍 User confirmation_sent_at:', data.user.confirmation_sent_at);
-        
-        // Check if this is a genuine new user or duplicate
-        // For NEW users: created_at and confirmation_sent_at are the same (or very close)
-        // For DUPLICATE emails: Supabase may return existing user
-        const createdAt = new Date(data.user.created_at!).getTime();
-        const confirmationSentAt = new Date(data.user.confirmation_sent_at!).getTime();
-        const timeDiff = Math.abs(createdAt - confirmationSentAt);
-        
-        console.log('🔍 Time difference between created_at and confirmation_sent_at:', timeDiff, 'ms');
-        
-        // If the times are more than 10 seconds apart, this is likely a duplicate
-        // (Supabase reuses the old user record and updates confirmation_sent_at)
-        if (timeDiff > 10000) {
-          console.log('🔍 Large time gap detected - likely duplicate email');
-          toast.error('Good news! You already have an account. Please sign in instead.');
-          setIsLogin(true);
-          setEmailExists(true);
-          setLoading(false);
-          return;
-        }
-        
-        console.log('🔍 Genuine new user signup - showing email confirmation');
+        console.log('🔍 Signup successful!');
         toast.success('Account created! Please check your email to verify your account.');
         setShowEmailConfirmation(true);
       }
     } catch (error: any) {
-      console.log('🔍 Catch block error:', error.message);
-      // Handle specific error cases
-      if (error.message?.includes('already registered') || 
-          error.message?.includes('User already registered') ||
-          error.message?.includes('already exists') ||
-          error.message?.includes('already been registered') ||
-          error.message?.includes('duplicate') ||
-          error.message?.includes('email address is already')) {
-        console.log('🔍 Catch block: Duplicate email detected');
-        toast.error('Good news! You already have an account. Please sign in instead.');
-        setIsLogin(true);
-        setEmailExists(true);
-      } else {
-        console.log('🔍 Catch block: Other error:', error.message);
-        toast.error(error.message || 'Authentication failed');
-      }
+      console.error('🔍 Authentication error:', error.message);
+      toast.error(error.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
