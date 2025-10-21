@@ -8,6 +8,9 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { QuestionnaireData } from '@/types';
 import { signOut } from '@/lib/supabase';
 
+// Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 export default function QuestionnairePage() {
   console.log('📋 QuestionnairePage: Component mounting...');
   

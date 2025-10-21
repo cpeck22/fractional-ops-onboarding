@@ -6,6 +6,9 @@ import Image from 'next/image';
 import AuthForm from '@/components/AuthForm';
 import Logo from '../Fractional-Ops_Symbol_Main.png';
 
+// Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 export default function SignInPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();

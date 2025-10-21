@@ -2,6 +2,9 @@
 
 import { useEffect } from 'react';
 
+// Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 export default function ThankYouPage() {
   useEffect(() => {
     // Load HubSpot Meetings Embed Script

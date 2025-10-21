@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useQuestionnaire } from '@/components/QuestionnaireProvider';
 import toast from 'react-hot-toast';
 
+// Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 const sectionTitles = [
   { id: 'companyInfo', title: 'Company Information', fields: [
     { key: 'companyName', label: 'Company Name' },
