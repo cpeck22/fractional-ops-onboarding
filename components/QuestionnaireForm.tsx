@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQuestionnaire } from './QuestionnaireProvider';
 
 interface Section {
   id: string;
@@ -31,7 +32,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'This helps me understand your business context and create industry-specific solutions.',
-      example: '• "Corporate Real Estate Services"\n\n• "Legal Services"\n\n• "HR Consulting Services"',
+      example: '"Corporate Real Estate Services"\n\n"Legal Services"\n\n"HR Consulting Services"',
       questionNumber: 3
     },
     { 
@@ -41,7 +42,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I\'ll build this out in way more detail for you behind the scenes, but I just need the basics for now.',
-      example: '• "We help companies find and set up offices so their teams have a good place to work and they don\'t waste money."\n\n• "We help companies make sure their business deals and contracts are done the right way so they don\'t get into trouble."\n\n• "We help companies fix how they hire, manage, and grow their teams so people actually enjoy working there."',
+      example: '"We help companies find and set up offices so their teams have a good place to work and they don\'t waste money."\n\n"We help companies make sure their business deals and contracts are done the right way so they don\'t get into trouble."\n\n"We help companies fix how they hire, manage, and grow their teams so people actually enjoy working there."',
       questionNumber: 4
     },
     { 
@@ -51,7 +52,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'Again, I just need the basics in plain English for now.',
-      example: '• "We look at all the offices a company has, figure out which ones cost too much or don\'t work well, and help them find better spaces or better deals."\n\n• "We read the contracts and rules for the company, make sure everything is fair and legal, and help them fix anything that could cause problems later."\n\n• "We talk to the company\'s leaders, see what\'s not working with their people, and help them set up better ways to hire, manage, and grow their teams."',
+      example: '"We look at all the offices a company has, figure out which ones cost too much or don\'t work well, and help them find better spaces or better deals."\n\n"We read the contracts and rules for the company, make sure everything is fair and legal, and help them fix anything that could cause problems later."\n\n"We talk to the company\'s leaders, see what\'s not working with their people, and help them set up better ways to hire, manage, and grow their teams."',
       questionNumber: 5
     },
     { 
@@ -61,7 +62,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need to know what actually sets you apart. This isn\'t aspirational. I need to know the real answer.',
-      example: '• "We built an internal lease benchmarking database that gives clients real-time market leverage"\n\n• "We use a proprietary risk assessment model to identify compliance gaps faster than traditional methods"\n\n• "We developed a repeatable framework for diagnosing and restructuring underperforming teams in under 30 days"',
+      example: '"We built an internal lease benchmarking database that gives clients real-time market leverage"\n\n"We use a proprietary risk assessment model to identify compliance gaps faster than traditional methods"\n\n"We developed a repeatable framework for diagnosing and restructuring underperforming teams in under 30 days"',
       questionNumber: 6
     },
     { 
@@ -71,7 +72,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'text', 
       required: true,
       description: 'We need to focus on your primary service or product to start. This is often the one you make the most revenue from. Be very specific. (Don\'t worry, we\'ll be adding your other services later).',
-      example: '• "Lease negotiation"\n\n• "Employment law advisory"\n\n• "Implementing performance management systems"',
+      example: '"Lease negotiation"\n\n"Employment law advisory"\n\n"Implementing performance management systems"',
       questionNumber: 7
     },
     { 
@@ -81,7 +82,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need to know the 1-3 tangible outputs of what you do. Many prospects like "things" (They need to know what they\'re paying you for). Remember, this isn\'t your Service or Product — it\'s the output of your services or products.',
-      example: '**Corporate Real Estate:**\n• "Signed lease agreements with improved terms"\n\n• "Fully executed office relocation including vendor coordination"\n\n• "Implemented space management system with live floor plans"\n\n**Legal Services:**\n• "Finalized commercial contracts"\n\n• "Completed legal entity structure ready for launch"\n\n• "Clean cap tables and board consents for an upcoming raise"\n\n**HR Consulting:**\n• "Live performance review tool running inside their HRIS"\n\n• "New compensation bands rolled out to managers and employees"\n\n• "Working onboarding flow with automated tasks and templates"',
+      example: '**From a Corporate Real Estate Services company**\n"Signed lease agreements with improved terms"\n"A fully-executed office relocation, including vendor coordination and move management"\n"An implemented space management system with live floor plans and seat assignments"\n\n**From a Legal Services company**\n"Finalized and executed commercial contracts"\n"A completed legal entity structure, ready for launch"\n"Clean cap tables and board consents prepared for an upcoming raise"\n\n**From a HR Consulting Services company**\n"A live performance review tool running inside their HRIS"\n"New compensation bands rolled out to managers and employees"\n"A working onboarding flow with automated tasks and templates"',
       questionNumber: 8
     },
     { 
@@ -91,7 +92,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'These are practical applications of your offering that describe how you deliver value. These should be the most common or most loved way people use your service or product.',
-      example: '**Corporate Real Estate:**\n• "Negotiating lease renewals"\n\n• "Space strategy for hybrid work"\n\n• "Managing relocations and build-outs"\n\n**Legal Services:**\n• "Advising on M&A transactions"\n\n• "Drafting and reviewing commercial contracts"\n\n• "Providing ongoing legal counsel"\n\n**HR Consulting:**\n• "Redesigning performance systems"\n\n• "Installing compensation plans"\n\n• "Creating interview templates"',
+      example: '**From a Corporate Real Estate Services company**\n"Negotiating lease renewals"\n"Space strategy for hybrid work models"\n"Managing relocations and build-outs for new offices"\n\n**From a Legal Services company**\n"Advising on M&A transactions and due diligence"\n"Drafting and reviewing commercial contracts"\n"Providing ongoing legal counsel for corporate governance"\n\n**From a HR Consulting Services company**\n"Redesigning performance management systems"\n"Installing structured compensation plans"\n"Creating Interview Templates"',
       questionNumber: 9
     },
     { 
@@ -101,7 +102,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: true,
       description: 'I need to know this to help you proactively overcome these when I build your playbooks.',
-      example: '**Corporate Real Estate:**\n• "Locked into long-term leases"\n\n• "Believe they can negotiate internally"\n\n• "Fear of switching providers"\n\n**Legal Services:**\n• "Have in-house counsel"\n\n• "Concerned about cost unpredictability"\n\n• "View legal help as reactive only"\n\n**HR Consulting:**\n• "Internal HR can handle it"\n\n• "Think results take too long"\n\n• "Had a bad vendor experience"',
+      example: '**From a Corporate Real Estate Services company**\n"They\'re locked into long-term leases and don\'t see an immediate need"\n"They believe they can handle negotiations internally"\n"They think switching providers will create too much disruption"\n\n**From a Legal Services company**\n"They already have in-house counsel and don\'t see the value in external support"\n"They\'re concerned about high hourly rates and unpredictable costs"\n"They think legal help is only needed reactively, not proactively"\n\n**From a HR Consulting Services company**\n"They believe their internal HR team can handle it"\n"They think results will take too long"\n"They\'ve had a bad experience with a previous HR vendor"',
       questionNumber: 10
     },
     { 
@@ -292,15 +293,25 @@ export default function QuestionnaireForm({
   isFirstSection,
   isLastSection
 }: QuestionnaireFormProps) {
+  console.log('📝 QuestionnaireForm: Component rendering...');
+  console.log('📝 QuestionnaireForm: Section:', section);
+  console.log('📝 QuestionnaireForm: Data:', data);
+  
   const [formData, setFormData] = useState(data || {});
+  const { isSaving } = useQuestionnaire();
+
+  console.log('📝 QuestionnaireForm: Form data:', formData);
 
   useEffect(() => {
     setFormData(data || {});
   }, [data]);
 
   const handleFieldChange = (key: string, value: string | string[]) => {
+    console.log('📝 QuestionnaireForm: handleFieldChange called with:', { key, value });
     const newData = { ...formData, [key]: value };
+    console.log('📝 QuestionnaireForm: New form data:', newData);
     setFormData(newData);
+    console.log('📝 QuestionnaireForm: Calling onDataChange with:', newData);
     onDataChange(newData);
   };
 
@@ -418,13 +429,22 @@ export default function QuestionnaireForm({
           Previous
         </button>
         
+        <div className="flex items-center space-x-4">
+          {isSaving && (
+            <div className="flex items-center space-x-2 text-sm text-fo-text-secondary">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-fo-primary"></div>
+              <span>Saving...</span>
+            </div>
+          )}
+        
         <button
           type="button"
           onClick={onNext}
-          className="px-8 py-2 bg-gradient-to-r from-fo-primary to-fo-secondary text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fo-primary font-semibold"
+            className="px-8 py-2 bg-gradient-to-r from-fo-primary to-fo-secondary text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fo-primary font-semibold"
         >
           {isLastSection ? 'Review & Submit' : 'Next Section'}
         </button>
+        </div>
       </div>
     </div>
   );
