@@ -144,79 +144,94 @@ export const saveQuestionnaireField = async (
 }
 
 export const loadUserQuestionnaireData = async (userId: string) => {
-  console.log('🔍 Loading questionnaire data');
-  const { data, error} = await supabase
-    .from('questionnaire_responses')
-    .select('*')
-    .eq('user_id', userId)
-
-  console.log('🔍 Supabase: Raw data from database:', data);
-  console.log('🔍 Supabase: Error from database:', error);
-
-  if (error) throw error
-
-  // Transform flat data back to nested structure with default values
-  const questionnaireData = {
-    companyInfo: {
-      companyName: '',
-      companyDomain: ''
-    },
-    basicInfo: {
-      industry: '',
-      whatYouDo: '',
-      howYouDoIt: '',
-      uniqueValue: '',
-      mainService: '',
-      whatYouDeliver: '',
-      topUseCases: '',
-      barriers: '',
-      whyMoveAway: ''
-    },
-    icp: {
-      seniorityLevel: [] as string[],
-      jobTitles: '',
-      companySize: '',
-      geographicMarkets: '',
-      preferredEngagement: '',
-      decisionMakerResponsibilities: '',
-      prospectChallenges: ''
-    },
-    socialProof: {
-      proofPoints: '',
-      clientReferences: '',
-      competitors: ''
-    },
-    callToAction: {
-      leadMagnet: '',
-      emailExample1: '',
-      emailExample2: '',
-      emailExample3: ''
-    },
-    brand: {
-      brandDocuments: '',
-      additionalFiles: ''
+  console.log('🔍 Calling API route to load data (uses service key on server)');
+  
+  try {
+    const response = await fetch('/api/load-questionnaire', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId })
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('🔍 API error:', result.error);
+      throw new Error(result.error);
     }
-  }
+    
+    const data = result.data;
+    console.log('🔍 Raw data from database:', data);
+    console.log('🔍 Rows loaded:', data?.length || 0);
 
-  data?.forEach((row: any) => {
-    console.log('🔍 Supabase: Processing row:', row);
-    const section = row.section as keyof typeof questionnaireData;
-    if (questionnaireData[section]) {
-      // Handle array fields (like seniorityLevel)
-      if (row.field_key === 'seniorityLevel' && typeof row.field_value === 'string') {
-        try {
-          (questionnaireData[section] as any)[row.field_key] = JSON.parse(row.field_value);
-        } catch {
-          (questionnaireData[section] as any)[row.field_key] = row.field_value ? [row.field_value] : [];
-        }
-      } else {
-        (questionnaireData[section] as any)[row.field_key] = row.field_value;
+    // Transform flat data back to nested structure with default values
+    const questionnaireData = {
+      companyInfo: {
+        companyName: '',
+        companyDomain: ''
+      },
+      basicInfo: {
+        industry: '',
+        whatYouDo: '',
+        howYouDoIt: '',
+        uniqueValue: '',
+        mainService: '',
+        whatYouDeliver: '',
+        topUseCases: '',
+        barriers: '',
+        whyMoveAway: ''
+      },
+      icp: {
+        seniorityLevel: [] as string[],
+        jobTitles: '',
+        companySize: '',
+        geographicMarkets: '',
+        preferredEngagement: '',
+        decisionMakerResponsibilities: '',
+        prospectChallenges: ''
+      },
+      socialProof: {
+        proofPoints: '',
+        clientReferences: '',
+        competitors: ''
+      },
+      callToAction: {
+        leadMagnet: '',
+        emailExample1: '',
+        emailExample2: '',
+        emailExample3: ''
+      },
+      brand: {
+        brandDocuments: '',
+        additionalFiles: ''
       }
     }
-  })
 
-  console.log('🔍 Supabase: Final questionnaire data:', questionnaireData);
-  return questionnaireData
+    data?.forEach((row: any) => {
+      console.log('🔍 Processing row:', row);
+      const section = row.section as keyof typeof questionnaireData;
+      if (questionnaireData[section]) {
+        // Handle array fields (like seniorityLevel)
+        if (row.field_key === 'seniorityLevel' && typeof row.field_value === 'string') {
+          try {
+            (questionnaireData[section] as any)[row.field_key] = JSON.parse(row.field_value);
+          } catch {
+            (questionnaireData[section] as any)[row.field_key] = row.field_value ? [row.field_value] : [];
+          }
+        } else {
+          (questionnaireData[section] as any)[row.field_key] = row.field_value;
+        }
+      }
+    })
+
+    console.log('🔍 Final questionnaire data:', questionnaireData);
+    return questionnaireData;
+  } catch (error) {
+    console.error('🔍 Load failed:', error);
+    throw error;
+  }
 }
 
 export const checkEmailExists = async (email: string) => {
