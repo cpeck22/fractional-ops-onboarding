@@ -227,7 +227,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       label: 'What can we offer in exchange for someone interacting with us?', 
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
-      required: true,
+      required: false,
       description: 'We need to entice people with something tangible. They don\'t know us yet and have no reason to care unless we give them one. These could be as simple as a proprietary report or as big as a complementary service. Some people refer to these as "Lead Magnets." The best versions of these are something that you have actually charged for, that you can give away for free. And ideally something that you have (or could) charge $2–10k for. The worst versions are "audits". From your last answers, I already know you\'re great, but these prospects don\'t know you, so they won\'t care about a service from an unproven and unknown random (even if it\'s free). PS. Don\'t worry, if you only have the simple ones right now (like white papers or reports), I\'ll help you operationalize these into something more valuable later.',
       example: '• "Online lease savings calculator"\n\n• "M&A deal checklist and data room folder structure"\n\n• "Performance review toolkit with templates and HRIS integration"',
       questionNumber: 22
@@ -237,7 +237,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       label: 'What emails have received positive responses in the past? Copy and paste the examples below: Example 1', 
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
-      required: true,
+      required: false,
       description: 'Share emails that have worked well for you in the past.',
       questionNumber: 23
     },
