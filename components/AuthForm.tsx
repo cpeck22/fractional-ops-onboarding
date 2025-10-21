@@ -223,14 +223,14 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
             Check Your Email
           </h3>
           <p className="text-gray-600 mb-4">
-            We've sent a confirmation link to <strong>{email}</strong>
+            We&apos;ve sent a confirmation link to <strong>{email}</strong>
           </p>
           <p className="text-sm text-gray-500 mb-6">
             Please check your inbox and click the confirmation link to verify your account.
           </p>
           <div className="text-sm text-gray-500 mb-6">
             <p className="font-bold">
-              The email will come from "Supabase"
+              The email will come from &quot;Supabase&quot;
             </p>
             <p className="italic">
               (check your junk folder just in case)
@@ -342,7 +342,7 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
           }}
           className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
-          {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign In"}
+          {isLogin ? "Don&apos;t have an account? Sign up" : "Already have an account? Sign In"}
         </button>
       </div>
 

@@ -127,7 +127,7 @@ export default function QuestionnairePage() {
               {isSaving ? 'Saving...' : 'Save Progress'}
             </button>
             <p className="text-sm text-fo-text-secondary mt-2">
-              Click "Save Progress" to save your answers
+              Click &quot;Save Progress&quot; to save your answers
             </p>
           </div>
         </div>

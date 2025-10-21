@@ -12,6 +12,7 @@ export default function Home() {
 
   useEffect(() => {
     checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuth = async () => {
@@ -51,7 +52,7 @@ export default function Home() {
             Get Ready...
           </h1>
           <div className="text-lg text-gray-700 mb-2">
-            You're about to get a world-class
+            You&apos;re about to get a world-class
           </div>
           <div className="text-lg text-gray-700 mb-2">
             Sales Strategy.
