@@ -298,7 +298,8 @@ export default function QuestionnaireForm({
   console.log('📝 QuestionnaireForm: Data:', data);
   
   const [formData, setFormData] = useState(data || {});
-  const { isSaving } = useQuestionnaire();
+  const { isSaving, saveCurrentData } = useQuestionnaire();
+  const [savingField, setSavingField] = useState<string | null>(null);
 
   console.log('📝 QuestionnaireForm: Form data:', formData);
 
@@ -313,6 +314,15 @@ export default function QuestionnaireForm({
     setFormData(newData);
     console.log('📝 QuestionnaireForm: Calling onDataChange with:', newData);
     onDataChange(newData);
+  };
+
+  const handleSaveField = async (fieldKey: string) => {
+    setSavingField(fieldKey);
+    try {
+      await saveCurrentData();
+    } finally {
+      setSavingField(null);
+    }
   };
 
   const fields = sectionFields[section.id] || [];
@@ -346,6 +356,7 @@ export default function QuestionnaireForm({
               </p>
             )}
             
+            <div className="space-y-2">
             {field.type === 'textarea' ? (
               <textarea
                 value={formData[field.key] || ''}
@@ -414,6 +425,28 @@ export default function QuestionnaireForm({
                 className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary focus:border-fo-primary text-fo-text"
               />
             )}
+            
+            <button
+              type="button"
+              onClick={() => handleSaveField(field.key)}
+              disabled={savingField === field.key}
+              className="mt-2 px-4 py-2 bg-fo-secondary text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fo-secondary font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            >
+              {savingField === field.key ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Save</span>
+                </>
+              )}
+            </button>
+            </div>
           </div>
         ))}
       </div>
@@ -430,12 +463,26 @@ export default function QuestionnaireForm({
         </button>
         
         <div className="flex items-center space-x-4">
-          {isSaving && (
-            <div className="flex items-center space-x-2 text-sm text-fo-text-secondary">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-fo-primary"></div>
-              <span>Saving...</span>
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={saveCurrentData}
+            disabled={isSaving}
+            className="px-6 py-2 bg-fo-secondary text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fo-secondary font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+          >
+            {isSaving ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Save Progress</span>
+              </>
+            )}
+        </button>
         
         <button
           type="button"
