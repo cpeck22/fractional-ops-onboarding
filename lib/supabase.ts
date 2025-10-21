@@ -155,20 +155,62 @@ export const loadUserQuestionnaireData = async (userId: string) => {
 
   if (error) throw error
 
-  // Transform flat data back to nested structure
+  // Transform flat data back to nested structure with default values
   const questionnaireData = {
-    companyInfo: {},
-    basicInfo: {},
-    icp: {},
-    socialProof: {},
-    callToAction: {},
-    brand: {}
+    companyInfo: {
+      companyName: '',
+      companyDomain: ''
+    },
+    basicInfo: {
+      industry: '',
+      whatYouDo: '',
+      howYouDoIt: '',
+      uniqueValue: '',
+      mainService: '',
+      whatYouDeliver: '',
+      topUseCases: '',
+      barriers: '',
+      whyMoveAway: ''
+    },
+    icp: {
+      seniorityLevel: [] as string[],
+      jobTitles: '',
+      companySize: '',
+      geographicMarkets: '',
+      preferredEngagement: '',
+      decisionMakerResponsibilities: '',
+      prospectChallenges: ''
+    },
+    socialProof: {
+      proofPoints: '',
+      clientReferences: '',
+      competitors: ''
+    },
+    callToAction: {
+      leadMagnet: '',
+      emailExample1: '',
+      emailExample2: '',
+      emailExample3: ''
+    },
+    brand: {
+      brandDocuments: '',
+      additionalFiles: ''
+    }
   }
 
   data?.forEach(row => {
     console.log('🔍 Supabase: Processing row:', row);
     if (questionnaireData[row.section]) {
-      questionnaireData[row.section][row.field_key] = row.field_value
+      // Handle array fields (like seniorityLevel)
+      if (row.field_key === 'seniorityLevel' && typeof row.field_value === 'string') {
+        try {
+          questionnaireData[row.section][row.field_key] = JSON.parse(row.field_value);
+        } catch {
+          questionnaireData[row.section][row.field_key] = row.field_value ? [row.field_value] : [];
+        }
+      } else {
+        questionnaireData[row.section][row.field_key] = row.field_value;
+      }
     }
   })
 
