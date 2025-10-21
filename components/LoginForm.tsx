@@ -103,7 +103,7 @@ export default function LoginForm({ onLoginSuccess, onSwitchToSignup }: LoginFor
 
       <div className="mt-6 text-center">
         <p className="text-sm text-fo-secondary">
-          Don&apos;t have an account?{' '}
+          Don't have an account?{' '}
           <button
             type="button"
             onClick={onSwitchToSignup}
