@@ -198,18 +198,19 @@ export const loadUserQuestionnaireData = async (userId: string) => {
     }
   }
 
-  data?.forEach(row => {
+  data?.forEach((row: any) => {
     console.log('🔍 Supabase: Processing row:', row);
-    if (questionnaireData[row.section]) {
+    const section = row.section as keyof typeof questionnaireData;
+    if (questionnaireData[section]) {
       // Handle array fields (like seniorityLevel)
       if (row.field_key === 'seniorityLevel' && typeof row.field_value === 'string') {
         try {
-          questionnaireData[row.section][row.field_key] = JSON.parse(row.field_value);
+          (questionnaireData[section] as any)[row.field_key] = JSON.parse(row.field_value);
         } catch {
-          questionnaireData[row.section][row.field_key] = row.field_value ? [row.field_value] : [];
+          (questionnaireData[section] as any)[row.field_key] = row.field_value ? [row.field_value] : [];
         }
       } else {
-        questionnaireData[row.section][row.field_key] = row.field_value;
+        (questionnaireData[section] as any)[row.field_key] = row.field_value;
       }
     }
   })
