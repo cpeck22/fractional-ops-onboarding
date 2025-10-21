@@ -67,44 +67,19 @@ export function QuestionnaireProvider({ children }: { children: ReactNode }) {
   const [isSaving, setIsSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
-  // Load user data on mount and auth changes
+  // Initialize auth on mount
   useEffect(() => {
-    console.log('📊 QuestionnaireProvider: useEffect triggered');
+    console.log('📊 QuestionnaireProvider: Initializing auth...');
     
-    const loadUserData = async (userId: string) => {
-      console.log('📊 QuestionnaireProvider: Loading data for user:', userId);
-      setIsLoading(true);
-      try {
-        const userData = await loadUserQuestionnaireData(userId);
-        console.log('📊 QuestionnaireProvider: Loaded user data:', userData);
-        setQuestionnaireData(userData);
-      } catch (error) {
-        console.error('📊 QuestionnaireProvider: Failed to load user data:', error);
-        toast.error('Failed to load your questionnaire data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     const initializeAuth = async () => {
       try {
-        console.log('📊 QuestionnaireProvider: Initializing auth...');
-        
         const { data: { user }, error } = await supabase.auth.getUser();
         console.log('📊 QuestionnaireProvider: Initial user check:', user?.email || 'No user');
         console.log('📊 QuestionnaireProvider: Auth error:', error);
         
-        // Only test database if user is authenticated
         if (user) {
-          console.log('📊 QuestionnaireProvider: User authenticated, testing database...');
-          testDatabaseConnection().then(result => {
-            console.log('📊 QuestionnaireProvider: Database test completed:', result);
-          }).catch(err => {
-            console.error('📊 QuestionnaireProvider: Database test error:', err);
-          });
-          
+          console.log('📊 QuestionnaireProvider: User authenticated');
           setCurrentUser(user);
-          await loadUserData(user.id);
         }
       } catch (error) {
         console.error('📊 QuestionnaireProvider: Auth initialization error:', error);
@@ -119,7 +94,6 @@ export function QuestionnaireProvider({ children }: { children: ReactNode }) {
         console.log('📊 QuestionnaireProvider: Auth state change:', event, session?.user?.email || 'No user');
         if (session?.user) {
           setCurrentUser(session.user);
-          await loadUserData(session.user.id);
         } else {
           setCurrentUser(null);
           setQuestionnaireData(initialData);
@@ -129,6 +103,33 @@ export function QuestionnaireProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Load data whenever currentUser changes
+  useEffect(() => {
+    if (!currentUser?.id) {
+      console.log('📊 QuestionnaireProvider: No user, skipping data load');
+      return;
+    }
+
+    console.log('📊 QuestionnaireProvider: currentUser changed, loading data for:', currentUser.email);
+    
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        console.log('📊 QuestionnaireProvider: Loading questionnaire data for user ID:', currentUser.id);
+        const userData = await loadUserQuestionnaireData(currentUser.id);
+        console.log('📊 QuestionnaireProvider: Loaded user data:', userData);
+        setQuestionnaireData(userData);
+      } catch (error) {
+        console.error('📊 QuestionnaireProvider: Failed to load user data:', error);
+        toast.error('Failed to load your questionnaire data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [currentUser]);
 
   // Debounced save function - saves entire current section
   const debouncedSave = debounce(async (userId: string, sectionId: string) => {
