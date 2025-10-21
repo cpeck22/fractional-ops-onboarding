@@ -92,11 +92,11 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
         const emailAlreadyExists = await checkEmailExists(email);
         
         if (emailAlreadyExists) {
-          console.log('🔍 Email already exists, showing message');
+          console.log('🔍 Email already exists, redirecting to sign in');
           toast.error('Good news! You already have an account. Please sign in instead.');
-          setIsLogin(true);
-          setEmailExists(true);
           setLoading(false);
+          // Redirect to sign-in page
+          window.location.href = '/signin';
           return;
         }
         
