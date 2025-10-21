@@ -25,16 +25,24 @@ export async function POST(request: Request) {
     
     console.log('🔧 API: Checking if email exists:', email);
     
-    // Use admin client to check if user exists in auth.users table
+    // Use admin client to get user by email directly
     const { data, error } = await supabaseAdmin.auth.admin.listUsers();
     
     if (error) {
-      console.error('🔧 API: Error checking email:', error);
+      console.error('🔧 API: Error listing users:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     
-    // Check if any user has this email
-    const emailExists = data.users.some(user => user.email?.toLowerCase() === email.toLowerCase());
+    console.log('🔧 API: Total users found:', data.users.length);
+    
+    // Check if any user has this email (case-insensitive)
+    const emailExists = data.users.some(user => {
+      const matches = user.email?.toLowerCase() === email.toLowerCase();
+      if (matches) {
+        console.log('🔧 API: Found matching user:', user.email);
+      }
+      return matches;
+    });
     
     console.log('🔧 API: Email exists:', emailExists);
     return NextResponse.json({ exists: emailExists });
