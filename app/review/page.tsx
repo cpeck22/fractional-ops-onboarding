@@ -91,6 +91,42 @@ export default function ReviewPage() {
 
       if (response.ok && result.success) {
         toast.success('Onboarding completed successfully!');
+        
+        // Download PDF
+        console.log('📥 Downloading PDF...');
+        try {
+          const pdfResponse = await fetch('/api/download-pdf', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: userEmail,
+              questionnaireData
+            }),
+          });
+
+          if (pdfResponse.ok) {
+            const blob = await pdfResponse.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `RevOps_Onboarding_${questionnaireData.companyInfo?.companyName || 'Client'}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            console.log('✅ PDF downloaded successfully');
+            toast.success('PDF downloaded!');
+          } else {
+            console.error('⚠️ PDF download failed (non-critical)');
+            toast.error('PDF download failed, but data was submitted successfully');
+          }
+        } catch (pdfError) {
+          console.error('⚠️ PDF download error (non-critical):', pdfError);
+          // Don't fail the whole flow if PDF download fails
+        }
+        
         router.push('/thank-you');
       } else {
         toast.error(result.error || 'Failed to submit onboarding data. Please try again.');
