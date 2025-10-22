@@ -44,6 +44,9 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 
 # Octave API (existing)
 OCTAVE_API_KEY=your-octave-api-key
+
+# Zapier Webhook (for PDF delivery to Monday.com)
+ZAPIER_WEBHOOK_URL=your-zapier-webhook-url-here
 ```
 
 ### Step 4: Install Dependencies

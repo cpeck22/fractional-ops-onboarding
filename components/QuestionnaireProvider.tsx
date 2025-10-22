@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { QuestionnaireData } from '@/types';
 import { supabase, saveQuestionnaireField, loadUserQuestionnaireData, testDatabaseConnection, testRLSPolicy, testBypassRLS } from '@/lib/supabase';
 import { debounce } from 'lodash';
@@ -66,10 +66,14 @@ export function QuestionnaireProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  
+  // Use refs to track state that needs to be accessed in callbacks
+  const userIdRef = useRef<string | null>(null);
+  const hasLoadedDataRef = useRef<boolean>(false);
 
-  // Initialize auth on mount
+  // Initialize auth and load data ONCE on mount
   useEffect(() => {
-    console.log('📊 QuestionnaireProvider: Initializing auth...');
+    console.log('📊 QuestionnaireProvider: Initializing auth and loading data...');
     
     const initializeAuth = async () => {
       try {
@@ -77,9 +81,26 @@ export function QuestionnaireProvider({ children }: { children: ReactNode }) {
         console.log('📊 QuestionnaireProvider: Initial user check:', user?.email || 'No user');
         console.log('📊 QuestionnaireProvider: Auth error:', error);
         
-        if (user) {
-          console.log('📊 QuestionnaireProvider: User authenticated');
+        if (user && !hasLoadedDataRef.current) {
+          console.log('📊 QuestionnaireProvider: User authenticated, loading data ONCE');
           setCurrentUser(user);
+          userIdRef.current = user.id;
+          hasLoadedDataRef.current = true; // Mark that we're loading/have loaded data
+          
+          // Load data immediately on mount
+          setIsLoading(true);
+          try {
+            console.log('📊 QuestionnaireProvider: Loading questionnaire data for user ID:', user.id);
+            const userData = await loadUserQuestionnaireData(user.id);
+            console.log('📊 QuestionnaireProvider: Loaded user data:', userData);
+            setQuestionnaireData(userData);
+          } catch (loadError) {
+            console.error('📊 QuestionnaireProvider: Failed to load user data:', loadError);
+            toast.error('Failed to load your questionnaire data');
+            hasLoadedDataRef.current = false; // Reset on error so it can retry
+          } finally {
+            setIsLoading(false);
+          }
         }
       } catch (error) {
         console.error('📊 QuestionnaireProvider: Auth initialization error:', error);
@@ -88,48 +109,51 @@ export function QuestionnaireProvider({ children }: { children: ReactNode }) {
 
     initializeAuth();
 
-    // Listen for auth changes
+    // Listen for auth changes (ONLY for sign in/out, NOT for token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('📊 QuestionnaireProvider: Auth state change:', event, session?.user?.email || 'No user');
-        if (session?.user) {
+        console.log('📊 QuestionnaireProvider: Auth event:', event, '| Current userIdRef:', userIdRef.current, '| Session userId:', session?.user?.id);
+        
+        // Only react to actual sign in/out events
+        if (event === 'SIGNED_IN' && session?.user && session.user.id !== userIdRef.current) {
+          console.log('📊 QuestionnaireProvider: NEW user signed in (different from current), loading their data');
           setCurrentUser(session.user);
-        } else {
+          userIdRef.current = session.user.id;
+          hasLoadedDataRef.current = true;
+          
+          // Load data for new user
+          setIsLoading(true);
+          try {
+            const userData = await loadUserQuestionnaireData(session.user.id);
+            setQuestionnaireData(userData);
+          } catch (error) {
+            console.error('📊 QuestionnaireProvider: Failed to load user data:', error);
+            toast.error('Failed to load your questionnaire data');
+          } finally {
+            setIsLoading(false);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          console.log('📊 QuestionnaireProvider: User signed out, clearing data');
           setCurrentUser(null);
+          userIdRef.current = null;
+          hasLoadedDataRef.current = false;
           setQuestionnaireData(initialData);
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('📊 QuestionnaireProvider: Token refreshed - IGNORING (no data reload)');
+          // Do nothing - just a token refresh, user hasn't changed
+        } else if (event === 'SIGNED_IN') {
+          console.log('📊 QuestionnaireProvider: SIGNED_IN event but same user - IGNORING');
+        } else {
+          console.log('📊 QuestionnaireProvider: Auth event ignored:', event);
         }
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Load data whenever currentUser changes
-  useEffect(() => {
-    if (!currentUser?.id) {
-      console.log('📊 QuestionnaireProvider: No user, skipping data load');
-      return;
-    }
-
-    console.log('📊 QuestionnaireProvider: currentUser changed, loading data for:', currentUser.email);
-    
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        console.log('📊 QuestionnaireProvider: Loading questionnaire data for user ID:', currentUser.id);
-        const userData = await loadUserQuestionnaireData(currentUser.id);
-        console.log('📊 QuestionnaireProvider: Loaded user data:', userData);
-        setQuestionnaireData(userData);
-      } catch (error) {
-        console.error('📊 QuestionnaireProvider: Failed to load user data:', error);
-        toast.error('Failed to load your questionnaire data');
-      } finally {
-        setIsLoading(false);
-      }
+    return () => {
+      console.log('📊 QuestionnaireProvider: Cleaning up subscription');
+      subscription.unsubscribe();
     };
-
-    loadData();
-  }, [currentUser]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Debounced save function - saves entire current section
   const debouncedSave = debounce(async (userId: string, sectionId: string) => {

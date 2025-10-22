@@ -6,7 +6,11 @@ const OCTAVE_API_URL = 'https://app.octavehq.com/api/v2/agents/workspace/build';
 
 export async function POST(request: NextRequest) {
   try {
-    const questionnaireData: QuestionnaireData = await request.json();
+    const body = await request.json();
+    const questionnaireData: QuestionnaireData = body.questionnaireData || body;
+    const userEmail: string = body.email || 'noemail@example.com';
+    
+    console.log('📥 Received submission from:', userEmail);
     
     // Get API key from server environment (not exposed to client)
     const apiKey = process.env.OCTAVE_API_KEY;
@@ -93,6 +97,33 @@ export async function POST(request: NextRequest) {
     console.log('Response Status:', response.status);
     console.log('Response Headers:', response.headers);
     console.log('Response Data:', JSON.stringify(response.data, null, 2));
+
+    // After successfully sending to Octave, also send to Zapier
+    console.log('📤 Now sending PDF to Zapier...');
+    try {
+      const zapierResponse = await fetch(`${request.nextUrl.origin}/api/send-to-zapier`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          questionnaireData
+        }),
+      });
+
+      const zapierResult = await zapierResponse.json();
+      
+      if (zapierResponse.ok) {
+        console.log('✅ Successfully sent to Zapier:', zapierResult);
+      } else {
+        console.error('⚠️ Zapier webhook failed (non-critical):', zapierResult);
+        // Don't fail the whole request if Zapier fails
+      }
+    } catch (zapierError) {
+      console.error('⚠️ Zapier webhook error (non-critical):', zapierError);
+      // Don't fail the whole request if Zapier fails
+    }
 
     return NextResponse.json({
       success: true,

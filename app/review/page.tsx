@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuestionnaire } from '@/components/QuestionnaireProvider';
+import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 
 // Force dynamic rendering (no static generation)
@@ -53,20 +54,37 @@ const sectionTitles = [
 export default function ReviewPage() {
   const { questionnaireData } = useQuestionnaire();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>('');
   const router = useRouter();
+
+  // Get user email on mount
+  useEffect(() => {
+    const getUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+        console.log('👤 User email:', user.email);
+      }
+    };
+    getUserEmail();
+  }, []);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
     try {
       console.log('Submitting questionnaire data to server...');
+      console.log('User email:', userEmail);
       
       const response = await fetch('/api/octave/workspace', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(questionnaireData),
+        body: JSON.stringify({
+          email: userEmail,
+          questionnaireData
+        }),
       });
 
       const result = await response.json();
