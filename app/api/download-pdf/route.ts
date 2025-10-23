@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
     const fileName = getFileName(companyName, email);
     console.log('📄 PDF generated for download:', fileName);
     
-    // Return PDF as downloadable file
-    return new NextResponse(pdfBuffer, {
+    // Return PDF as downloadable file (convert Buffer to Uint8Array for Next.js compatibility)
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${fileName}"`,
