@@ -166,24 +166,30 @@ export const loadUserQuestionnaireData = async (userId: string) => {
     console.log('🔍 Raw data from database:', data);
     console.log('🔍 Rows loaded:', data?.length || 0);
 
-    // Transform flat data back to nested structure with default values
+    // Transform flat data back to nested structure with default values (new 10-step structure)
     const questionnaireData = {
       companyInfo: {
         companyName: '',
         companyDomain: ''
       },
-      basicInfo: {
+      whatYouDo: {
         industry: '',
-        whatYouDo: '',
+        whatYouDo: ''
+      },
+      howYouDoIt: {
         howYouDoIt: '',
-        uniqueValue: '',
+        uniqueValue: ''
+      },
+      whatYouDeliver: {
         mainService: '',
         whatYouDeliver: '',
-        topUseCases: '',
+        topUseCases: ''
+      },
+      creatingDesire: {
         barriers: '',
         whyMoveAway: ''
       },
-      icp: {
+      yourBuyers: {
         seniorityLevel: [] as string[],
         jobTitles: '',
         companySize: '',
@@ -194,19 +200,26 @@ export const loadUserQuestionnaireData = async (userId: string) => {
       },
       socialProof: {
         proofPoints: '',
-        clientReferences: '',
+        clientReferences: ''
+      },
+      positioning: {
         competitors: ''
       },
-      callToAction: {
-        leadMagnet: '',
+      leadMagnets: {
+        leadMagnet: ''
+      },
+      brandExamples: {
         emailExample1: '',
         emailExample2: '',
-        emailExample3: ''
-      },
-      brand: {
+        emailExample3: '',
         brandDocuments: '',
         additionalFiles: ''
-      }
+      },
+      // Legacy mappings for backward compatibility with existing database data
+      basicInfo: {} as any,
+      icp: {} as any,
+      callToAction: {} as any,
+      brand: {} as any
     }
 
     data?.forEach((row: any) => {
@@ -225,6 +238,57 @@ export const loadUserQuestionnaireData = async (userId: string) => {
         }
       }
     })
+
+    // Migrate old structure to new structure for backward compatibility
+    console.log('🔍 Migrating old data structure to new structure...');
+    if (questionnaireData.basicInfo) {
+      // Step 2: What You Do (industry, whatYouDo)
+      if (questionnaireData.basicInfo.industry) questionnaireData.whatYouDo.industry = questionnaireData.basicInfo.industry;
+      if (questionnaireData.basicInfo.whatYouDo) questionnaireData.whatYouDo.whatYouDo = questionnaireData.basicInfo.whatYouDo;
+      
+      // Step 3: How You Do It (howYouDoIt, uniqueValue)
+      if (questionnaireData.basicInfo.howYouDoIt) questionnaireData.howYouDoIt.howYouDoIt = questionnaireData.basicInfo.howYouDoIt;
+      if (questionnaireData.basicInfo.uniqueValue) questionnaireData.howYouDoIt.uniqueValue = questionnaireData.basicInfo.uniqueValue;
+      
+      // Step 4: What You Deliver (mainService, whatYouDeliver, topUseCases)
+      if (questionnaireData.basicInfo.mainService) questionnaireData.whatYouDeliver.mainService = questionnaireData.basicInfo.mainService;
+      if (questionnaireData.basicInfo.whatYouDeliver) questionnaireData.whatYouDeliver.whatYouDeliver = questionnaireData.basicInfo.whatYouDeliver;
+      if (questionnaireData.basicInfo.topUseCases) questionnaireData.whatYouDeliver.topUseCases = questionnaireData.basicInfo.topUseCases;
+      
+      // Step 5: Creating Desire (barriers, whyMoveAway)
+      if (questionnaireData.basicInfo.barriers) questionnaireData.creatingDesire.barriers = questionnaireData.basicInfo.barriers;
+      if (questionnaireData.basicInfo.whyMoveAway) questionnaireData.creatingDesire.whyMoveAway = questionnaireData.basicInfo.whyMoveAway;
+    }
+    
+    // Step 6: Your Buyers (from icp)
+    if (questionnaireData.icp) {
+      questionnaireData.yourBuyers = { ...questionnaireData.yourBuyers, ...questionnaireData.icp };
+    }
+    
+    // Step 8: Positioning (competitors from socialProof)
+    if (questionnaireData.socialProof && (questionnaireData.socialProof as any).competitors) {
+      questionnaireData.positioning.competitors = (questionnaireData.socialProof as any).competitors;
+    }
+    
+    // Step 9: Lead Magnets (from callToAction)
+    if (questionnaireData.callToAction) {
+      if ((questionnaireData.callToAction as any).leadMagnet) questionnaireData.leadMagnets.leadMagnet = (questionnaireData.callToAction as any).leadMagnet;
+      if ((questionnaireData.callToAction as any).emailExample1) questionnaireData.brandExamples.emailExample1 = (questionnaireData.callToAction as any).emailExample1;
+      if ((questionnaireData.callToAction as any).emailExample2) questionnaireData.brandExamples.emailExample2 = (questionnaireData.callToAction as any).emailExample2;
+      if ((questionnaireData.callToAction as any).emailExample3) questionnaireData.brandExamples.emailExample3 = (questionnaireData.callToAction as any).emailExample3;
+    }
+    
+    // Step 10: Brand & Examples (from brand)
+    if (questionnaireData.brand) {
+      if ((questionnaireData.brand as any).brandDocuments) questionnaireData.brandExamples.brandDocuments = (questionnaireData.brand as any).brandDocuments;
+      if ((questionnaireData.brand as any).additionalFiles) questionnaireData.brandExamples.additionalFiles = (questionnaireData.brand as any).additionalFiles;
+    }
+    
+    // Remove legacy sections
+    delete (questionnaireData as any).basicInfo;
+    delete (questionnaireData as any).icp;
+    delete (questionnaireData as any).callToAction;
+    delete (questionnaireData as any).brand;
 
     console.log('🔍 Final questionnaire data:', questionnaireData);
     return questionnaireData;

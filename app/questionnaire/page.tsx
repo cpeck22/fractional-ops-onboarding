@@ -22,12 +22,16 @@ export default function QuestionnairePage() {
   console.log('📋 QuestionnairePage: Current section:', currentSection);
 
   const sections = [
-    { id: 'companyInfo', title: 'Company Information', description: 'Tell us about your company' },
-    { id: 'basicInfo', title: 'Basic Information', description: 'Core business details and positioning' },
-    { id: 'icp', title: 'ICP (Ideal Customer Profile)', description: 'Define your ideal customer profile' },
-    { id: 'socialProof', title: 'Social Proof', description: 'Proof points and client references' },
-    { id: 'callToAction', title: 'Call to Action', description: 'Lead magnets and email examples' },
-    { id: 'brand', title: 'Your Brand', description: 'Brand documents and additional materials' }
+    { id: 'companyInfo', title: 'Step 1: Who You Are', description: 'Let&apos;s start with the basics about your company' },
+    { id: 'whatYouDo', title: 'Step 2: What You Do', description: 'Tell me about your industry and what you do' },
+    { id: 'howYouDoIt', title: 'Step 3: How You Do It', description: 'Explain your process and what makes you unique' },
+    { id: 'whatYouDeliver', title: 'Step 4: What You Deliver', description: 'Describe your main offerings and deliverables' },
+    { id: 'creatingDesire', title: 'Step 5: Creating Desire', description: 'Help your prospects understand why they need to act now' },
+    { id: 'yourBuyers', title: 'Step 6: Your Buyers', description: 'Define who your ideal customers are and how to reach them' },
+    { id: 'socialProof', title: 'Step 7: Social Proof', description: 'Show why prospects should trust you' },
+    { id: 'positioning', title: 'Step 8: Positioning', description: 'Understand your competitive landscape' },
+    { id: 'leadMagnets', title: 'Step 9: Carrots & Lead Magnets', description: 'What can you offer to attract prospects?' },
+    { id: 'brandExamples', title: 'Step 10: Brand & Examples', description: 'Share your brand voice and proven email examples' }
   ];
 
   const handleNext = () => {
@@ -83,7 +87,7 @@ export default function QuestionnairePage() {
               Log Out
             </button>
             <h1 className="text-3xl font-bold text-fo-primary mb-2">
-              Claire&apos;s 25 Questions
+              10-Steps to Sales Excellence
             </h1>
             <p className="text-fo-text-secondary font-light mb-2">
               Tactical systems to drive reliable profits and turn chaos into clarity.

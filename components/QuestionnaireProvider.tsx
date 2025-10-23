@@ -19,22 +19,34 @@ interface QuestionnaireContextType {
 const QuestionnaireContext = createContext<QuestionnaireContextType | undefined>(undefined);
 
 const initialData: QuestionnaireData = {
+  // Step 1: Who You Are
   companyInfo: {
     companyName: '',
     companyDomain: ''
   },
-  basicInfo: {
+  // Step 2: What You Do
+  whatYouDo: {
     industry: '',
-    whatYouDo: '',
+    whatYouDo: ''
+  },
+  // Step 3: How You Do It
+  howYouDoIt: {
     howYouDoIt: '',
-    uniqueValue: '',
+    uniqueValue: ''
+  },
+  // Step 4: What You Deliver
+  whatYouDeliver: {
     mainService: '',
     whatYouDeliver: '',
-    topUseCases: '',
+    topUseCases: ''
+  },
+  // Step 5: Creating Desire
+  creatingDesire: {
     barriers: '',
     whyMoveAway: ''
   },
-  icp: {
+  // Step 6: Your Buyers
+  yourBuyers: {
     seniorityLevel: [],
     jobTitles: '',
     companySize: '',
@@ -43,18 +55,24 @@ const initialData: QuestionnaireData = {
     decisionMakerResponsibilities: '',
     prospectChallenges: ''
   },
+  // Step 7: Social Proof
   socialProof: {
     proofPoints: '',
-    clientReferences: '',
+    clientReferences: ''
+  },
+  // Step 8: Positioning
+  positioning: {
     competitors: ''
   },
-  callToAction: {
-    leadMagnet: '',
+  // Step 9: Carrots & Lead Magnets
+  leadMagnets: {
+    leadMagnet: ''
+  },
+  // Step 10: Brand & Examples
+  brandExamples: {
     emailExample1: '',
     emailExample2: '',
-    emailExample3: ''
-  },
-  brand: {
+    emailExample3: '',
     brandDocuments: '',
     additionalFiles: ''
   }

@@ -1,25 +1,37 @@
 export interface QuestionnaireData {
-  // Company Information (Required for Octave API)
+  // Step 1: Who You Are (Q1-2)
   companyInfo: {
     companyName: string;
     companyDomain: string;
   };
 
-  // Basic Information (Corey's Section 1)
-  basicInfo: {
+  // Step 2: What You Do (Q3-4)
+  whatYouDo: {
     industry: string;
     whatYouDo: string;
+  };
+
+  // Step 3: How You Do It (Q5-6)
+  howYouDoIt: {
     howYouDoIt: string;
     uniqueValue: string;
+  };
+
+  // Step 4: What You Deliver (Q7-9)
+  whatYouDeliver: {
     mainService: string;
     whatYouDeliver: string;
     topUseCases: string;
+  };
+
+  // Step 5: Creating Desire (Q10-11)
+  creatingDesire: {
     barriers: string;
     whyMoveAway: string;
   };
 
-  // ICP (Ideal Customer Profile) (Corey's Section 2)
-  icp: {
+  // Step 6: Your Buyers (Q12-18)
+  yourBuyers: {
     seniorityLevel: string[];
     jobTitles: string;
     companySize: string;
@@ -29,23 +41,27 @@ export interface QuestionnaireData {
     prospectChallenges: string;
   };
 
-  // Social Proof (Corey's Section 3)
+  // Step 7: Social Proof (Q19-20)
   socialProof: {
     proofPoints: string;
     clientReferences: string;
+  };
+
+  // Step 8: Positioning (Q21)
+  positioning: {
     competitors: string;
   };
 
-  // Call to Action (Corey's Section 4)
-  callToAction: {
+  // Step 9: Carrots & Lead Magnets (Q22)
+  leadMagnets: {
     leadMagnet: string;
+  };
+
+  // Step 10: Brand & Examples (Q23-27)
+  brandExamples: {
     emailExample1: string;
     emailExample2: string;
     emailExample3: string;
-  };
-
-  // Brand (Corey's Section 5)
-  brand: {
     brandDocuments: string;
     additionalFiles: string;
   };

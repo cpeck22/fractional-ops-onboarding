@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuestionnaire } from './QuestionnaireProvider';
+import ClaireVideoPlaceholder from './ClaireVideoPlaceholder';
 import toast from 'react-hot-toast';
 
 interface Section {
@@ -21,11 +22,13 @@ interface QuestionnaireFormProps {
 }
 
 const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea' | 'dropdown' | 'multiselect' | 'file', required?: boolean, description?: string, example?: string, options?: string[], questionNumber?: number}>> = {
+  // Step 1: Who You Are (Q1-2)
   companyInfo: [
     { key: 'companyName', label: 'Company Name', placeholder: 'Please Type Your Answer here', type: 'text', required: true, questionNumber: 1 },
     { key: 'companyDomain', label: 'Company Domain', placeholder: 'Please Type Your Answer here', type: 'text', required: true, questionNumber: 2 }
   ],
-  basicInfo: [
+  // Step 2: What You Do (Q3-4)
+  whatYouDo: [
     { 
       key: 'industry', 
       label: 'What industry does your company operate in?', 
@@ -45,7 +48,10 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       description: 'I\'ll build this out in way more detail for you behind the scenes, but I just need the basics for now.',
       example: '"We help companies find and set up offices so their teams have a good place to work and they don\'t waste money."\n\n"We help companies make sure their business deals and contracts are done the right way so they don\'t get into trouble."\n\n"We help companies fix how they hire, manage, and grow their teams so people actually enjoy working there."',
       questionNumber: 4
-    },
+    }
+  ],
+  // Step 3: How You Do It (Q5-6)
+  howYouDoIt: [
     { 
       key: 'howYouDoIt', 
       label: 'Describe how you do it. Explain it to me like I\'m 10 years old', 
@@ -65,7 +71,10 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       description: 'I need to know what actually sets you apart. This isn\'t aspirational. I need to know the real answer.',
       example: '"We built an internal lease benchmarking database that gives clients real-time market leverage"\n\n"We use a proprietary risk assessment model to identify compliance gaps faster than traditional methods"\n\n"We developed a repeatable framework for diagnosing and restructuring underperforming teams in under 30 days"',
       questionNumber: 6
-    },
+    }
+  ],
+  // Step 4: What You Deliver (Q7-9)
+  whatYouDeliver: [
     { 
       key: 'mainService', 
       label: 'How would you describe your main service or product?', 
@@ -95,7 +104,10 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       description: 'These are practical applications of your offering that describe how you deliver value. These should be the most common or most loved way people use your service or product.',
       example: '**From a Corporate Real Estate Services company**\n"Negotiating lease renewals"\n"Space strategy for hybrid work models"\n"Managing relocations and build-outs for new offices"\n\n**From a Legal Services company**\n"Advising on M&A transactions and due diligence"\n"Drafting and reviewing commercial contracts"\n"Providing ongoing legal counsel for corporate governance"\n\n**From a HR Consulting Services company**\n"Redesigning performance management systems"\n"Installing structured compensation plans"\n"Creating Interview Templates"',
       questionNumber: 9
-    },
+    }
+  ],
+  // Step 5: Creating Desire (Q10-11)
+  creatingDesire: [
     { 
       key: 'barriers', 
       label: 'What are all the reasons someone would not take you up on your offer? What gets in their way?', 
@@ -117,7 +129,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       questionNumber: 11
     }
   ],
-  icp: [
+  // Step 6: Your Buyers (Q12-18)
+  yourBuyers: [
     { 
       key: 'seniorityLevel', 
       label: 'Role Seniority & Titles: Who specifically makes the buying decision?', 
@@ -190,6 +203,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       questionNumber: 18
     }
   ],
+  // Step 7: Social Proof (Q19-20)
   socialProof: [
     { 
       key: 'proofPoints', 
@@ -210,7 +224,10 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       description: 'I need 1-3 client references to start. Creating detailed reference clients will help me showcase how real people are succeeding with our service (or product) offering. I need you to either name the actual client and give me their website (I\'ll can gather more details behind the scenes for you) or if you can\'t name them, just describe them. If actually naming them, I need this format: [Client\'s Company Name] (Client\'s website url) [Describe the result]',
       example: '**Corporate Real Estate:**\n• FedEx (https://www.fedex.com) — Reduced real estate costs via consolidation\n\n• Global financial firm — Improved lease cycle time by 30%\n\n**Legal Services:**\n• Mid-market SaaS — Closed $100M acquisition with no compliance issues\n\n• PE firm ($2B AUM) — Standardized contracts across 6 entities\n\n**HR Consulting:**\n• Shopify (https://www.shopify.com) — Improved engagement by 18% in 6 months\n\n• PE-backed manufacturer — Designed review system across 5 plants',
       questionNumber: 20
-    },
+    }
+  ],
+  // Step 8: Positioning (Q21)
+  positioning: [
     { 
       key: 'competitors', 
       label: 'Who else can solve this for them?', 
@@ -222,7 +239,8 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       questionNumber: 21
     }
   ],
-  callToAction: [
+  // Step 9: Carrots & Lead Magnets (Q22)
+  leadMagnets: [
     { 
       key: 'leadMagnet', 
       label: 'What can we offer in exchange for someone interacting with us?', 
@@ -232,7 +250,10 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       description: 'We need to entice people with something tangible. They don\'t know us yet and have no reason to care unless we give them one. These could be as simple as a proprietary report or as big as a complementary service. Some people refer to these as "Lead Magnets." The best versions of these are something that you have actually charged for, that you can give away for free. And ideally something that you have (or could) charge $2–10k for. The worst versions are "audits". From your last answers, I already know you\'re great, but these prospects don\'t know you, so they won\'t care about a service from an unproven and unknown random (even if it\'s free). PS. Don\'t worry, if you only have the simple ones right now (like white papers or reports), I\'ll help you operationalize these into something more valuable later.',
       example: '• "Online lease savings calculator"\n\n• "M&A deal checklist and data room folder structure"\n\n• "Performance review toolkit with templates and HRIS integration"',
       questionNumber: 22
-    },
+    }
+  ],
+  // Step 10: Brand & Examples (Q23-27)
+  brandExamples: [
     { 
       key: 'emailExample1', 
       label: 'What emails have received positive responses in the past? Copy and paste the examples below: Example 1', 
@@ -259,9 +280,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       required: false,
       description: 'Share a third email that has worked well for you.',
       questionNumber: 25
-    }
-  ],
-  brand: [
+    },
     { 
       key: 'brandDocuments', 
       label: 'Almost done (I promise). I need to know how you speak! We shouldn\'t launch any campaigns or make social content that don\'t sound like you. This step is simple: just upload any brand documents you have, such as: Tone of Voice, Brand Standards and Guidelines, Writing Guidelines, Core Values, Manifestos, Founder Story', 
@@ -357,6 +376,12 @@ export default function QuestionnaireForm({
         <h2 className="text-2xl font-bold text-fo-primary mb-2">{section.title}</h2>
         <p className="text-fo-text-secondary font-light">{section.description}</p>
       </div>
+
+      {/* Claire's Video Placeholder */}
+      <ClaireVideoPlaceholder 
+        sectionTitle={section.title}
+        sectionDescription={section.description}
+      />
 
       <div className="space-y-6">
         {fields.map((field, index) => (

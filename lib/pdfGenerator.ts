@@ -9,22 +9,28 @@ interface PDFData {
 
 // Section structure matching the Review page
 const sectionTitles = [
-  { id: 'companyInfo', title: 'Company Information', fields: [
+  { id: 'companyInfo', title: 'Step 1: Who You Are', fields: [
     { key: 'companyName', label: 'Company Name' },
     { key: 'companyDomain', label: 'Company Domain' }
   ]},
-  { id: 'basicInfo', title: 'Basic Information', fields: [
+  { id: 'whatYouDo', title: 'Step 2: What You Do', fields: [
     { key: 'industry', label: 'What industry does your company operate in?' },
-    { key: 'whatYouDo', label: 'Describe what you do. Explain it to me like I\'m 10 years old' },
+    { key: 'whatYouDo', label: 'Describe what you do. Explain it to me like I\'m 10 years old' }
+  ]},
+  { id: 'howYouDoIt', title: 'Step 3: How You Do It', fields: [
     { key: 'howYouDoIt', label: 'Describe how you do it. Explain it to me like I\'m 10 years old' },
-    { key: 'uniqueValue', label: 'What makes your company unique or different from competitors?' },
+    { key: 'uniqueValue', label: 'What makes your company unique or different from competitors?' }
+  ]},
+  { id: 'whatYouDeliver', title: 'Step 4: What You Deliver', fields: [
     { key: 'mainService', label: 'How would you describe your main service or product?' },
     { key: 'whatYouDeliver', label: 'What do you actually deliver?' },
-    { key: 'topUseCases', label: 'What are the top 3 use cases of your service or product?' },
+    { key: 'topUseCases', label: 'What are the top 3 use cases of your service or product?' }
+  ]},
+  { id: 'creatingDesire', title: 'Step 5: Creating Desire', fields: [
     { key: 'barriers', label: 'What are all the reasons someone would not take you up on your offer? What gets in their way?' },
     { key: 'whyMoveAway', label: 'Why should they move away from the status quo?' }
   ]},
-  { id: 'icp', title: 'ICP (Ideal Customer Profile)', fields: [
+  { id: 'yourBuyers', title: 'Step 6: Your Buyers', fields: [
     { key: 'seniorityLevel', label: 'Role Seniority & Titles: Who specifically makes the buying decision?' },
     { key: 'jobTitles', label: 'Specific Job Titles' },
     { key: 'companySize', label: 'Which employee size, revenue range (or funding stage) do you typically work with?' },
@@ -33,18 +39,20 @@ const sectionTitles = [
     { key: 'decisionMakerResponsibilities', label: 'What are the main responsibilities of the decision-makers you sell to?' },
     { key: 'prospectChallenges', label: 'What are the main challenges or pain your prospects currently face?' }
   ]},
-  { id: 'socialProof', title: 'Social Proof', fields: [
+  { id: 'socialProof', title: 'Step 7: Social Proof', fields: [
     { key: 'proofPoints', label: 'Why should they believe you?' },
-    { key: 'clientReferences', label: 'Who has gotten these results?' },
+    { key: 'clientReferences', label: 'Who has gotten these results?' }
+  ]},
+  { id: 'positioning', title: 'Step 8: Positioning', fields: [
     { key: 'competitors', label: 'Who else can solve this for them?' }
   ]},
-  { id: 'callToAction', title: 'Call to Action', fields: [
-    { key: 'leadMagnet', label: 'What can we offer in exchange for someone interacting with us?' },
+  { id: 'leadMagnets', title: 'Step 9: Carrots & Lead Magnets', fields: [
+    { key: 'leadMagnet', label: 'What can we offer in exchange for someone interacting with us?' }
+  ]},
+  { id: 'brandExamples', title: 'Step 10: Brand & Examples', fields: [
     { key: 'emailExample1', label: 'What emails have received positive responses in the past? Example 1' },
     { key: 'emailExample2', label: 'What emails have received positive responses in the past? Example 2' },
-    { key: 'emailExample3', label: 'What emails have received positive responses in the past? Example 3' }
-  ]},
-  { id: 'brand', title: 'Your Brand', fields: [
+    { key: 'emailExample3', label: 'What emails have received positive responses in the past? Example 3' },
     { key: 'brandDocuments', label: 'Upload any brand documents you have' },
     { key: 'additionalFiles', label: 'You may have other files that didn\'t quite fit into my initial questions' }
   ]}
