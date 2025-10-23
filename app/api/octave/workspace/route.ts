@@ -39,19 +39,19 @@ export async function POST(request: NextRequest) {
     const generateOffering = (data: QuestionnaireData) => {
       const companyName = data.companyInfo?.companyName || 'Client Company';
       
-      // Use the new questionnaire structure for more accurate data
-      const industry = data.basicInfo?.industry || 'B2B services';
-      const keyResponsibilities = data.icp?.decisionMakerResponsibilities || 'business operations';
+      // Use the new 10-step questionnaire structure
+      const industry = data.whatYouDo?.industry || 'B2B services';
+      const keyResponsibilities = data.yourBuyers?.decisionMakerResponsibilities || 'business operations';
       
       // Question 6: What makes your company unique or different from competitors?
-      const differentiatedValue = data.basicInfo?.uniqueValue || 'unique value proposition';
+      const differentiatedValue = data.howYouDoIt?.uniqueValue || 'unique value proposition';
       
       // Question 11: Why should they move away from the status quo? (with full context)
       const statusQuoQuestion = "Why should they move away from the status quo? Sometimes, your biggest competitor is inaction. The prospect understands your benefits at a high level, but it can't answer the 'what's in it for them.' How would you paint a picture of the future in a way that makes it impossible for your prospect to avoid learning more? What's in it for them?";
-      const statusQuoAnswer = data.basicInfo?.whyMoveAway || 'operational challenges';
+      const statusQuoAnswer = data.creatingDesire?.whyMoveAway || 'operational challenges';
       const statusQuo = `${statusQuoQuestion}\n\nAnswer: ${statusQuoAnswer}`;
       
-      const serviceDescription = data.basicInfo?.mainService || 'revenue growth services';
+      const serviceDescription = data.whatYouDeliver?.mainService || 'revenue growth services';
       
       return {
         type: "SERVICE",
