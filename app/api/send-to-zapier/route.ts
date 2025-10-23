@@ -42,9 +42,62 @@ export async function POST(request: NextRequest) {
       filename: fileName,
       contentType: 'application/pdf'
     });
+    
+    // Basic metadata
     formData.append('email', email);
     formData.append('companyName', companyName);
     formData.append('fileName', fileName);
+    formData.append('submittedAt', new Date().toISOString());
+    
+    // Step 1: Who You Are (Q1-2)
+    formData.append('companyDomain', questionnaireData.companyInfo?.companyDomain || '');
+    
+    // Step 2: What You Do (Q3-4)
+    formData.append('industry', questionnaireData.whatYouDo?.industry || '');
+    formData.append('whatYouDo', questionnaireData.whatYouDo?.whatYouDo || '');
+    
+    // Step 3: How You Do It (Q5-6)
+    formData.append('howYouDoIt', questionnaireData.howYouDoIt?.howYouDoIt || '');
+    formData.append('uniqueValue', questionnaireData.howYouDoIt?.uniqueValue || '');
+    
+    // Step 4: What You Deliver (Q7-9)
+    formData.append('mainService', questionnaireData.whatYouDeliver?.mainService || '');
+    formData.append('whatYouDeliver', questionnaireData.whatYouDeliver?.whatYouDeliver || '');
+    formData.append('topUseCases', questionnaireData.whatYouDeliver?.topUseCases || '');
+    
+    // Step 5: Creating Desire (Q10-11)
+    formData.append('barriers', questionnaireData.creatingDesire?.barriers || '');
+    formData.append('whyMoveAway', questionnaireData.creatingDesire?.whyMoveAway || '');
+    
+    // Step 6: Your Buyers (Q12-18)
+    formData.append('seniorityLevel', Array.isArray(questionnaireData.yourBuyers?.seniorityLevel) 
+      ? questionnaireData.yourBuyers.seniorityLevel.join(', ') 
+      : '');
+    formData.append('jobTitles', questionnaireData.yourBuyers?.jobTitles || '');
+    formData.append('companySize', questionnaireData.yourBuyers?.companySize || '');
+    formData.append('geographicMarkets', questionnaireData.yourBuyers?.geographicMarkets || '');
+    formData.append('preferredEngagement', questionnaireData.yourBuyers?.preferredEngagement || '');
+    formData.append('decisionMakerResponsibilities', questionnaireData.yourBuyers?.decisionMakerResponsibilities || '');
+    formData.append('prospectChallenges', questionnaireData.yourBuyers?.prospectChallenges || '');
+    
+    // Step 7: Social Proof (Q19-20)
+    formData.append('proofPoints', questionnaireData.socialProof?.proofPoints || '');
+    formData.append('clientReferences', questionnaireData.socialProof?.clientReferences || '');
+    
+    // Step 8: Positioning (Q21)
+    formData.append('competitors', questionnaireData.positioning?.competitors || '');
+    
+    // Step 9: Carrots & Lead Magnets (Q22)
+    formData.append('leadMagnet', questionnaireData.leadMagnets?.leadMagnet || '');
+    
+    // Step 10: Brand & Examples (Q23-27)
+    formData.append('emailExample1', questionnaireData.brandExamples?.emailExample1 || '');
+    formData.append('emailExample2', questionnaireData.brandExamples?.emailExample2 || '');
+    formData.append('emailExample3', questionnaireData.brandExamples?.emailExample3 || '');
+    formData.append('brandDocuments', questionnaireData.brandExamples?.brandDocuments || '');
+    formData.append('additionalFiles', questionnaireData.brandExamples?.additionalFiles || '');
+    
+    console.log('📋 Sending complete questionnaire data to Zapier with', Object.keys(questionnaireData).length, 'sections');
     
     console.log('📤 Sending to Zapier webhook:', zapierWebhookUrl);
     
