@@ -43,7 +43,7 @@ export default function SignInPage() {
               BETA
             </span>
           </div>
-          <div className="mx-auto h-32 w-64 mt-16">
+          <div className="mx-auto h-32 w-64 mt-4">
             <Image
               src={Logo}
               alt="Fractional Ops logo"
