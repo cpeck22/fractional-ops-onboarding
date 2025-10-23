@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useQuestionnaire } from '@/components/QuestionnaireProvider';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
+import ClaireImage from '../Claire_v1.png';
 
 // Force dynamic rendering (no static generation)
 export const dynamic = 'force-dynamic';
@@ -247,8 +249,15 @@ export default function ReviewPage() {
           <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 relative">
             {/* Claire Avatar */}
             <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-4xl">
-                👩‍💼
+              <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+                <Image
+                  src={ClaireImage}
+                  alt="Claire"
+                  width={128}
+                  height={128}
+                  className="object-cover"
+                  priority
+                />
               </div>
             </div>
             
