@@ -45,6 +45,11 @@ export default function SignupPage() {
     <main className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-gray-50 to-white">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
+          <div className="inline-block relative mb-2">
+            <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
+              BETA
+            </span>
+          </div>
           <div className="mx-auto h-24 w-24 mb-6">
             <Image
               src={Logo}

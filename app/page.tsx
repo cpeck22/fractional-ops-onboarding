@@ -39,6 +39,11 @@ export default function Home() {
     <main className="min-h-screen flex items-center justify-center px-4 bg-gray-100">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
+          <div className="inline-block relative mb-4">
+            <span className="absolute -top-2 -right-8 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
+              BETA
+            </span>
+          </div>
           <div className="mx-auto h-32 w-64 mt-16">
             <Image
               src={Logo}
