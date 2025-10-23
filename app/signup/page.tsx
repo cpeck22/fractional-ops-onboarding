@@ -50,7 +50,7 @@ export default function SignupPage() {
               BETA
             </span>
           </div>
-          <div className="mx-auto h-24 w-24 mb-6">
+          <div className="mx-auto h-32 w-64 mt-4">
             <Image
               src={Logo}
               alt="Fractional Ops logo"
