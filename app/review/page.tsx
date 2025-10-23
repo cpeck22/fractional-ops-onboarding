@@ -255,7 +255,8 @@ export default function ReviewPage() {
                   alt="Claire"
                   width={128}
                   height={128}
-                  className="object-cover"
+                  className="object-cover scale-110"
+                  style={{ objectPosition: 'center 30%' }}
                   priority
                 />
               </div>
