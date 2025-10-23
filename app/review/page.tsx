@@ -62,6 +62,7 @@ const sectionTitles = [
 export default function ReviewPage() {
   const { questionnaireData } = useQuestionnaire();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [userEmail, setUserEmail] = useState<string>('');
   const router = useRouter();
 
@@ -78,6 +79,7 @@ export default function ReviewPage() {
   }, []);
 
   const handleSubmit = async () => {
+    setShowModal(true);
     setIsSubmitting(true);
     
     try {
@@ -238,6 +240,40 @@ export default function ReviewPage() {
           </button>
         </div>
       </div>
+
+      {/* Claire's Processing Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 relative">
+            {/* Claire Avatar */}
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-4xl">
+                👩‍💼
+              </div>
+            </div>
+            
+            {/* Message */}
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-blue-600 mb-4">
+                Thank You!
+              </h2>
+              <p className="text-gray-700 text-lg mb-4">
+                Thank you for answering all my questions. I&apos;m going to start creating your AI Sales workspaces now.
+              </p>
+              <p className="text-gray-600 text-base mb-6">
+                This may take up to 5 minutes.
+              </p>
+              
+              {/* Loading Animation */}
+              <div className="flex justify-center items-center space-x-2">
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
