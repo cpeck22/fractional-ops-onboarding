@@ -83,7 +83,7 @@ export default function QuestionnairePage() {
               Log Out
             </button>
             <h1 className="text-3xl font-bold text-fo-primary mb-2">
-              Claire's 25 Questions
+              Claire&apos;s 25 Questions
             </h1>
             <p className="text-fo-text-secondary font-light mb-2">
               Tactical systems to drive reliable profits and turn chaos into clarity.
