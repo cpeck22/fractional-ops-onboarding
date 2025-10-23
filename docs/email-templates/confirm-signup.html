@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your Email - Fractional Ops</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+      margin: 0;
+      padding: 0;
+      background-color: #f3f4f6;
+    }
+    .email-wrapper {
+      width: 100%;
+      background-color: #f3f4f6;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      padding: 30px 20px;
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      border-bottom: 4px solid #4F46E5;
+    }
+    .logo {
+      max-width: 150px;
+      height: auto;
+      background-color: white;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .content h2 {
+      color: #4F46E5;
+      font-size: 24px;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    .content p {
+      margin-bottom: 16px;
+      font-size: 16px;
+      color: #4b5563;
+    }
+    .button-container {
+      text-align: center;
+      margin: 30px 0;
+    }
+    .button {
+      display: inline-block;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 16px;
+      box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);
+      transition: all 0.3s ease;
+    }
+    .button:hover {
+      box-shadow: 0 6px 12px rgba(79, 70, 229, 0.4);
+    }
+    .backup-link {
+      color: #6b7280;
+      font-size: 14px;
+      word-break: break-all;
+      margin-top: 20px;
+    }
+    .backup-link a {
+      color: #4F46E5;
+      text-decoration: none;
+    }
+    .expiry-notice {
+      background-color: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 12px 16px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .expiry-notice p {
+      margin: 0;
+      color: #92400e;
+      font-size: 14px;
+    }
+    .signature {
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 2px solid #e5e7eb;
+      font-size: 14px;
+      color: #6b7280;
+    }
+    .signature strong {
+      color: #4F46E5;
+      font-size: 16px;
+    }
+    .signature a {
+      color: #4F46E5;
+      text-decoration: none;
+    }
+    .signature a:hover {
+      text-decoration: underline;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #f9fafb;
+      color: #9ca3af;
+      font-size: 12px;
+    }
+    @media only screen and (max-width: 600px) {
+      .email-wrapper {
+        padding: 20px 10px;
+      }
+      .content {
+        padding: 30px 20px;
+      }
+      .content h2 {
+        font-size: 20px;
+      }
+      .button {
+        padding: 12px 24px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="container">
+      <!-- Header with Logo -->
+      <div class="header">
+        <!-- TODO: Replace this URL with your actual logo URL -->
+        <!-- Option 1: Use Vercel deployment URL -->
+        <!-- Option 2: Use Supabase Storage URL -->
+        <img src="https://your-vercel-domain.vercel.app/Fractional-Ops_Symbol_Main.png" alt="Fractional Ops" class="logo">
+      </div>
+      
+      <!-- Main Content -->
+      <div class="content">
+        <h2>Welcome to Fractional Ops!</h2>
+        
+        <p>Hi there,</p>
+        
+        <p>Thank you for signing up for Fractional Ops. We're excited to help you build a world-class Sales Strategy powered by AI.</p>
+        
+        <p>To get started, please verify your email address by clicking the button below:</p>
+        
+        <!-- Call to Action Button -->
+        <div class="button-container">
+          <a href="{{ .ConfirmationURL }}" class="button">Verify Email Address</a>
+        </div>
+        
+        <!-- Backup Link -->
+        <div class="backup-link">
+          <p>If the button doesn't work, copy and paste this link into your browser:</p>
+          <p><a href="{{ .ConfirmationURL }}">{{ .ConfirmationURL }}</a></p>
+        </div>
+        
+        <!-- Expiry Notice -->
+        <div class="expiry-notice">
+          <p><strong>⏰ This verification link will expire in 24 hours.</strong></p>
+        </div>
+        
+        <p>Once verified, you'll have full access to:</p>
+        <ul style="color: #4b5563;">
+          <li>Claire's 25 Questions - Our strategic questionnaire</li>
+          <li>AI-powered sales workspace creation</li>
+          <li>Custom sales strategy tailored to your business</li>
+        </ul>
+        
+        <p>If you didn't create this account, you can safely ignore this email.</p>
+        
+        <!-- Signature -->
+        <div class="signature">
+          <p><strong>Claire</strong></p>
+          <p>
+            Fractional Ops<br>
+            Building world-class sales systems<br>
+            <a href="mailto:Claire@fractionalops.com">Claire@fractionalops.com</a>
+          </p>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="footer">
+        <p>&copy; 2025 Fractional Ops. All rights reserved.</p>
+        <p>You're receiving this email because you signed up at fractionalops.com</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
