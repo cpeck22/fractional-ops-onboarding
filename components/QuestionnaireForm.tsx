@@ -329,17 +329,7 @@ export default function QuestionnaireForm({
 
   const handleFieldChange = (key: string, value: string | string[]) => {
     console.log('📝 QuestionnaireForm: handleFieldChange called with:', { key, value });
-    
-    // Clean company domain input - remove https://, http://, and www.
-    let cleanedValue = value;
-    if (key === 'companyDomain' && typeof value === 'string') {
-      cleanedValue = value
-        .replace(/^https?:\/\//i, '')  // Remove https:// or http://
-        .replace(/^www\./i, '')         // Remove www.
-        .trim();                        // Remove extra whitespace
-    }
-    
-    const newData = { ...formData, [key]: cleanedValue };
+    const newData = { ...formData, [key]: value };
     console.log('📝 QuestionnaireForm: New form data:', newData);
     setFormData(newData);
     console.log('📝 QuestionnaireForm: Calling onDataChange with:', newData);
@@ -356,6 +346,15 @@ export default function QuestionnaireForm({
   };
 
   const handleNext = async () => {
+    // Validate company domain - check for https://, http://, or www.
+    if (section.id === 'companyInfo' && formData.companyDomain) {
+      const domain = formData.companyDomain.toString();
+      if (/^https?:\/\//i.test(domain) || /^www\./i.test(domain)) {
+        toast.error('Please remove https and/or www from the company domain');
+        return;
+      }
+    }
+
     // Validate required fields before proceeding
     const requiredFields = fields.filter(field => field.required);
     const missingFields = requiredFields.filter(field => {
