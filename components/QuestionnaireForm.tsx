@@ -25,7 +25,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
   // Step 1: Who You Are (Q1-2)
   companyInfo: [
     { key: 'companyName', label: 'Company Name', placeholder: 'Please Type Your Answer here', type: 'text', required: true, questionNumber: 1 },
-    { key: 'companyDomain', label: 'Company Domain', placeholder: 'Please Type Your Answer here', type: 'text', required: true, questionNumber: 2 }
+    { key: 'companyDomain', label: 'Company Domain', placeholder: 'example.com', type: 'text', required: true, description: 'Enter your domain without https:// or www.', questionNumber: 2 }
   ],
   // Step 2: What You Do (Q3-4)
   whatYouDo: [
@@ -329,7 +329,17 @@ export default function QuestionnaireForm({
 
   const handleFieldChange = (key: string, value: string | string[]) => {
     console.log('📝 QuestionnaireForm: handleFieldChange called with:', { key, value });
-    const newData = { ...formData, [key]: value };
+    
+    // Clean company domain input - remove https://, http://, and www.
+    let cleanedValue = value;
+    if (key === 'companyDomain' && typeof value === 'string') {
+      cleanedValue = value
+        .replace(/^https?:\/\//i, '')  // Remove https:// or http://
+        .replace(/^www\./i, '')         // Remove www.
+        .trim();                        // Remove extra whitespace
+    }
+    
+    const newData = { ...formData, [key]: cleanedValue };
     console.log('📝 QuestionnaireForm: New form data:', newData);
     setFormData(newData);
     console.log('📝 QuestionnaireForm: Calling onDataChange with:', newData);
