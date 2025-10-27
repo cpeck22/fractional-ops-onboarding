@@ -98,8 +98,10 @@ export async function POST(request: NextRequest) {
     formData.append('additionalFiles', questionnaireData.brandExamples?.additionalFiles || '');
     
     console.log('📋 Sending complete questionnaire data to Zapier with', Object.keys(questionnaireData).length, 'sections');
+    console.log('📋 Sample fields being sent:', { email, companyName, companyDomain, industry: questionnaireData.whatYouDo?.industry });
     
     console.log('📤 Sending to Zapier webhook:', zapierWebhookUrl);
+    console.log('📤 Content-Type:', formData.getHeaders()['content-type']);
     
     // Send to Zapier
     const response = await fetch(zapierWebhookUrl, {
@@ -118,6 +120,7 @@ export async function POST(request: NextRequest) {
     
     const result = await response.json();
     console.log('✅ Successfully sent to Zapier:', result);
+    console.log('✅ Zapier request ID:', result.request_id || result.id);
     
     return NextResponse.json({
       success: true,
