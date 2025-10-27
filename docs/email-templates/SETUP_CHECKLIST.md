@@ -246,3 +246,4 @@ Templates: Authentication > Email Templates
 - [Supabase Dashboard](https://app.supabase.com)
 - [Supabase SMTP Docs](https://supabase.com/docs/guides/auth/auth-smtp)
 
+

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useQuestionnaire } from './QuestionnaireProvider';
 import ClaireVideoPlaceholder from './ClaireVideoPlaceholder';
+import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 
 interface Section {
@@ -320,6 +321,7 @@ export default function QuestionnaireForm({
   const [formData, setFormData] = useState(data || {});
   const { isSaving, saveCurrentData } = useQuestionnaire();
   const [savingField, setSavingField] = useState<string | null>(null);
+  const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
 
   console.log('📝 QuestionnaireForm: Form data:', formData);
 
@@ -342,6 +344,82 @@ export default function QuestionnaireForm({
       await saveCurrentData();
     } finally {
       setSavingField(null);
+    }
+  };
+
+  const handleFileUpload = async (fieldKey: string, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    setUploadingFiles(prev => ({ ...prev, [fieldKey]: true }));
+
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to upload files');
+        return;
+      }
+
+      const uploadedUrls: string[] = [];
+      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+      const ALLOWED_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/png', 'image/jpeg', 'image/jpg'];
+
+      for (const file of Array.from(files)) {
+        // Validate file size
+        if (file.size > MAX_FILE_SIZE) {
+          toast.error(`${file.name} is too large. Max size is 10MB.`);
+          continue;
+        }
+
+        // Validate file type
+        if (!ALLOWED_TYPES.includes(file.type)) {
+          toast.error(`${file.name} is not an allowed file type. Please upload PDF, DOC, DOCX, or images.`);
+          continue;
+        }
+
+        // Generate unique file path
+        const timestamp = Date.now();
+        const filePath = `${user.id}/${timestamp}_${file.name}`;
+
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage
+          .from('Questionnaire Files')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (error) {
+          console.error('Upload error:', error);
+          toast.error(`Failed to upload ${file.name}`);
+          continue;
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('Questionnaire Files')
+          .getPublicUrl(data.path);
+
+        uploadedUrls.push(publicUrl);
+        console.log(`✅ Uploaded ${file.name} to:`, publicUrl);
+      }
+
+      if (uploadedUrls.length > 0) {
+        // Store URLs in form data (comma-separated)
+        const existingUrls = formData[fieldKey] ? formData[fieldKey].split(', ').filter((url: string) => url) : [];
+        const allUrls = [...existingUrls, ...uploadedUrls];
+        handleFieldChange(fieldKey, allUrls.join(', '));
+        
+        toast.success(`${uploadedUrls.length} file(s) uploaded successfully!`);
+        
+        // Auto-save after upload
+        await saveCurrentData();
+      }
+    } catch (error) {
+      console.error('File upload error:', error);
+      toast.error('Failed to upload files. Please try again.');
+    } finally {
+      setUploadingFiles(prev => ({ ...prev, [fieldKey]: false }));
     }
   };
 
@@ -462,17 +540,41 @@ export default function QuestionnaireForm({
                 </div>
               </div>
             ) : field.type === 'file' ? (
-              <input
-                type="file"
-                onChange={(e) => {
-                  const files = e.target.files;
-                  if (files && files.length > 0) {
-                    handleFieldChange(field.key, Array.from(files).map(file => file.name).join(', '));
-                  }
-                }}
-                multiple
-                className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary focus:border-fo-primary text-fo-text"
-              />
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  onChange={(e) => handleFileUpload(field.key, e.target.files)}
+                  multiple
+                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                  disabled={uploadingFiles[field.key]}
+                  className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary focus:border-fo-primary text-fo-text disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                {uploadingFiles[field.key] && (
+                  <p className="text-sm text-fo-secondary">Uploading files...</p>
+                )}
+                {formData[field.key] && (
+                  <div className="text-sm text-fo-text-secondary">
+                    <p className="font-semibold mb-1">Uploaded files:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      {formData[field.key].split(', ').filter((url: string) => url).map((url: string, idx: number) => (
+                        <li key={idx}>
+                          <a 
+                            href={url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-fo-secondary hover:underline"
+                          >
+                            File {idx + 1}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <p className="text-xs text-fo-text-secondary">
+                  Max 10MB per file. Allowed: PDF, DOC, DOCX, PNG, JPG
+                </p>
+              </div>
             ) : (
               <input
                 type={field.type}

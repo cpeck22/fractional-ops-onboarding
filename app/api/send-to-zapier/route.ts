@@ -94,12 +94,27 @@ export async function POST(request: NextRequest) {
       emailExample2: questionnaireData.brandExamples?.emailExample2 || '',
       emailExample3: questionnaireData.brandExamples?.emailExample3 || '',
       brandDocuments: questionnaireData.brandExamples?.brandDocuments || '',
-      additionalFiles: questionnaireData.brandExamples?.additionalFiles || ''
+      brandDocumentsUrls: questionnaireData.brandExamples?.brandDocuments 
+        ? questionnaireData.brandExamples.brandDocuments.split(', ').filter(url => url.trim())
+        : [],
+      additionalFiles: questionnaireData.brandExamples?.additionalFiles || '',
+      additionalFilesUrls: questionnaireData.brandExamples?.additionalFiles 
+        ? questionnaireData.brandExamples.additionalFiles.split(', ').filter(url => url.trim())
+        : [],
+      totalFileCount: [
+        ...(questionnaireData.brandExamples?.brandDocuments?.split(', ') || []),
+        ...(questionnaireData.brandExamples?.additionalFiles?.split(', ') || [])
+      ].filter(url => url.trim()).length
     };
     
     console.log('📋 Sending complete questionnaire data to Zapier with', Object.keys(questionnaireData).length, 'sections');
     console.log('📋 Sample fields being sent:', { email, companyName, companyDomain: payload.companyDomain, industry: payload.industry });
     console.log('📋 PDF size:', pdfBuffer.length, 'bytes, base64 size:', pdfBase64.length, 'chars');
+    console.log('📋 File uploads:', { 
+      brandDocuments: payload.brandDocumentsUrls.length, 
+      additionalFiles: payload.additionalFilesUrls.length,
+      total: payload.totalFileCount 
+    });
     
     console.log('📤 Sending to Zapier webhook:', zapierWebhookUrl);
     console.log('📤 Content-Type: application/json');
