@@ -102,6 +102,8 @@ export default function ReviewPage() {
       const result = await response.json();
 
       if (response.ok && result.success) {
+        console.log('✅ Workspace created successfully!');
+        setShowModal(false); // Close the modal
         toast.success('Onboarding completed successfully!');
         
         // Download PDF
@@ -141,10 +143,12 @@ export default function ReviewPage() {
         
         router.push('/thank-you');
       } else {
+        setShowModal(false); // Close modal on error too
         toast.error(result.error || 'Failed to submit onboarding data. Please try again.');
         console.error('API Error:', result);
       }
     } catch (error) {
+      setShowModal(false); // Close modal on error
       toast.error('Failed to submit onboarding data. Please try again.');
       console.error('Submission error:', error);
     } finally {
