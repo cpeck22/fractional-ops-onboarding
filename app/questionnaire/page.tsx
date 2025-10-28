@@ -22,7 +22,7 @@ export default function QuestionnairePage() {
   console.log('📋 QuestionnairePage: Current section:', currentSection);
 
   const sections = [
-    { id: 'companyInfo', title: 'Step 1: Who You Are', description: 'Let&apos;s start with the basics about your company' },
+    { id: 'companyInfo', title: 'Step 1: Who You Are', description: "Let's start with the basics about your company" },
     { id: 'whatYouDo', title: 'Step 2: What You Do', description: 'Tell me about your industry and what you do' },
     { id: 'howYouDoIt', title: 'Step 3: How You Do It', description: 'Explain your process and what makes you unique' },
     { id: 'whatYouDeliver', title: 'Step 4: What You Deliver', description: 'Describe your main offerings and deliverables' },
