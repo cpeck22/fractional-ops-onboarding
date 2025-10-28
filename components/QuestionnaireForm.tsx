@@ -361,47 +361,31 @@ export default function QuestionnaireForm({
       }
 
       const uploadedUrls: string[] = [];
-      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-      const ALLOWED_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/png', 'image/jpeg', 'image/jpg'];
 
       for (const file of Array.from(files)) {
-        // Validate file size
-        if (file.size > MAX_FILE_SIZE) {
-          toast.error(`${file.name} is too large. Max size is 10MB.`);
+        console.log(`📤 Uploading ${file.name} via API...`);
+        
+        // Create FormData for file upload
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', file);
+        uploadFormData.append('userId', user.id);
+
+        // Upload via server-side API route (bypasses RLS issues)
+        const response = await fetch('/api/upload-file', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          console.error('Upload error:', result.error);
+          toast.error(result.error || `Failed to upload ${file.name}`);
           continue;
         }
 
-        // Validate file type
-        if (!ALLOWED_TYPES.includes(file.type)) {
-          toast.error(`${file.name} is not an allowed file type. Please upload PDF, DOC, DOCX, or images.`);
-          continue;
-        }
-
-        // Generate unique file path
-        const timestamp = Date.now();
-        const filePath = `${user.id}/${timestamp}_${file.name}`;
-
-        // Upload to Supabase Storage
-        const { data, error } = await supabase.storage
-          .from('Questionnaire Files')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (error) {
-          console.error('Upload error:', error);
-          toast.error(`Failed to upload ${file.name}`);
-          continue;
-        }
-
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('Questionnaire Files')
-          .getPublicUrl(data.path);
-
-        uploadedUrls.push(publicUrl);
-        console.log(`✅ Uploaded ${file.name} to:`, publicUrl);
+        uploadedUrls.push(result.url);
+        console.log(`✅ Uploaded ${file.name} to:`, result.url);
       }
 
       if (uploadedUrls.length > 0) {
@@ -555,19 +539,31 @@ export default function QuestionnaireForm({
                 {formData[field.key] && (
                   <div className="text-sm text-fo-text-secondary">
                     <p className="font-semibold mb-1">Uploaded files:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      {formData[field.key].split(', ').filter((url: string) => url).map((url: string, idx: number) => (
-                        <li key={idx}>
-                          <a 
-                            href={url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-fo-secondary hover:underline"
-                          >
-                            File {idx + 1}
-                          </a>
-                        </li>
-                      ))}
+                    <ul className="space-y-1">
+                      {formData[field.key].split(', ').filter((url: string) => url).map((url: string, idx: number) => {
+                        // Extract filename from URL
+                        const urlPath = url.split('?')[0]; // Remove query parameters
+                        const pathParts = urlPath.split('/');
+                        const fileNameWithTimestamp = pathParts[pathParts.length - 1];
+                        const fileName = decodeURIComponent(fileNameWithTimestamp.replace(/^\d+_/, ''));
+                        
+                        return (
+                          <li key={idx} className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-fo-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <a 
+                              href={url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-fo-secondary hover:underline break-all"
+                              title={fileName}
+                            >
+                              {fileName}
+                            </a>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}

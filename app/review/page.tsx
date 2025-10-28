@@ -65,19 +65,24 @@ export default function ReviewPage() {
   const { questionnaireData } = useQuestionnaire();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');
+  const [userId, setUserId] = useState<string>('');
   const router = useRouter();
 
-  // Get user email on mount
+  // Get user email and ID on mount
   useEffect(() => {
-    const getUserEmail = async () => {
+    const getUserInfo = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.email) {
         setUserEmail(user.email);
+        setUserId(user.id);
         console.log('👤 User email:', user.email);
+        console.log('👤 User ID:', user.id);
       }
     };
-    getUserEmail();
+    getUserInfo();
   }, []);
 
   const handleSubmit = async () => {
@@ -87,6 +92,7 @@ export default function ReviewPage() {
     try {
       console.log('Submitting questionnaire data to server...');
       console.log('User email:', userEmail);
+      console.log('User ID:', userId);
       
       const response = await fetch('/api/octave/workspace', {
         method: 'POST',
@@ -95,6 +101,7 @@ export default function ReviewPage() {
         },
         body: JSON.stringify({
           email: userEmail,
+          userId: userId,
           questionnaireData
         }),
       });
@@ -108,17 +115,18 @@ export default function ReviewPage() {
         
         // Download PDF
         console.log('📥 Downloading PDF...');
-        try {
-          const pdfResponse = await fetch('/api/download-pdf', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              email: userEmail,
-              questionnaireData
-            }),
-          });
+          try {
+            const pdfResponse = await fetch('/api/download-pdf', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email: userEmail,
+                userId: userId,
+                questionnaireData
+              }),
+            });
 
           if (pdfResponse.ok) {
             const blob = await pdfResponse.blob();
@@ -143,13 +151,18 @@ export default function ReviewPage() {
         
         router.push('/thank-you');
       } else {
-        setShowModal(false); // Close modal on error too
-        toast.error(result.error || 'Failed to submit onboarding data. Please try again.');
+        // Show persistent error modal
+        setShowModal(false); // Close processing modal
+        setErrorMessage(result.error || 'An unexpected error occurred during submission.');
+        setShowErrorModal(true); // Show error modal
         console.error('API Error:', result);
       }
     } catch (error) {
-      setShowModal(false); // Close modal on error
-      toast.error('Failed to submit onboarding data. Please try again.');
+      // Show persistent error modal
+      setShowModal(false); // Close processing modal
+      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred during submission.';
+      setErrorMessage(errorMsg);
+      setShowErrorModal(true); // Show error modal
       console.error('Submission error:', error);
     } finally {
       setIsSubmitting(false);
@@ -191,10 +204,33 @@ export default function ReviewPage() {
                     {section.fields.map((field) => {
                       const value = sectionData?.[field.key];
                       let displayValue = 'Not provided';
+                      let isFileField = false;
+                      
+                      // Check if this is a file upload field (brandDocuments or additionalFiles)
+                      if (field.key === 'brandDocuments' || field.key === 'additionalFiles') {
+                        isFileField = true;
+                      }
                       
                       if (value) {
                         if (Array.isArray(value)) {
                           displayValue = value.join(', ');
+                        } else if (isFileField && typeof value === 'string' && value.includes('http')) {
+                          // Extract filenames from URLs for file fields
+                          const urls = value.split(', ').filter(url => url.trim());
+                          const fileNames = urls.map(url => {
+                            try {
+                              // Extract filename from URL path (after the last slash and before query params)
+                              const urlPath = url.split('?')[0]; // Remove query parameters
+                              const pathParts = urlPath.split('/');
+                              const fileNameWithTimestamp = pathParts[pathParts.length - 1];
+                              // Remove timestamp prefix (e.g., "1761611965696_" from the filename)
+                              const fileName = fileNameWithTimestamp.replace(/^\d+_/, '');
+                              return decodeURIComponent(fileName);
+                            } catch (e) {
+                              return url; // Fallback to full URL if parsing fails
+                            }
+                          });
+                          displayValue = fileNames.join('\n');
                         } else {
                           displayValue = value;
                         }
@@ -203,9 +239,28 @@ export default function ReviewPage() {
                       return (
                         <div key={field.key}>
                           <span className="font-semibold text-fo-text">{field.label}:</span>
-                          <p className="text-fo-text-secondary mt-1 whitespace-pre-wrap font-light">
-                            {displayValue}
-                          </p>
+                          {isFileField && value && typeof value === 'string' && value.includes('http') ? (
+                            <div className="text-fo-text-secondary mt-1 font-light">
+                              {value.split(', ').filter(url => url.trim()).map((url, idx) => {
+                                const urlPath = url.split('?')[0];
+                                const pathParts = urlPath.split('/');
+                                const fileNameWithTimestamp = pathParts[pathParts.length - 1];
+                                const fileName = decodeURIComponent(fileNameWithTimestamp.replace(/^\d+_/, ''));
+                                return (
+                                  <div key={idx} className="flex items-center gap-2 py-1">
+                                    <svg className="w-4 h-4 text-fo-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <span className="break-all">{fileName}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <p className="text-fo-text-secondary mt-1 whitespace-pre-wrap font-light">
+                              {displayValue}
+                            </p>
+                          )}
                         </div>
                       );
                     })}
@@ -283,6 +338,70 @@ export default function ReviewPage() {
                 <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                 <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                 <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal - Persistent */}
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full p-8 relative">
+            {/* Error Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+            </div>
+            
+            {/* Message */}
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Submission Error
+              </h2>
+              <p className="text-gray-700 text-lg mb-6">
+                Please try submitting again, something went wrong.
+              </p>
+              
+              {/* Error Details */}
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-red-800 mb-2">
+                  <strong>Error:</strong> {errorMessage}
+                </p>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+                <p className="text-sm text-blue-900 mb-3">
+                  <strong>✓ Your progress is saved up until now.</strong>
+                </p>
+                <p className="text-sm text-blue-800">
+                  If the issue persists, please contact Fractional Ops at{' '}
+                  <a href="mailto:support@fractionalops.com" className="underline font-semibold">
+                    support@fractionalops.com
+                  </a>
+                </p>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => setShowErrorModal(false)}
+                  className="px-6 py-3 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 font-semibold transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setShowErrorModal(false);
+                    handleSubmit();
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-fo-primary to-fo-secondary text-white rounded-md hover:opacity-90 font-semibold transition-opacity"
+                >
+                  Try Again
+                </button>
               </div>
             </div>
           </div>

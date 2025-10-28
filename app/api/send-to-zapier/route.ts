@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { QuestionnaireData } from '@/types';
 import { generateQuestionnairePDF, getFileName } from '@/lib/pdfGenerator';
+import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, questionnaireData } = body as {
+    const { email, questionnaireData, userId } = body as {
       email: string;
       questionnaireData: QuestionnaireData;
+      userId?: string;
     };
     
     // Get Zapier webhook URL from environment
@@ -35,7 +38,94 @@ export async function POST(request: NextRequest) {
     const fileName = getFileName(companyName, email);
     console.log('📄 PDF generated:', fileName, 'Size:', pdfBuffer.length, 'bytes');
     
-    // Convert PDF to base64 for JSON transmission
+    // Upload PDF to Supabase Storage
+    let pdfUrl = '';
+    
+    // Use userId passed from octave workspace route, or try to get from cookies
+    let effectiveUserId = userId;
+    
+    if (!effectiveUserId) {
+      console.log('🔑 No userId provided, attempting to get from cookies...');
+      const cookieStore = await cookies();
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              cookie: cookieStore.toString()
+            }
+          }
+        }
+      );
+      
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      effectiveUserId = user?.id;
+      
+      console.log('🔑 Auth check from cookies - User ID:', effectiveUserId || 'null');
+      console.log('🔑 Auth error:', authError);
+    } else {
+      console.log('🔑 Using provided userId:', effectiveUserId);
+    }
+    
+    if (effectiveUserId) {
+      // Check if service role key is configured
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      
+      if (!serviceRoleKey) {
+        console.error('❌ SUPABASE_SERVICE_ROLE_KEY not configured');
+        console.warn('⚠️ Cannot upload PDF without service role key');
+      } else {
+        // Use service role key for storage operations to bypass RLS
+        const supabaseAdmin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          serviceRoleKey
+        );
+        
+        const timestamp = Date.now();
+        const pdfPath = `${effectiveUserId}/${timestamp}_${fileName}`;
+        
+        console.log('📤 Uploading PDF to Supabase Storage:', pdfPath);
+      
+        const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+          .from('Questionnaire Files')
+          .upload(pdfPath, pdfBuffer, {
+            contentType: 'application/pdf',
+            cacheControl: '3600',
+            upsert: false
+          });
+        
+        if (uploadError) {
+          console.error('❌ PDF upload error:', uploadError);
+          console.error('❌ Upload error details:', JSON.stringify(uploadError, null, 2));
+        } else if (uploadData) {
+          // Generate a signed URL that expires in 1 year (for long-term access)
+          // Signed URLs work regardless of bucket's public access settings
+          const { data: signedUrlData, error: signedUrlError } = await supabaseAdmin.storage
+            .from('Questionnaire Files')
+            .createSignedUrl(uploadData.path, 31536000); // 1 year in seconds
+          
+          if (signedUrlError) {
+            console.error('❌ Error creating signed URL:', signedUrlError);
+            // Fallback to public URL (may not work if bucket is private)
+            const { data: { publicUrl } } = supabaseAdmin.storage
+              .from('Questionnaire Files')
+              .getPublicUrl(uploadData.path);
+            pdfUrl = publicUrl;
+            console.warn('⚠️ Using public URL (may not be accessible):', pdfUrl);
+          } else if (signedUrlData?.signedUrl) {
+            pdfUrl = signedUrlData.signedUrl;
+            console.log('✅ PDF uploaded to Supabase with signed URL:', pdfUrl);
+            console.log('✅ Signed URL expires in 1 year');
+          }
+        }
+      }
+    } else {
+      console.warn('⚠️ No user ID available (not provided and not authenticated)');
+      console.warn('⚠️ Skipping PDF upload to Supabase');
+    }
+    
+    // Convert PDF to base64 for JSON transmission (backward compatibility)
     const pdfBase64 = pdfBuffer.toString('base64');
     
     // Create JSON payload with all data
@@ -47,7 +137,10 @@ export async function POST(request: NextRequest) {
       fileName,
       submittedAt: new Date().toISOString(),
       
-      // PDF as base64
+      // PDF URL (Supabase Storage link)
+      pdfUrl,
+      
+      // PDF as base64 (backward compatibility)
       pdfBase64,
       pdfSize: pdfBuffer.length,
       
@@ -109,6 +202,7 @@ export async function POST(request: NextRequest) {
     
     console.log('📋 Sending complete questionnaire data to Zapier with', Object.keys(questionnaireData).length, 'sections');
     console.log('📋 Sample fields being sent:', { email, companyName, companyDomain: payload.companyDomain, industry: payload.industry });
+    console.log('📋 PDF URL:', pdfUrl || 'Not uploaded (no authenticated user)');
     console.log('📋 PDF size:', pdfBuffer.length, 'bytes, base64 size:', pdfBase64.length, 'chars');
     console.log('📋 File uploads:', { 
       brandDocuments: payload.brandDocumentsUrls.length, 

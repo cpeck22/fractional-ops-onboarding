@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { QuestionnaireData, OctaveWorkspaceRequest } from '@/types';
+import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 
 const OCTAVE_API_URL = 'https://app.octavehq.com/api/v2/agents/workspace/build';
 
@@ -9,8 +11,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const questionnaireData: QuestionnaireData = body.questionnaireData || body;
     const userEmail: string = body.email || 'noemail@example.com';
+    const userId: string | undefined = body.userId;
     
     console.log('📥 Received submission from:', userEmail);
+    console.log('📥 User ID from client:', userId || 'not provided');
     
     // Get API key from server environment (not exposed to client)
     const apiKey = process.env.OCTAVE_API_KEY;
@@ -101,6 +105,31 @@ export async function POST(request: NextRequest) {
     // After successfully sending to Octave, also send to Zapier
     console.log('📤 Now sending PDF to Zapier...');
     try {
+      // Use userId from client, or try to get from cookies as fallback
+      let effectiveUserId = userId;
+      
+      if (!effectiveUserId) {
+        console.log('⚠️ No userId from client, attempting to get from cookies...');
+        const cookieStore = await cookies();
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            global: {
+              headers: {
+                cookie: cookieStore.toString()
+              }
+            }
+          }
+        );
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        effectiveUserId = user?.id;
+        console.log('👤 User ID from cookies:', effectiveUserId || 'null');
+      } else {
+        console.log('✅ Using userId from client:', effectiveUserId);
+      }
+      
       const zapierResponse = await fetch(`${request.nextUrl.origin}/api/send-to-zapier`, {
         method: 'POST',
         headers: {
@@ -108,7 +137,8 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           email: userEmail,
-          questionnaireData
+          questionnaireData,
+          userId: effectiveUserId // Pass user ID from client or cookies
         }),
       });
 
