@@ -89,11 +89,8 @@ export default function QuestionnairePage() {
             <h1 className="text-3xl font-bold text-fo-primary mb-2">
               10-Steps to Sales Excellence
             </h1>
-            <p className="text-fo-text-secondary font-light mb-2">
-              Tactical systems to drive reliable profits and turn chaos into clarity.
-            </p>
             <p className="text-fo-text-secondary text-sm">
-              Section {currentSection + 1} of {sections.length}: {sections[currentSection].title}
+              {sections[currentSection].title}
             </p>
           </div>
 

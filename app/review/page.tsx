@@ -181,9 +181,6 @@ export default function ReviewPage() {
           <h1 className="text-3xl font-bold text-fo-primary mb-2">
             Review Your Ops Transformation System™
           </h1>
-          <p className="text-fo-text-secondary font-light mb-2">
-            Tactical systems to drive reliable profits and turn chaos into clarity.
-          </p>
           <p className="text-fo-text-secondary text-sm">
             Please review all your answers before submitting to create your Octave workspace.
           </p>

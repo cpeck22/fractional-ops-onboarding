@@ -99,13 +99,6 @@ export function generateQuestionnairePDF(data: PDFData): Buffer {
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   doc.text('Review Your Ops Transformation System™', margin, yPosition);
-  yPosition += 8;
-  
-  // Subtitle
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  const subtitle = 'Tactical systems to drive reliable profits and turn chaos into clarity.';
-  doc.text(subtitle, margin, yPosition);
   yPosition += 10;
   
   // Loop through sections - matching Review page structure
