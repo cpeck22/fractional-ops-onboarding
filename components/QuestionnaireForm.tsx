@@ -407,6 +407,72 @@ export default function QuestionnaireForm({
     }
   };
 
+  const handleFileDelete = async (fieldKey: string, urlToDelete: string) => {
+    // Show confirmation dialog
+    const confirmed = window.confirm('Are you sure you want to delete this file? This action cannot be undone.');
+    
+    if (!confirmed) {
+      return; // User cancelled
+    }
+
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to delete files');
+        return;
+      }
+
+      // Extract file path from URL for Supabase Storage deletion
+      // URL format: https://...supabase.co/storage/v1/object/sign/Questionnaire%20Files/userId/timestamp_filename.pdf?token=...
+      const urlPath = urlToDelete.split('?')[0]; // Remove query params
+      const pathMatch = urlPath.match(/Questionnaire%20Files\/(.+)$/);
+      
+      if (!pathMatch) {
+        toast.error('Could not parse file path');
+        return;
+      }
+
+      const filePath = decodeURIComponent(pathMatch[1]);
+      console.log('🗑️ Deleting file:', filePath);
+
+      // Delete from Supabase Storage via API route
+      const deleteResponse = await fetch('/api/delete-file', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          filePath: filePath
+        }),
+      });
+
+      const deleteResult = await deleteResponse.json();
+
+      if (!deleteResponse.ok) {
+        console.error('Delete error:', deleteResult.error);
+        toast.error(`Failed to delete file: ${deleteResult.error}`);
+        return;
+      }
+
+      // Update form data - remove this URL from the comma-separated list
+      const currentUrls = formData[fieldKey] ? formData[fieldKey].split(', ').filter((url: string) => url) : [];
+      const updatedUrls = currentUrls.filter((url: string) => url !== urlToDelete);
+      const newValue = updatedUrls.join(', ');
+      
+      handleFieldChange(fieldKey, newValue);
+      
+      toast.success('File deleted successfully!');
+      
+      // Auto-save after deletion
+      await saveCurrentData();
+    } catch (error) {
+      console.error('File deletion error:', error);
+      toast.error('Failed to delete file. Please try again.');
+    }
+  };
+
   const handleNext = async () => {
     // Validate company domain - check for https://, http://, or www.
     if (section.id === 'companyInfo' && formData.companyDomain) {
@@ -548,7 +614,7 @@ export default function QuestionnaireForm({
                         const fileName = decodeURIComponent(fileNameWithTimestamp.replace(/^\d+_/, ''));
                         
                         return (
-                          <li key={idx} className="flex items-center gap-2">
+                          <li key={idx} className="flex items-center gap-2 group">
                             <svg className="w-4 h-4 text-fo-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
@@ -556,11 +622,21 @@ export default function QuestionnaireForm({
                               href={url} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-fo-secondary hover:underline break-all"
+                              className="text-fo-secondary hover:underline break-all flex-1"
                               title={fileName}
                             >
                               {fileName}
                             </a>
+                            <button
+                              type="button"
+                              onClick={() => handleFileDelete(field.key, url)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full p-1 transition-colors opacity-0 group-hover:opacity-100"
+                              title="Delete file"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
                           </li>
                         );
                       })}
