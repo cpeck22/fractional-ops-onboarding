@@ -68,16 +68,16 @@ export default function SignupPage() {
         </div>
         
         {/* Collaboration Warning Banner */}
-        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-300 rounded-lg p-4 mb-6">
-          <div className="flex items-start gap-3">
-            <svg className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
+        <div className="bg-gray-800 rounded-2xl p-6 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="text-4xl flex-shrink-0">
+              🤝
+            </div>
             <div className="text-left">
-              <p className="text-amber-900 font-semibold text-sm mb-1">
+              <h3 className="text-white font-bold text-xl mb-2">
                 Collaborating with Colleagues?
-              </p>
-              <p className="text-amber-800 text-sm">
+              </h3>
+              <p className="text-white text-base">
                 You must use the same login to see their saved answers!
               </p>
             </div>
