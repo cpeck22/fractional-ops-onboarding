@@ -293,7 +293,7 @@ export default function ReviewPage() {
                 Creating Workspace...
               </div>
             ) : (
-              'Submit & Create Workspace'
+              "We're Good To Go Claire!"
             )}
           </button>
         </div>

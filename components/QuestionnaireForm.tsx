@@ -717,7 +717,7 @@ export default function QuestionnaireForm({
           disabled={isSaving}
             className="px-8 py-2 bg-gradient-to-r from-fo-primary to-fo-secondary text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fo-primary font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLastSection ? 'Review & Submit' : 'Next Section'}
+          {isLastSection ? 'Review Questionnaire' : 'Next Section'}
         </button>
         </div>
       </div>
