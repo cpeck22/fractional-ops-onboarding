@@ -530,7 +530,7 @@ export default function QuestionnaireForm({
             </label>
             
             {field.description && (
-              <p className="text-sm text-fo-text-secondary font-light mb-2">
+              <p className="text-sm text-fo-text-secondary font-light mb-2 whitespace-pre-line">
                 {field.description}
               </p>
             )}
