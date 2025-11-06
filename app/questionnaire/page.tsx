@@ -22,16 +22,16 @@ export default function QuestionnairePage() {
   console.log('📋 QuestionnairePage: Current section:', currentSection);
 
   const sections = [
-    { id: 'companyInfo', title: 'Step 1: Who You Are', description: "Let's start with the basics about your company" },
-    { id: 'whatYouDo', title: 'Step 2: What You Do', description: 'Tell me about your industry and what you do' },
-    { id: 'howYouDoIt', title: 'Step 3: How You Do It', description: 'Explain your process and what makes you unique' },
-    { id: 'whatYouDeliver', title: 'Step 4: What You Deliver', description: 'Describe your main offerings and deliverables' },
-    { id: 'creatingDesire', title: 'Step 5: Creating Desire', description: 'Help your prospects understand why they need to act now' },
-    { id: 'yourBuyers', title: 'Step 6: Your Buyers', description: 'Define who your ideal customers are and how to reach them' },
-    { id: 'socialProof', title: 'Step 7: Social Proof', description: 'Show why prospects should trust you' },
-    { id: 'positioning', title: 'Step 8: Positioning', description: 'Understand your competitive landscape' },
-    { id: 'leadMagnets', title: 'Step 9: Carrots & Lead Magnets', description: 'What can you offer to attract prospects?' },
-    { id: 'brandExamples', title: 'Step 10: Brand & Examples', description: 'Share your brand voice and proven email examples' }
+    { id: 'companyInfo', title: 'Step 1: Who We Are', description: "Let's start with the basics about our company" },
+    { id: 'whatYouDo', title: 'Step 2: What We Do', description: 'Tell me about our industry and what we do' },
+    { id: 'howYouDoIt', title: 'Step 3: How We Do It', description: 'Explain our process and what makes us unique' },
+    { id: 'whatYouDeliver', title: 'Step 4: What We Deliver', description: 'Describe our main offerings and deliverables' },
+    { id: 'creatingDesire', title: 'Step 5: Creating Desire', description: 'Help our prospects understand why they need to act now' },
+    { id: 'yourBuyers', title: 'Step 6: Our Buyers', description: 'Define who our ideal customers are and how to reach them' },
+    { id: 'socialProof', title: 'Step 7: Social Proof', description: 'Show why prospects should trust us' },
+    { id: 'positioning', title: 'Step 8: Positioning', description: 'Understand our competitive landscape' },
+    { id: 'leadMagnets', title: 'Step 9: Carrots & Lead Magnets', description: 'What can we offer to attract prospects?' },
+    { id: 'brandExamples', title: 'Step 10: Brand & Examples', description: 'Share our brand voice and proven email examples' }
   ];
 
   const handleNext = () => {

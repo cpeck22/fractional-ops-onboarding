@@ -9,38 +9,38 @@ interface PDFData {
 
 // Section structure matching the Review page
 const sectionTitles = [
-  { id: 'companyInfo', title: 'Step 1: Who You Are', fields: [
+  { id: 'companyInfo', title: 'Step 1: Who We Are', fields: [
     { key: 'companyName', label: 'Company Name' },
     { key: 'companyDomain', label: 'Company Domain' }
   ]},
-  { id: 'whatYouDo', title: 'Step 2: What You Do', fields: [
-    { key: 'industry', label: 'What industry does your company operate in?' },
-    { key: 'whatYouDo', label: 'Describe what you do. Explain it to me like I\'m 10 years old' }
+  { id: 'whatYouDo', title: 'Step 2: What We Do', fields: [
+    { key: 'industry', label: 'What industry do we operate in?' },
+    { key: 'whatYouDo', label: 'Describe what we do. Explain it to me like I\'m 10 years old' }
   ]},
-  { id: 'howYouDoIt', title: 'Step 3: How You Do It', fields: [
-    { key: 'howYouDoIt', label: 'Describe how you do it. Explain it to me like I\'m 10 years old' },
-    { key: 'uniqueValue', label: 'What makes your company unique or different from competitors?' }
+  { id: 'howYouDoIt', title: 'Step 3: How We Do It', fields: [
+    { key: 'howYouDoIt', label: 'Describe how we do it. Explain it to me like I\'m 10 years old' },
+    { key: 'uniqueValue', label: 'What makes our company unique or different from competitors?' }
   ]},
-  { id: 'whatYouDeliver', title: 'Step 4: What You Deliver', fields: [
-    { key: 'mainService', label: 'How would you describe your main service or product?' },
-    { key: 'whatYouDeliver', label: 'What do you actually deliver?' },
-    { key: 'topUseCases', label: 'What are the top 3 use cases of your service or product?' }
+  { id: 'whatYouDeliver', title: 'Step 4: What We Deliver', fields: [
+    { key: 'mainService', label: 'How would we describe our main service or product?' },
+    { key: 'whatYouDeliver', label: 'What do we actually deliver?' },
+    { key: 'topUseCases', label: 'What are the top 3 use cases of our service or product?' }
   ]},
   { id: 'creatingDesire', title: 'Step 5: Creating Desire', fields: [
-    { key: 'barriers', label: 'What are all the reasons someone would not take you up on your offer? What gets in their way?' },
+    { key: 'barriers', label: 'What are all the reasons someone would not take us up on our offer? What gets in their way?' },
     { key: 'whyMoveAway', label: 'Why should they move away from the status quo?' }
   ]},
-  { id: 'yourBuyers', title: 'Step 6: Your Buyers', fields: [
+  { id: 'yourBuyers', title: 'Step 6: Our Buyers', fields: [
     { key: 'seniorityLevel', label: 'Role Seniority & Titles: Who specifically makes the buying decision?' },
     { key: 'jobTitles', label: 'Specific Job Titles' },
-    { key: 'companySize', label: 'Which employee size, revenue range (or funding stage) do you typically work with?' },
-    { key: 'geographicMarkets', label: 'What geographic market(s) do you focus on?' },
+    { key: 'companySize', label: 'Which employee size, revenue range (or funding stage) do we typically work with?' },
+    { key: 'geographicMarkets', label: 'What geographic market(s) do we focus on?' },
     { key: 'preferredEngagement', label: 'How do these decision-makers prefer to be initially engaged?' },
-    { key: 'decisionMakerResponsibilities', label: 'What are the main responsibilities of the decision-makers you sell to?' },
-    { key: 'prospectChallenges', label: 'What are the main challenges or pain your prospects currently face?' }
+    { key: 'decisionMakerResponsibilities', label: 'What are the main responsibilities of the decision-makers we sell to?' },
+    { key: 'prospectChallenges', label: 'What are the main challenges or pain our prospects currently face?' }
   ]},
   { id: 'socialProof', title: 'Step 7: Social Proof', fields: [
-    { key: 'proofPoints', label: 'Why should they believe you?' },
+    { key: 'proofPoints', label: 'Why should they believe us?' },
     { key: 'clientReferences', label: 'Who has gotten these results?' }
   ]},
   { id: 'positioning', title: 'Step 8: Positioning', fields: [
@@ -53,8 +53,8 @@ const sectionTitles = [
     { key: 'emailExample1', label: 'What emails have received positive responses in the past? Example 1' },
     { key: 'emailExample2', label: 'What emails have received positive responses in the past? Example 2' },
     { key: 'emailExample3', label: 'What emails have received positive responses in the past? Example 3' },
-    { key: 'brandDocuments', label: 'Upload any brand documents you have' },
-    { key: 'additionalFiles', label: 'You may have other files that didn\'t quite fit into my initial questions' }
+    { key: 'brandDocuments', label: 'Upload any brand documents we have' },
+    { key: 'additionalFiles', label: 'We may have other files that didn\'t quite fit into my initial questions' }
   ]}
 ];
 
@@ -98,7 +98,7 @@ export function generateQuestionnairePDF(data: PDFData): Buffer {
   // Title - matching Review page
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('Review Your Ops Transformation System™', margin, yPosition);
+  doc.text('Review Our Ops Transformation System™', margin, yPosition);
   yPosition += 10;
   
   // Loop through sections - matching Review page structure

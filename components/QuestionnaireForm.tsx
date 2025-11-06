@@ -28,34 +28,34 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { key: 'companyName', label: 'Company Name', placeholder: 'Please Type Your Answer here', type: 'text', required: true, questionNumber: 1 },
     { key: 'companyDomain', label: 'Company Domain', placeholder: 'example.com', type: 'text', required: true, description: 'Enter your domain without https:// or www.', questionNumber: 2 }
   ],
-  // Step 2: What You Do (Q3-4)
+  // Step 2: What We Do (Q3-4)
   whatYouDo: [
     { 
       key: 'industry', 
-      label: 'What industry does your company operate in?', 
+      label: 'What industry do we operate in?', 
       placeholder: 'Please Type Your Answer here', 
       type: 'text', 
       required: true,
-      description: 'This helps me understand your business context and create industry-specific solutions.',
+      description: 'This helps me understand our business context and create industry-specific solutions.',
       example: '"Corporate Real Estate Services"\n\n"Legal Services"\n\n"HR Consulting Services"',
       questionNumber: 3
     },
     { 
       key: 'whatYouDo', 
-      label: 'Describe what you do. Explain it to me like I\'m 10 years old', 
+      label: 'Describe what we do. Explain it to me like I\'m 10 years old', 
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
-      description: 'I\'ll build this out in way more detail for you behind the scenes, but I just need the basics for now.',
+      description: 'I\'ll build this out in way more detail for us behind the scenes, but I just need the basics for now.',
       example: '"We help companies find and set up offices so their teams have a good place to work and they don\'t waste money."\n\n"We help companies make sure their business deals and contracts are done the right way so they don\'t get into trouble."\n\n"We help companies fix how they hire, manage, and grow their teams so people actually enjoy working there."',
       questionNumber: 4
     }
   ],
-  // Step 3: How You Do It (Q5-6)
+  // Step 3: How We Do It (Q5-6)
   howYouDoIt: [
     { 
       key: 'howYouDoIt', 
-      label: 'Describe how you do it. Explain it to me like I\'m 10 years old', 
+      label: 'Describe how we do it. Explain it to me like I\'m 10 years old', 
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
@@ -65,44 +65,44 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     },
     { 
       key: 'uniqueValue', 
-      label: 'What makes your company unique or different from competitors?', 
+      label: 'What makes our company unique or different from competitors?', 
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
-      description: 'I need to know what actually sets you apart. This isn\'t aspirational. I need to know the real answer.',
+      description: 'I need to know what actually sets us apart. This isn\'t aspirational. I need to know the real answer.',
       example: '"We built an internal lease benchmarking database that gives clients real-time market leverage"\n\n"We use a proprietary risk assessment model to identify compliance gaps faster than traditional methods"\n\n"We developed a repeatable framework for diagnosing and restructuring underperforming teams in under 30 days"',
       questionNumber: 6
     }
   ],
-  // Step 4: What You Deliver (Q7-9)
+  // Step 4: What We Deliver (Q7-9)
   whatYouDeliver: [
     { 
       key: 'mainService', 
-      label: 'How would you describe your main service or product?', 
+      label: 'How would we describe our main service or product?', 
       placeholder: 'Please Type Your Answer here', 
       type: 'text', 
       required: true,
-      description: 'We need to focus on your primary service or product to start. This is often the one you make the most revenue from. Be very specific. (Don\'t worry, we\'ll be adding your other services later).',
+      description: 'We need to focus on our primary service or product to start. This is often the one we make the most revenue from. Be very specific. (Don\'t worry, we\'ll be adding our other services later).',
       example: '"Lease negotiation"\n\n"Employment law advisory"\n\n"Implementing performance management systems"',
       questionNumber: 7
     },
     { 
       key: 'whatYouDeliver', 
-      label: 'What do you actually deliver?', 
+      label: 'What do we actually deliver?', 
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
-      description: 'I need to know the 1-3 tangible outputs of what you do. Many prospects like "things" (They need to know what they\'re paying you for). Remember, this isn\'t your Service or Product — it\'s the output of your services or products.',
+      description: 'I need to know the 1-3 tangible outputs of what we do. Many prospects like "things" (They need to know what they\'re paying us for). Remember, this isn\'t our Service or Product — it\'s the output of our services or products.',
       example: '**From a Corporate Real Estate Services company**\n"Signed lease agreements with improved terms"\n"A fully-executed office relocation, including vendor coordination and move management"\n"An implemented space management system with live floor plans and seat assignments"\n\n**From a Legal Services company**\n"Finalized and executed commercial contracts"\n"A completed legal entity structure, ready for launch"\n"Clean cap tables and board consents prepared for an upcoming raise"\n\n**From a HR Consulting Services company**\n"A live performance review tool running inside their HRIS"\n"New compensation bands rolled out to managers and employees"\n"A working onboarding flow with automated tasks and templates"',
       questionNumber: 8
     },
     { 
       key: 'topUseCases', 
-      label: 'What are the top 3 use cases of your service or product?', 
+      label: 'What are the top 3 use cases of our service or product?', 
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
-      description: 'These are practical applications of your offering that describe how you deliver value. These should be the most common or most loved way people use your service or product.',
+      description: 'These are practical applications of our offering that describe how we deliver value. These should be the most common or most loved way people use our service or product.',
       example: '**From a Corporate Real Estate Services company**\n"Negotiating lease renewals"\n"Space strategy for hybrid work models"\n"Managing relocations and build-outs for new offices"\n\n**From a Legal Services company**\n"Advising on M&A transactions and due diligence"\n"Drafting and reviewing commercial contracts"\n"Providing ongoing legal counsel for corporate governance"\n\n**From a HR Consulting Services company**\n"Redesigning performance management systems"\n"Installing structured compensation plans"\n"Creating Interview Templates"',
       questionNumber: 9
     }
@@ -111,11 +111,11 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
   creatingDesire: [
     { 
       key: 'barriers', 
-      label: 'What are all the reasons someone would not take you up on your offer? What gets in their way?', 
+      label: 'What are all the reasons someone would not take us up on our offer? What gets in their way?', 
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
-      description: 'I need to know this to help you proactively overcome these when I build your playbooks.',
+      description: 'I need to know this to help us proactively overcome these when I build our playbooks.',
       example: '**From a Corporate Real Estate Services company**\n"They\'re locked into long-term leases and don\'t see an immediate need"\n"They believe they can handle negotiations internally"\n"They think switching providers will create too much disruption"\n\n**From a Legal Services company**\n"They already have in-house counsel and don\'t see the value in external support"\n"They\'re concerned about high hourly rates and unpredictable costs"\n"They think legal help is only needed reactively, not proactively"\n\n**From a HR Consulting Services company**\n"They believe their internal HR team can handle it"\n"They think results will take too long"\n"They\'ve had a bad experience with a previous HR vendor"',
       questionNumber: 10
     },
@@ -125,12 +125,12 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
-      description: 'Sometimes, your biggest competitor is inaction. The prospect understands your benefits at a high level, but it can\'t answer the "what\'s in it for them." How would you paint a picture of the future in a way that makes it impossible for your prospect to avoid learning more? What\'s in it for them?',
+      description: 'Sometimes, our biggest competitor is inaction. The prospect understands our benefits at a high level, but it can\'t answer the "what\'s in it for them." How would we paint a picture of the future in a way that makes it impossible for our prospect to avoid learning more? What\'s in it for them?',
       example: '**Corporate Real Estate:**\n• "Show cost savings on leases"\n\n• "Make faster, better decisions with clear data"\n\n• "Reduce time managing deals and vendors"\n\n**Legal Services:**\n• "Spend less time on low-risk contracts"\n\n• "Manage legal costs predictably"\n\n• "Reduce deal delays from legal backlogs"\n\n**HR Consulting:**\n• "Stop repeating performance issues"\n\n• "Show clear HR impact metrics"\n\n• "Recover credibility after failed initiatives"',
       questionNumber: 11
     }
   ],
-  // Step 6: Your Buyers (Q12-18)
+  // Step 6: Our Buyers (Q12-18)
   yourBuyers: [
     { 
       key: 'seniorityLevel', 
@@ -138,7 +138,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Select seniority levels', 
       type: 'multiselect', 
       required: true,
-      options: ['Owner', 'Founder', 'C-Suite', 'Partner', 'Vp', 'Head', 'Director', 'Manager', 'Senior', 'Entry', 'Intern'],
+      options: ['Owner', 'Founder', 'C-Suite', 'Partner', 'VP', 'Head', 'Director', 'Manager', 'Senior', 'Entry', 'Intern'],
       description: 'This is important for when we start building lists of people to target.',
       example: '• VP / Director — VP of Corporate Real Estate, Director of Workplace Strategy\n\n• Managing Partner / Senior Partner — Managing Partner, Head of Employment Law\n\n• C-Suite / Director — Chief People Officer, Director of HR Strategy',
       questionNumber: 12
@@ -149,27 +149,27 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Please Type Your Answer here', 
       type: 'text', 
       required: true,
-      description: 'Provide the actual job titles of your decision-makers.',
+      description: 'Provide the actual job titles of our decision-makers.',
       example: 'VP of Corporate Real Estate, Director of Workplace Strategy',
       questionNumber: 13
     },
     { 
       key: 'companySize', 
-      label: 'Which employee size, revenue range (or funding stage) do you typically work with?', 
+      label: 'Which employee size, revenue range (or funding stage) do we typically work with?', 
       placeholder: 'Please Type Your Answer here', 
       type: 'text', 
       required: true,
-      description: 'We don\'t want to target people who can\'t afford us, and we also don\'t want to target companies where the roles you just picked aren\'t personally involved in buying our services.',
+      description: 'We don\'t want to target people who can\'t afford us, and we also don\'t want to target companies where the roles we just picked aren\'t personally involved in buying our services.',
       example: '• "1,000–8,000 employees and $100M–$1B revenue"\n\n• "100–200 employees and $15–30M revenue"\n\n• "200–1,000 employees, Series A+"',
       questionNumber: 14
     },
     { 
       key: 'geographicMarkets', 
-      label: 'What geographic market(s) do you focus on?', 
+      label: 'What geographic market(s) do we focus on?', 
       placeholder: 'Please Type Your Answer here', 
       type: 'text', 
       required: true,
-      description: 'I don\'t want to launch campaigns in London if you can only service New York, Boston, and Philadelphia.',
+      description: 'I don\'t want to launch campaigns in London if we can only service New York, Boston, and Philadelphia.',
       example: '• "New York, Chicago, and San Francisco"\n\n• "Northeast U.S., primarily Boston and Philadelphia"\n\n• "National U.S. coverage with major Canadian cities"',
       questionNumber: 15
     },
@@ -179,13 +179,13 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Please Type Your Answer here', 
       type: 'text', 
       required: true,
-      description: 'Think about how your contacts usually respond to you. Do they answer your calls? Respond to LinkedIn DMs? Email you back?',
+      description: 'Think about how our contacts usually respond to us. Do they answer our calls? Respond to LinkedIn DMs? Email us back?',
       example: '• "Email Outreach"\n\n• "LinkedIn DMs"\n\n• "Phone calls"\n\n• "In-person"',
       questionNumber: 16
     },
     { 
       key: 'decisionMakerResponsibilities', 
-      label: 'What are the main responsibilities of the decision-makers you sell to?', 
+      label: 'What are the main responsibilities of the decision-makers we sell to?', 
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
@@ -195,7 +195,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     },
     { 
       key: 'prospectChallenges', 
-      label: 'What are the main challenges or pain your prospects currently face?', 
+      label: 'What are the main challenges or pain our prospects currently face?', 
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
@@ -208,11 +208,11 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
   socialProof: [
     { 
       key: 'proofPoints', 
-      label: 'Why should they believe you?', 
+      label: 'Why should they believe us?', 
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
-      description: 'Proof Points are key pieces of evidence seen across all customers — think quantifiable results like cost savings, x% performance improvements, or even qualitative metrics. Ultimately, these are positive business outcomes you\'ve achieved for similar people.',
+      description: 'Proof Points are key pieces of evidence seen across all customers — think quantifiable results like cost savings, x% performance improvements, or even qualitative metrics. Ultimately, these are positive business outcomes we\'ve achieved for similar people.',
       example: '**Corporate Real Estate:**\n• "Clients save 15–25% on occupancy costs"\n\n• "Lease cycle times reduced by 30–40%"\n\n• "20% improvement in space utilization"\n\n**Legal Services:**\n• "Contract turnaround reduced by 25–35%"\n\n• "Identify and mitigate $250K+ legal risk exposure"\n\n• "100% on-time M&A closings"\n\n**HR Consulting:**\n• "15–20% employee engagement improvement"\n\n• "Time-to-hire reduced by 30%"\n\n• "Scaled headcount 2–4x with stable performance"',
       questionNumber: 19
     },
@@ -222,7 +222,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
-      description: 'I need 1-3 client references to start. Creating detailed reference clients will help me showcase how real people are succeeding with our service (or product) offering. I need you to either name the actual client and give me their website (I\'ll can gather more details behind the scenes for you) or if you can\'t name them, just describe them. If actually naming them, I need this format: [Client\'s Company Name] (Client\'s website url) [Describe the result]',
+      description: 'I need 1-3 client references to start. Creating detailed reference clients will help me showcase how real people are succeeding with our service (or product) offering. I need us to either name the actual client and give me their website (I\'ll can gather more details behind the scenes for us) or if we can\'t name them, just describe them. If actually naming them, I need this format: [Client\'s Company Name] (Client\'s website url) [Describe the result]',
       example: '**Corporate Real Estate:**\n• FedEx (https://www.fedex.com) — Reduced real estate costs via consolidation\n\n• Global financial firm — Improved lease cycle time by 30%\n\n**Legal Services:**\n• Mid-market SaaS — Closed $100M acquisition with no compliance issues\n\n• PE firm ($2B AUM) — Standardized contracts across 6 entities\n\n**HR Consulting:**\n• Shopify (https://www.shopify.com) — Improved engagement by 18% in 6 months\n\n• PE-backed manufacturer — Designed review system across 5 plants',
       questionNumber: 20
     }
@@ -235,7 +235,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: true,
-      description: 'I need a list of your competitors (at least 1–3 to start). All I need is the Company Name and Website.',
+      description: 'I need a list of our competitors (at least 1–3 to start). All I need is the Company Name and Website.',
       example: '**Corporate Real Estate:**\n• CBRE — https://www.cbre.com\n\n• JLL — https://www.us.jll.com\n\n• Cushman & Wakefield — https://www.cushmanwakefield.com\n\n**Legal Services:**\n• Wilson Sonsini — https://www.wsgr.com\n\n• Cooley LLP — https://www.cooley.com\n\n• Latham & Watkins — https://www.lw.com\n\n**HR Consulting:**\n• Mercer — https://www.mercer.com\n\n• Korn Ferry — https://www.kornferry.com\n\n• Gallup — https://www.gallup.com',
       questionNumber: 21
     }
@@ -248,7 +248,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: false,
-      description: 'We need to entice people with something tangible. They don\'t know us yet and have no reason to care unless we give them one. These could be as simple as a proprietary report or as big as a complementary service. Some people refer to these as "Lead Magnets." The best versions of these are something that you have actually charged for, that you can give away for free. And ideally something that you have (or could) charge $2–10k for. The worst versions are "audits". From your last answers, I already know you\'re great, but these prospects don\'t know you, so they won\'t care about a service from an unproven and unknown random (even if it\'s free). PS. Don\'t worry, if you only have the simple ones right now (like white papers or reports), I\'ll help you operationalize these into something more valuable later.',
+      description: 'We need to entice people with something tangible. They don\'t know us yet and have no reason to care unless we give them one.\n\nThese could be as simple as a proprietary report or as big as a complementary service. Some people refer to these as "Lead Magnets."\n\nThe best versions of these are something that we have actually charged for, that we can give away for free. And ideally something that we have (or could) charge $2–10k for.\n\nThe worst versions are "audits". From our last answers, I already know we\'re great, but these prospects don\'t know us, so they won\'t care about a service from an unproven and unknown random (even if it\'s free).\n\nPS. Don\'t worry, if we only have the simple ones right now (like white papers or reports), I\'ll help us operationalize these into something more valuable later.',
       example: '• "Online lease savings calculator"\n\n• "M&A deal checklist and data room folder structure"\n\n• "Performance review toolkit with templates and HRIS integration"',
       questionNumber: 22
     }
@@ -261,7 +261,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: false,
-      description: 'Share emails that have worked well for you in the past.',
+      description: 'Share emails that have worked well for us in the past.',
       questionNumber: 23
     },
     { 
@@ -270,7 +270,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: false,
-      description: 'Share another email that has worked well for you.',
+      description: 'Share another email that has worked well for us.',
       questionNumber: 24
     },
     { 
@@ -279,22 +279,22 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       placeholder: 'Please Type Your Answer here', 
       type: 'textarea', 
       required: false,
-      description: 'Share a third email that has worked well for you.',
+      description: 'Share a third email that has worked well for us.',
       questionNumber: 25
     },
     { 
       key: 'brandDocuments', 
-      label: 'Almost done (I promise). I need to know how you speak! We shouldn\'t launch any campaigns or make social content that don\'t sound like you. This step is simple: just upload any brand documents you have, such as: Tone of Voice, Brand Standards and Guidelines, Writing Guidelines, Core Values, Manifestos, Founder Story', 
-      placeholder: 'Upload your brand documents', 
+      label: 'Almost done (I promise). I need to know how we speak! We shouldn\'t launch any campaigns or make social content that don\'t sound like us. This step is simple: just upload any brand documents we have, such as: Tone of Voice, Brand Standards and Guidelines, Writing Guidelines, Core Values, Manifestos, Founder Story', 
+      placeholder: 'Upload our brand documents', 
       type: 'file', 
       required: false,
-      description: 'We shouldn\'t launch any campaigns or make social content that don\'t sound like you.',
+      description: 'We shouldn\'t launch any campaigns or make social content that don\'t sound like us.',
       example: 'Upload files like Tone of Voice, Brand Standards, Writing Guidelines, etc.',
       questionNumber: 26
     },
     { 
       key: 'additionalFiles', 
-      label: '…and what else? You may have other files that didn\'t quite fit into my initial questions. Upload all of them here👇', 
+      label: '…and what else? We may have other files that didn\'t quite fit into my initial questions. Upload all of them here👇', 
       placeholder: 'Upload additional files', 
       type: 'file', 
       required: false,
