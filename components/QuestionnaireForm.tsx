@@ -651,7 +651,7 @@ export default function QuestionnaireForm({
               <div className="space-y-4">
                 {/* Render each client reference */}
                 {(Array.isArray(formData[field.key]) ? formData[field.key] : []).map((ref: any, refIndex: number) => (
-                  <div key={refIndex} className="border border-fo-light rounded-lg p-4 bg-gray-50 space-y-3">
+                  <div key={refIndex} className="border border-fo-light rounded-lg p-4 bg-white space-y-3">
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="text-sm font-semibold text-fo-primary">Client Reference #{refIndex + 1}</h4>
                       {(Array.isArray(formData[field.key]) ? formData[field.key] : []).length > 1 && (

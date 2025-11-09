@@ -240,8 +240,12 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(
       { 
+        success: false,
         error: 'Failed to create Octave workspace',
-        details: error.response?.data || error.message
+        details: error.response?.data || error.message,
+        statusCode: error.response?.status,
+        apiUrl: OCTAVE_API_URL,
+        hasApiKey: !!process.env.OCTAVE_API_KEY
       },
       { status: 500 }
     );

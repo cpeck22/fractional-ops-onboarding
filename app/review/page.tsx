@@ -153,7 +153,9 @@ export default function ReviewPage() {
       } else {
         // Show persistent error modal
         setShowModal(false); // Close processing modal
-        setErrorMessage(result.error || 'An unexpected error occurred during submission.');
+        const errorDetails = result.details ? `\n\nDetails: ${JSON.stringify(result.details, null, 2)}` : '';
+        const debugInfo = result.hasApiKey !== undefined ? `\n\nDebug: API Key ${result.hasApiKey ? 'configured' : 'missing'}` : '';
+        setErrorMessage(`${result.error || 'An unexpected error occurred during submission.'}${errorDetails}${debugInfo}`);
         setShowErrorModal(true); // Show error modal
         console.error('API Error:', result);
       }
