@@ -65,6 +65,15 @@ export async function POST(request: NextRequest) {
       };
     };
 
+    // Prepare runtime context - ensure it's valid JSON
+    let runtimeContextString: string;
+    try {
+      runtimeContextString = JSON.stringify(questionnaireData);
+    } catch (error) {
+      console.error('❌ Failed to stringify questionnaireData:', error);
+      throw new Error('Invalid questionnaire data - cannot convert to JSON');
+    }
+
     const workspaceRequest: OctaveWorkspaceRequest = {
       workspace: {
         name: workspaceName,
@@ -73,7 +82,7 @@ export async function POST(request: NextRequest) {
         agentOIds: []
       },
       offering: generateOffering(questionnaireData),
-      runtimeContext: JSON.stringify(questionnaireData),
+      runtimeContext: runtimeContextString,
       brandVoiceOId: "bv_fractional_ops",
       createDefaultAgents: true
     };
@@ -85,10 +94,21 @@ export async function POST(request: NextRequest) {
       'Content-Type': 'application/json',
       'api_key': apiKey ? `${apiKey.substring(0, 10)}...${apiKey.substring(apiKey.length - 4)}` : 'NOT FOUND'
     });
-    console.log('Full Workspace Request:', JSON.stringify(workspaceRequest, null, 2));
-    console.log('Generated Offering:', JSON.stringify(workspaceRequest.offering, null, 2));
-    console.log('Runtime Context (Questionnaire Data):', JSON.stringify(questionnaireData, null, 2));
-    console.log('Making request to Octave API...');
+    
+    // Log workspace request WITHOUT the full runtimeContext to avoid huge logs
+    const { runtimeContext, ...workspaceRequestWithoutContext } = workspaceRequest;
+    console.log('Workspace Request (without runtimeContext):', JSON.stringify(workspaceRequestWithoutContext, null, 2));
+    console.log('Runtime Context size:', runtimeContext.length, 'characters');
+    
+    // Validate required fields
+    if (!workspaceRequest.workspace.name) {
+      throw new Error('Workspace name is required');
+    }
+    if (!workspaceRequest.offering.name) {
+      throw new Error('Offering name is required');
+    }
+    
+    console.log('✅ Validation passed. Making request to Octave API...');
     
     const response = await axios.post(OCTAVE_API_URL, workspaceRequest, {
       headers: {
