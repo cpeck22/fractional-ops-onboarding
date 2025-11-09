@@ -110,9 +110,16 @@ export const saveQuestionnaireField = async (
   userId: string,
   section: string,
   fieldKey: string,
-  fieldValue: string
+  fieldValue: any  // Changed from string to any to accept arrays/objects
 ) => {
   console.log('💾 Calling API route (uses service key on server)');
+  
+  // Stringify arrays and objects before saving
+  let valueToSave = fieldValue;
+  if (typeof fieldValue === 'object' && fieldValue !== null) {
+    valueToSave = JSON.stringify(fieldValue);
+    console.log(`💾 Stringified ${fieldKey} for storage:`, valueToSave);
+  }
   
   try {
     const response = await fetch('/api/save-questionnaire', {
@@ -124,7 +131,7 @@ export const saveQuestionnaireField = async (
         userId,
         section,
         fieldKey,
-        fieldValue
+        fieldValue: valueToSave
       })
     });
     
@@ -200,7 +207,12 @@ export const loadUserQuestionnaireData = async (userId: string) => {
       },
       socialProof: {
         proofPoints: '',
-        clientReferences: ''
+        clientReferences: [{
+          companyName: '',
+          companyDomain: '',
+          industry: '',
+          successStory: ''
+        }]
       },
       positioning: {
         competitors: ''
@@ -226,12 +238,24 @@ export const loadUserQuestionnaireData = async (userId: string) => {
       console.log('🔍 Processing row:', row);
       const section = row.section as keyof typeof questionnaireData;
       if (questionnaireData[section]) {
-        // Handle array fields (like seniorityLevel)
-        if (row.field_key === 'seniorityLevel' && typeof row.field_value === 'string') {
+        // Handle array/object fields (like seniorityLevel and clientReferences)
+        if ((row.field_key === 'seniorityLevel' || row.field_key === 'clientReferences') && typeof row.field_value === 'string') {
           try {
-            (questionnaireData[section] as any)[row.field_key] = JSON.parse(row.field_value);
-          } catch {
-            (questionnaireData[section] as any)[row.field_key] = row.field_value ? [row.field_value] : [];
+            const parsed = JSON.parse(row.field_value);
+            (questionnaireData[section] as any)[row.field_key] = parsed;
+            console.log(`🔍 Parsed ${row.field_key} as JSON:`, parsed);
+          } catch (e) {
+            console.warn(`⚠️ Failed to parse ${row.field_key}, using fallback`);
+            if (row.field_key === 'seniorityLevel') {
+              (questionnaireData[section] as any)[row.field_key] = row.field_value ? [row.field_value] : [];
+            } else if (row.field_key === 'clientReferences') {
+              (questionnaireData[section] as any)[row.field_key] = [{
+                companyName: '',
+                companyDomain: '',
+                industry: '',
+                successStory: row.field_value // Put old text in success story
+              }];
+            }
           }
         } else {
           (questionnaireData[section] as any)[row.field_key] = row.field_value;
