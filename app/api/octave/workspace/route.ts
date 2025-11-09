@@ -123,27 +123,50 @@ export async function POST(request: NextRequest) {
     console.log('Response Data:', JSON.stringify(response.data, null, 2));
 
     // Extract workspace and product information from response
-    const workspaceOId = response.data?.workspace?.oId || response.data?.oId;
-    const productOId = response.data?.offering?.oId || response.data?.product?.oId;
+    // Try multiple possible locations for the IDs
+    const workspaceOId = response.data?.workspace?.oId 
+      || response.data?.data?.workspace?.oId 
+      || response.data?.oId;
+    
+    const productOId = response.data?.offering?.oId 
+      || response.data?.product?.oId 
+      || response.data?.data?.offering?.oId 
+      || response.data?.data?.product?.oId
+      || response.data?.primaryOffering?.oId;
+    
     console.log('🆔 Workspace OId:', workspaceOId);
     console.log('🆔 Product OId:', productOId);
+    console.log('🔍 Full response.data keys:', Object.keys(response.data || {}));
+    
+    if (response.data?.data) {
+      console.log('🔍 response.data.data keys:', Object.keys(response.data.data || {}));
+    }
+
+    // If productOId is still undefined, log warning
+    if (!productOId) {
+      console.error('❌ WARNING: Could not extract productOId from response!');
+      console.error('Available response structure:', JSON.stringify(response.data, null, 2));
+    }
 
     // Step 2: Create Client References in Octave (if we have client references)
     const clientReferences = questionnaireData.socialProof?.clientReferences || [];
     if (Array.isArray(clientReferences) && clientReferences.length > 0) {
-      console.log('📝 Creating client references in Octave...');
-      try {
-        const referenceResponse = await fetch(`${request.nextUrl.origin}/api/octave/reference`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            clientReferences,
-            productOId: productOId,
-            brandVoiceOId: 'bv_fractional_ops'
-          }),
-        });
+      if (!productOId) {
+        console.error('❌ Cannot create client references: productOId is missing');
+      } else {
+        console.log('📝 Creating client references in Octave...');
+        try {
+          const referenceResponse = await fetch(`${request.nextUrl.origin}/api/octave/reference`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              clientReferences,
+              productOId: productOId,
+              brandVoiceOId: 'bv_fractional_ops'
+            }),
+          });
 
         const referenceResult = await referenceResponse.json();
         
@@ -155,12 +178,16 @@ export async function POST(request: NextRequest) {
         } else {
           console.error('⚠️ Client reference creation failed (non-critical):', referenceResult);
         }
-      } catch (referenceError) {
-        console.error('⚠️ Client reference creation error (non-critical):', referenceError);
+        } catch (referenceError) {
+          console.error('⚠️ Client reference creation error (non-critical):', referenceError);
+        }
       }
 
       // Step 3: Create Segments in Octave based on industries from client references
-      console.log('📊 Creating segments in Octave from industries...');
+      if (!productOId) {
+        console.error('❌ Cannot create segments: productOId is missing');
+      } else {
+        console.log('📊 Creating segments in Octave from industries...');
       try {
         const segmentResponse = await fetch(`${request.nextUrl.origin}/api/octave/segment`, {
           method: 'POST',
@@ -185,6 +212,7 @@ export async function POST(request: NextRequest) {
         }
       } catch (segmentError) {
         console.error('⚠️ Segment creation error (non-critical):', segmentError);
+      }
       }
     } else {
       console.log('ℹ️ No client references provided, skipping reference and segment creation');
