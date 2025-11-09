@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { ClientReference } from '@/types';
 
-const OCTAVE_REFERENCE_API_URL = 'https://api.octave.app/api/v2/reference/create';
+const OCTAVE_REFERENCE_API_URL = 'https://app.octavehq.com/api/v2/reference/create';
 
 export async function POST(request: NextRequest) {
   try {

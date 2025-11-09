@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { ClientReference } from '@/types';
 
-const OCTAVE_SEGMENT_API_URL = 'https://api.octave.app/api/v2/segment/create';
+const OCTAVE_SEGMENT_API_URL = 'https://app.octavehq.com/api/v2/segment/create';
 
 export async function POST(request: NextRequest) {
   try {
