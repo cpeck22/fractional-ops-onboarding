@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
             body: JSON.stringify({
               clientReferences,
               productOId: productOId,
-              brandVoiceOId: 'bv_fractional_ops'
+              workspaceOId: workspaceOId
             }),
           });
 
@@ -196,7 +196,8 @@ export async function POST(request: NextRequest) {
           },
           body: JSON.stringify({
             clientReferences,
-            primaryOfferingOId: productOId
+            primaryOfferingOId: productOId,
+            workspaceOId: workspaceOId
           }),
         });
 

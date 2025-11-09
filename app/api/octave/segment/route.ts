@@ -7,13 +7,16 @@ const OCTAVE_SEGMENT_API_URL = 'https://app.octavehq.com/api/v2/segment/create';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { clientReferences, primaryOfferingOId } = body as {
+    const { clientReferences, primaryOfferingOId, workspaceOId } = body as {
       clientReferences: ClientReference[];
       primaryOfferingOId?: string;
+      workspaceOId?: string;
     };
 
     console.log('📥 Creating segments in Octave from client references');
     console.log('📥 Number of client references:', clientReferences.length);
+    console.log('📥 Primary Offering OId:', primaryOfferingOId);
+    console.log('📥 Workspace OId:', workspaceOId);
 
     // Get API key from server environment
     const apiKey = process.env.OCTAVE_API_KEY;

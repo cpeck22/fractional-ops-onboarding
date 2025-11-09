@@ -7,15 +7,16 @@ const OCTAVE_REFERENCE_API_URL = 'https://app.octavehq.com/api/v2/reference/crea
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { clientReferences, productOId, brandVoiceOId } = body as {
+    const { clientReferences, productOId, workspaceOId } = body as {
       clientReferences: ClientReference[];
       productOId: string;
-      brandVoiceOId?: string;
+      workspaceOId?: string;
     };
 
     console.log('📥 Creating client references in Octave');
     console.log('📥 Number of references:', clientReferences.length);
     console.log('📥 Product OId:', productOId);
+    console.log('📥 Workspace OId:', workspaceOId);
 
     // Get API key from server environment
     const apiKey = process.env.OCTAVE_API_KEY;
@@ -47,12 +48,20 @@ export async function POST(request: NextRequest) {
       try {
         console.log(`📤 Creating reference ${i + 1}/${clientReferences.length}: ${ref.companyName}`);
 
+        // Format the URL properly (add https:// if missing)
+        const formattedUrl = ref.companyDomain.startsWith('http') 
+          ? ref.companyDomain 
+          : `https://${ref.companyDomain}`;
+        
+        // Clean domain (remove protocol and www)
+        const cleanDomain = ref.companyDomain.replace(/^https?:\/\//, '').replace(/^www\./, '');
+
         const referenceRequest = {
           productOId: productOId,
-          brandVoiceOId: brandVoiceOId || undefined,
-          url: ref.companyDomain,
+          // Don't send brandVoiceOId - it's optional and we don't have a valid one for the client's workspace
+          url: formattedUrl,
           companyName: ref.companyName,
-          companyDomain: ref.companyDomain.replace(/^https?:\/\//, '').replace(/^www\./, ''),
+          companyDomain: cleanDomain,
           details: ref.successStory || `Client in ${ref.industry} industry`
         };
 
