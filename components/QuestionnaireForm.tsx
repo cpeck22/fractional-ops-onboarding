@@ -22,7 +22,7 @@ interface QuestionnaireFormProps {
   isLastSection: boolean;
 }
 
-const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea' | 'dropdown' | 'multiselect' | 'file', required?: boolean, description?: string, example?: string, options?: string[], questionNumber?: number}>> = {
+const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea' | 'dropdown' | 'multiselect' | 'file' | 'client-references', required?: boolean, description?: string, example?: string, options?: string[], questionNumber?: number}>> = {
   // Step 1: Who You Are (Q1-2)
   companyInfo: [
     { key: 'companyName', label: 'Company Name', placeholder: 'Please Type Your Answer here', type: 'text', required: true, questionNumber: 1 },
@@ -220,10 +220,10 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       key: 'clientReferences', 
       label: 'Who has gotten these results?', 
       placeholder: 'Please Type Your Answer here', 
-      type: 'textarea', 
+      type: 'client-references', 
       required: true,
-      description: 'I need 1-3 client references to start. Creating detailed reference clients will help me showcase how real people are succeeding with our service (or product) offering. I need us to either name the actual client and give me their website (I\'ll can gather more details behind the scenes for us) or if we can\'t name them, just describe them. If actually naming them, I need this format: [Client\'s Company Name] (Client\'s website url) [Describe the result]',
-      example: '**Corporate Real Estate:**\n• FedEx (https://www.fedex.com) — Reduced real estate costs via consolidation\n\n• Global financial firm — Improved lease cycle time by 30%\n\n**Legal Services:**\n• Mid-market SaaS — Closed $100M acquisition with no compliance issues\n\n• PE firm ($2B AUM) — Standardized contracts across 6 entities\n\n**HR Consulting:**\n• Shopify (https://www.shopify.com) — Improved engagement by 18% in 6 months\n\n• PE-backed manufacturer — Designed review system across 5 plants',
+      description: 'I need at least 1 client reference to start (you can add up to 100). Creating detailed reference clients will help me showcase how real people are succeeding with our service (or product) offering. For each client reference, provide: Company Name, Company Website, Industry they operate in, and optionally a brief success story (1-5 sentences about the results).',
+      example: '**Corporate Real Estate:**\n• FedEx (https://www.fedex.com) in Transportation & Logistics — Reduced real estate costs via consolidation\n\n• Global financial firm in Financial Services — Improved lease cycle time by 30%\n\n**Legal Services:**\n• Mid-market SaaS in Software — Closed $100M acquisition with no compliance issues\n\n• PE firm in Private Equity ($2B AUM) — Standardized contracts across 6 entities\n\n**HR Consulting:**\n• Shopify (https://www.shopify.com) in E-commerce — Improved engagement by 18% in 6 months\n\n• PE-backed manufacturer in Manufacturing — Designed review system across 5 plants',
       questionNumber: 20
     }
   ],
@@ -645,6 +645,128 @@ export default function QuestionnaireForm({
                 )}
                 <p className="text-xs text-fo-text-secondary">
                   Max 10MB per file. Allowed: PDF, DOC, DOCX, PNG, JPG
+                </p>
+              </div>
+            ) : field.type === 'client-references' ? (
+              <div className="space-y-4">
+                {/* Render each client reference */}
+                {(Array.isArray(formData[field.key]) ? formData[field.key] : []).map((ref: any, refIndex: number) => (
+                  <div key={refIndex} className="border border-fo-light rounded-lg p-4 bg-gray-50 space-y-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="text-sm font-semibold text-fo-primary">Client Reference #{refIndex + 1}</h4>
+                      {(Array.isArray(formData[field.key]) ? formData[field.key] : []).length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentRefs = Array.isArray(formData[field.key]) ? formData[field.key] : [];
+                            const newRefs = currentRefs.filter((_: any, idx: number) => idx !== refIndex);
+                            handleFieldChange(field.key, newRefs);
+                          }}
+                          className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    
+                    {/* Company Name */}
+                    <div>
+                      <label className="block text-xs font-medium text-fo-text mb-1">
+                        Company Name <span className="text-fo-orange">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={ref.companyName || ''}
+                        onChange={(e) => {
+                          const currentRefs = Array.isArray(formData[field.key]) ? [...formData[field.key]] : [];
+                          currentRefs[refIndex] = { ...currentRefs[refIndex], companyName: e.target.value };
+                          handleFieldChange(field.key, currentRefs);
+                        }}
+                        placeholder="e.g., FedEx or Global Financial Firm"
+                        className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary text-sm"
+                      />
+                    </div>
+
+                    {/* Company Domain */}
+                    <div>
+                      <label className="block text-xs font-medium text-fo-text mb-1">
+                        Company Website <span className="text-fo-orange">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={ref.companyDomain || ''}
+                        onChange={(e) => {
+                          const currentRefs = Array.isArray(formData[field.key]) ? [...formData[field.key]] : [];
+                          currentRefs[refIndex] = { ...currentRefs[refIndex], companyDomain: e.target.value };
+                          handleFieldChange(field.key, currentRefs);
+                        }}
+                        placeholder="e.g., https://www.fedex.com"
+                        className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary text-sm"
+                      />
+                    </div>
+
+                    {/* Industry */}
+                    <div>
+                      <label className="block text-xs font-medium text-fo-text mb-1">
+                        Industry <span className="text-fo-orange">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={ref.industry || ''}
+                        onChange={(e) => {
+                          const currentRefs = Array.isArray(formData[field.key]) ? [...formData[field.key]] : [];
+                          currentRefs[refIndex] = { ...currentRefs[refIndex], industry: e.target.value };
+                          handleFieldChange(field.key, currentRefs);
+                        }}
+                        placeholder="e.g., Transportation & Logistics, Financial Services"
+                        className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary text-sm"
+                      />
+                    </div>
+
+                    {/* Success Story (Optional) */}
+                    <div>
+                      <label className="block text-xs font-medium text-fo-text mb-1">
+                        Success Story (Optional)
+                      </label>
+                      <textarea
+                        value={ref.successStory || ''}
+                        onChange={(e) => {
+                          const currentRefs = Array.isArray(formData[field.key]) ? [...formData[field.key]] : [];
+                          currentRefs[refIndex] = { ...currentRefs[refIndex], successStory: e.target.value };
+                          handleFieldChange(field.key, currentRefs);
+                        }}
+                        placeholder="Brief description of results (1-5 sentences)"
+                        rows={3}
+                        className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary text-sm resize-vertical"
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add Client Reference Button */}
+                {(Array.isArray(formData[field.key]) ? formData[field.key] : []).length < 100 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentRefs = Array.isArray(formData[field.key]) ? formData[field.key] : [];
+                      const newRefs = [...currentRefs, { companyName: '', companyDomain: '', industry: '', successStory: '' }];
+                      handleFieldChange(field.key, newRefs);
+                    }}
+                    className="w-full px-4 py-3 border-2 border-dashed border-fo-primary text-fo-primary rounded-lg hover:bg-fo-light transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Client Reference
+                  </button>
+                )}
+
+                {/* Count display */}
+                <p className="text-xs text-fo-text-secondary text-center">
+                  {(Array.isArray(formData[field.key]) ? formData[field.key] : []).length} / 100 client references
                 </p>
               </div>
             ) : (

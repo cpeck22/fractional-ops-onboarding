@@ -58,7 +58,12 @@ const initialData: QuestionnaireData = {
   // Step 7: Social Proof
   socialProof: {
     proofPoints: '',
-    clientReferences: ''
+    clientReferences: [{
+      companyName: '',
+      companyDomain: '',
+      industry: '',
+      successStory: ''
+    }]
   },
   // Step 8: Positioning
   positioning: {
@@ -111,7 +116,29 @@ export function QuestionnaireProvider({ children }: { children: ReactNode }) {
             console.log('📊 QuestionnaireProvider: Loading questionnaire data for user ID:', user.id);
             const userData = await loadUserQuestionnaireData(user.id);
             console.log('📊 QuestionnaireProvider: Loaded user data:', userData);
-            setQuestionnaireData(userData);
+            
+            // Migrate old clientReferences format (string) to new format (array)
+            if (userData.socialProof?.clientReferences && typeof userData.socialProof.clientReferences === 'string') {
+              console.log('📊 Migrating old clientReferences format to new array format');
+              (userData.socialProof as any).clientReferences = [{
+                companyName: '',
+                companyDomain: '',
+                industry: '',
+                successStory: userData.socialProof.clientReferences // Put old text in success story
+              }];
+            }
+            
+            // Ensure clientReferences is an array (either migrated or already array)
+            if (!Array.isArray(userData.socialProof?.clientReferences)) {
+              (userData.socialProof as any).clientReferences = [{
+                companyName: '',
+                companyDomain: '',
+                industry: '',
+                successStory: ''
+              }];
+            }
+            
+            setQuestionnaireData(userData as unknown as QuestionnaireData);
           } catch (loadError) {
             console.error('📊 QuestionnaireProvider: Failed to load user data:', loadError);
             toast.error('Failed to load your questionnaire data');
@@ -143,7 +170,29 @@ export function QuestionnaireProvider({ children }: { children: ReactNode }) {
           setIsLoading(true);
           try {
             const userData = await loadUserQuestionnaireData(session.user.id);
-            setQuestionnaireData(userData);
+            
+            // Migrate old clientReferences format (string) to new format (array)
+            if (userData.socialProof?.clientReferences && typeof userData.socialProof.clientReferences === 'string') {
+              console.log('📊 Migrating old clientReferences format to new array format');
+              (userData.socialProof as any).clientReferences = [{
+                companyName: '',
+                companyDomain: '',
+                industry: '',
+                successStory: userData.socialProof.clientReferences // Put old text in success story
+              }];
+            }
+            
+            // Ensure clientReferences is an array (either migrated or already array)
+            if (!Array.isArray(userData.socialProof?.clientReferences)) {
+              (userData.socialProof as any).clientReferences = [{
+                companyName: '',
+                companyDomain: '',
+                industry: '',
+                successStory: ''
+              }];
+            }
+            
+            setQuestionnaireData(userData as unknown as QuestionnaireData);
           } catch (error) {
             console.error('📊 QuestionnaireProvider: Failed to load user data:', error);
             toast.error('Failed to load your questionnaire data');

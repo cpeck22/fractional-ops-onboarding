@@ -114,22 +114,47 @@ export function generateQuestionnairePDF(data: PDFData): Buffer {
       const value = sectionData?.[field.key];
       let displayValue = 'Not provided';
       
-      if (value) {
-        if (Array.isArray(value)) {
-          displayValue = value.join(', ');
-        } else {
-          displayValue = value;
-        }
-      }
-      
       // Question number (e.g., "1.1", "1.2", etc.)
       const questionNumber = `${sectionIndex + 1}.${fieldIndex + 1}`;
       
       // Question label with number
       addText(`${questionNumber} ${field.label}:`, 11, true);
       
-      // Answer
-      addText(displayValue, 10, false);
+      if (value) {
+        // Special handling for client references (array of objects)
+        if (field.key === 'clientReferences' && Array.isArray(value)) {
+          if (value.length === 0) {
+            addText('Not provided', 10, false);
+          } else {
+            value.forEach((ref: any, refIndex: number) => {
+              const refNumber = refIndex + 1;
+              addText(`Client Reference #${refNumber}:`, 10, true);
+              addText(`  Company Name: ${ref.companyName || 'Not provided'}`, 10, false);
+              addText(`  Website: ${ref.companyDomain || 'Not provided'}`, 10, false);
+              addText(`  Industry: ${ref.industry || 'Not provided'}`, 10, false);
+              if (ref.successStory) {
+                addText(`  Success Story: ${ref.successStory}`, 10, false);
+              }
+              if (refIndex < value.length - 1) {
+                addSpace(2);
+              }
+            });
+          }
+        } 
+        // Regular array handling (like seniorityLevel)
+        else if (Array.isArray(value)) {
+          displayValue = value.join(', ');
+          addText(displayValue, 10, false);
+        } 
+        // Regular text handling
+        else {
+          displayValue = value;
+          addText(displayValue, 10, false);
+        }
+      } else {
+        addText(displayValue, 10, false);
+      }
+      
       addSpace(3);
     });
     

@@ -102,7 +102,75 @@ export async function POST(request: NextRequest) {
     console.log('Response Headers:', response.headers);
     console.log('Response Data:', JSON.stringify(response.data, null, 2));
 
-    // After successfully sending to Octave, also send to Zapier
+    // Extract workspace and product information from response
+    const workspaceOId = response.data?.workspace?.oId || response.data?.oId;
+    const productOId = response.data?.offering?.oId || response.data?.product?.oId;
+    console.log('🆔 Workspace OId:', workspaceOId);
+    console.log('🆔 Product OId:', productOId);
+
+    // Step 2: Create Client References in Octave (if we have client references)
+    const clientReferences = questionnaireData.socialProof?.clientReferences || [];
+    if (Array.isArray(clientReferences) && clientReferences.length > 0) {
+      console.log('📝 Creating client references in Octave...');
+      try {
+        const referenceResponse = await fetch(`${request.nextUrl.origin}/api/octave/reference`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            clientReferences,
+            productOId: productOId,
+            brandVoiceOId: 'bv_fractional_ops'
+          }),
+        });
+
+        const referenceResult = await referenceResponse.json();
+        
+        if (referenceResponse.ok && referenceResult.success) {
+          console.log(`✅ Created ${referenceResult.created}/${referenceResult.total} client references`);
+          if (referenceResult.errors) {
+            console.warn('⚠️ Some references failed:', referenceResult.errors);
+          }
+        } else {
+          console.error('⚠️ Client reference creation failed (non-critical):', referenceResult);
+        }
+      } catch (referenceError) {
+        console.error('⚠️ Client reference creation error (non-critical):', referenceError);
+      }
+
+      // Step 3: Create Segments in Octave based on industries from client references
+      console.log('📊 Creating segments in Octave from industries...');
+      try {
+        const segmentResponse = await fetch(`${request.nextUrl.origin}/api/octave/segment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            clientReferences,
+            primaryOfferingOId: productOId
+          }),
+        });
+
+        const segmentResult = await segmentResponse.json();
+        
+        if (segmentResponse.ok && segmentResult.success) {
+          console.log(`✅ Created ${segmentResult.created}/${segmentResult.total} segments`);
+          if (segmentResult.errors) {
+            console.warn('⚠️ Some segments failed:', segmentResult.errors);
+          }
+        } else {
+          console.error('⚠️ Segment creation failed (non-critical):', segmentResult);
+        }
+      } catch (segmentError) {
+        console.error('⚠️ Segment creation error (non-critical):', segmentError);
+      }
+    } else {
+      console.log('ℹ️ No client references provided, skipping reference and segment creation');
+    }
+
+    // After successfully sending to Octave and creating references/segments, send to Zapier
     console.log('📤 Now sending PDF to Zapier...');
     try {
       // Use userId from client, or try to get from cookies as fallback

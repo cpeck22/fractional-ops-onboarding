@@ -1,3 +1,10 @@
+export interface ClientReference {
+  companyName: string;
+  companyDomain: string;
+  industry: string;
+  successStory?: string; // Optional
+}
+
 export interface QuestionnaireData {
   // Step 1: Who You Are (Q1-2)
   companyInfo: {
@@ -44,7 +51,7 @@ export interface QuestionnaireData {
   // Step 7: Social Proof (Q19-20)
   socialProof: {
     proofPoints: string;
-    clientReferences: string;
+    clientReferences: ClientReference[];
   };
 
   // Step 8: Positioning (Q21)

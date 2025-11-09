@@ -202,14 +202,22 @@ export default function ReviewPage() {
                       const value = sectionData?.[field.key];
                       let displayValue = 'Not provided';
                       let isFileField = false;
+                      let isClientReferences = false;
                       
                       // Check if this is a file upload field (brandDocuments or additionalFiles)
                       if (field.key === 'brandDocuments' || field.key === 'additionalFiles') {
                         isFileField = true;
                       }
                       
+                      // Check if this is the client references field
+                      if (field.key === 'clientReferences') {
+                        isClientReferences = true;
+                      }
+                      
                       if (value) {
-                        if (Array.isArray(value)) {
+                        if (isClientReferences && Array.isArray(value)) {
+                          // Don't compute displayValue for client references, we'll render them specially
+                        } else if (Array.isArray(value)) {
                           displayValue = value.join(', ');
                         } else if (isFileField && typeof value === 'string' && value.includes('http')) {
                           // Extract filenames from URLs for file fields
@@ -236,7 +244,23 @@ export default function ReviewPage() {
                       return (
                         <div key={field.key}>
                           <span className="font-semibold text-fo-text">{field.label}:</span>
-                          {isFileField && value && typeof value === 'string' && value.includes('http') ? (
+                          {isClientReferences && value && Array.isArray(value) ? (
+                            <div className="mt-2 space-y-3">
+                              {value.map((ref: any, refIndex: number) => (
+                                <div key={refIndex} className="bg-gray-50 p-3 rounded border border-fo-light">
+                                  <div className="font-medium text-fo-primary text-xs mb-2">Client Reference #{refIndex + 1}</div>
+                                  <div className="space-y-1 text-xs">
+                                    <div><span className="font-medium">Company:</span> {ref.companyName || 'Not provided'}</div>
+                                    <div><span className="font-medium">Website:</span> {ref.companyDomain || 'Not provided'}</div>
+                                    <div><span className="font-medium">Industry:</span> {ref.industry || 'Not provided'}</div>
+                                    {ref.successStory && (
+                                      <div><span className="font-medium">Success Story:</span> {ref.successStory}</div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : isFileField && value && typeof value === 'string' && value.includes('http') ? (
                             <div className="text-fo-text-secondary mt-1 font-light">
                               {value.split(', ').filter(url => url.trim()).map((url, idx) => {
                                 const urlPath = url.split('?')[0];
