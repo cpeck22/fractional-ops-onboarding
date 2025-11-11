@@ -74,6 +74,9 @@ export async function POST(request: NextRequest) {
           description: description, // Description with industry and website
           data: referenceData, // Additional structured data
           productOId: productOId, // Required (not in docs but API requires it)
+          url: formattedUrl, // Full URL with https://
+          companyName: ref.companyName, // Company name
+          companyDomain: ref.companyDomain.replace(/^https?:\/\//, '').replace(/^www\./, ''), // Clean domain
           linkingStrategy: {
             mode: 'ALL' // Link to all offerings
           }
