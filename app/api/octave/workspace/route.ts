@@ -161,8 +161,17 @@ export async function POST(request: NextRequest) {
       console.error('Available response structure:', JSON.stringify(response.data, null, 2));
     }
 
+    // Extract personas and use cases from workspace builder response
+    const personas = response.data?.data?.personas || [];
+    const useCases = response.data?.data?.useCases || [];
+    
+    console.log('👥 Extracted personas:', personas.length);
+    console.log('🎯 Extracted use cases:', useCases.length);
+
     // Step 2: Create Client References in Octave (if we have client references)
     const clientReferences = questionnaireData.socialProof?.clientReferences || [];
+    let createdReferences: any[] = [];
+    
     if (Array.isArray(clientReferences) && clientReferences.length > 0) {
       if (!productOId) {
         console.error('❌ Cannot create client references: productOId is missing');
@@ -186,6 +195,7 @@ export async function POST(request: NextRequest) {
         
         if (referenceResponse.ok && referenceResult.success) {
           console.log(`✅ Created ${referenceResult.created}/${referenceResult.total} client references`);
+          createdReferences = referenceResult.references || [];
           if (referenceResult.errors) {
             console.warn('⚠️ Some references failed:', referenceResult.errors);
           }
@@ -198,6 +208,8 @@ export async function POST(request: NextRequest) {
       }
 
       // Step 3: Create Segments in Octave based on industries from client references
+      let createdSegments: any[] = [];
+      
       if (!productOId) {
         console.error('❌ Cannot create segments: productOId is missing');
       } else {
@@ -220,6 +232,7 @@ export async function POST(request: NextRequest) {
         
         if (segmentResponse.ok && segmentResult.success) {
           console.log(`✅ Created ${segmentResult.created}/${segmentResult.total} segments`);
+          createdSegments = segmentResult.segments || [];
           if (segmentResult.errors) {
             console.warn('⚠️ Some segments failed:', segmentResult.errors);
           }
@@ -230,8 +243,45 @@ export async function POST(request: NextRequest) {
         console.error('⚠️ Segment creation error (non-critical):', segmentError);
       }
       }
+
+      // Step 4: Create Playbooks (one per segment)
+      if (createdSegments.length > 0 && personas.length > 0 && useCases.length > 0) {
+        console.log('📚 Creating playbooks in Octave...');
+        try {
+          const playbookResponse = await fetch(`${request.nextUrl.origin}/api/octave/playbook`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              segments: createdSegments,
+              references: createdReferences,
+              personas: personas,
+              useCases: useCases,
+              productOId: productOId,
+              workspaceApiKey: workspaceApiKey
+            }),
+          });
+
+          const playbookResult = await playbookResponse.json();
+          
+          if (playbookResponse.ok && playbookResult.success) {
+            console.log(`✅ Created ${playbookResult.created}/${playbookResult.total} playbooks`);
+            if (playbookResult.errors) {
+              console.warn('⚠️ Some playbooks failed:', playbookResult.errors);
+            }
+          } else {
+            console.error('⚠️ Playbook creation failed (non-critical):', playbookResult);
+          }
+        } catch (playbookError) {
+          console.error('⚠️ Playbook creation error (non-critical):', playbookError);
+        }
+      } else {
+        console.log('ℹ️ Skipping playbook creation - missing required data');
+        console.log(`  Segments: ${createdSegments.length}, Personas: ${personas.length}, Use Cases: ${useCases.length}`);
+      }
     } else {
-      console.log('ℹ️ No client references provided, skipping reference and segment creation');
+      console.log('ℹ️ No client references provided, skipping reference, segment, and playbook creation');
     }
 
     // After successfully sending to Octave and creating references/segments, send to Zapier
