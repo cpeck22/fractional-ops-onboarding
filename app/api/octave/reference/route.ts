@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
     console.log('📥 Product OId:', productOId);
     console.log('📥 Workspace OId:', workspaceOId);
     console.log('🔑 Using Workspace API Key:', workspaceApiKey ? `${workspaceApiKey.substring(0, 10)}...` : 'NOT PROVIDED');
+    console.log('🚀 Reference creation initiated with all required fields');
 
     if (!workspaceApiKey) {
       return NextResponse.json(
