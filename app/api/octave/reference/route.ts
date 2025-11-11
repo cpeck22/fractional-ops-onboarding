@@ -73,7 +73,6 @@ export async function POST(request: NextRequest) {
           internalName: ref.companyName, // Internal name (same as external)
           description: description, // Description with industry and website
           data: referenceData, // Additional structured data
-          primaryOfferingOId: productOId, // Link to the offering from workspace builder
           linkingStrategy: {
             mode: 'ALL' // Link to all offerings
           }
