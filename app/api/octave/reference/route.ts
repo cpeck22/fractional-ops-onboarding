@@ -2,119 +2,115 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { ClientReference } from '@/types';
 
-const OCTAVE_REFERENCE_API_URL = 'https://app.octavehq.com/api/v2/reference/create';
+const OCTAVE_REFERENCE_API_URL = 'https://app.octavehq.com/api/v2/reference/generate';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { clientReferences, productOId, workspaceOId } = body as {
+    const { clientReferences, productOId, workspaceOId, workspaceApiKey } = body as {
       clientReferences: ClientReference[];
       productOId: string;
       workspaceOId?: string;
+      workspaceApiKey: string;
     };
 
-    console.log('📥 Creating client references in Octave');
+    console.log('📥 Generating client references in Octave (NEW ENDPOINT)');
     console.log('📥 Number of references:', clientReferences.length);
     console.log('📥 Product OId:', productOId);
     console.log('📥 Workspace OId:', workspaceOId);
+    console.log('🔑 Using Workspace API Key:', workspaceApiKey ? `${workspaceApiKey.substring(0, 10)}...` : 'NOT PROVIDED');
 
-    // Get API key from server environment
-    const apiKey = process.env.OCTAVE_API_KEY;
-
-    if (!apiKey) {
+    if (!workspaceApiKey) {
       return NextResponse.json(
-        { error: 'Octave API key not configured' },
-        { status: 500 }
+        { 
+          success: false,
+          error: 'Workspace API key is required for generating references. This key should come from the workspace creation response.' 
+        },
+        { status: 400 }
       );
     }
 
-    const createdReferences = [];
-    const errors = [];
-
-    // Create each client reference
-    for (let i = 0; i < clientReferences.length; i++) {
-      const ref = clientReferences[i];
-      
-      // Skip if required fields are empty
-      if (!ref.companyName || !ref.companyDomain || !ref.industry) {
-        console.log(`⚠️ Skipping reference ${i + 1}: Missing required fields`);
-        errors.push({
-          index: i,
-          error: 'Missing required fields (companyName, companyDomain, or industry)'
-        });
-        continue;
-      }
-
-      try {
-        console.log(`📤 Creating reference ${i + 1}/${clientReferences.length}: ${ref.companyName}`);
-
+    // Transform our client references into Octave's generate format
+    const references = clientReferences
+      .filter(ref => ref.companyName && ref.companyDomain && ref.industry) // Only include valid refs
+      .map(ref => {
         // Format the URL properly (add https:// if missing)
         const formattedUrl = ref.companyDomain.startsWith('http') 
           ? ref.companyDomain 
           : `https://${ref.companyDomain}`;
-        
-        // Clean domain (remove protocol and www)
-        const cleanDomain = ref.companyDomain.replace(/^https?:\/\//, '').replace(/^www\./, '');
 
-        const referenceRequest = {
-          productOId: productOId,
-          // Don't send brandVoiceOId - it's optional and we don't have a valid one for the client's workspace
-          url: formattedUrl,
-          companyName: ref.companyName,
-          companyDomain: cleanDomain,
-          details: ref.successStory || `Client in ${ref.industry} industry`
+        // Build a rich text source with all context
+        const textValue = [
+          `Company: ${ref.companyName}`,
+          `Industry: ${ref.industry}`,
+          `Website: ${formattedUrl}`,
+          ref.successStory ? `Success Story: ${ref.successStory}` : ''
+        ].filter(Boolean).join('\n');
+
+        return {
+          name: ref.companyName, // Use company name as the reference name
+          sources: [
+            {
+              type: 'URL',
+              value: formattedUrl
+            },
+            {
+              type: 'TEXT',
+              value: textValue
+            }
+          ]
         };
+      });
 
-        console.log('Reference request:', JSON.stringify(referenceRequest, null, 2));
+    if (references.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: 'No valid client references to generate (missing required fields)'
+      }, { status: 400 });
+    }
 
-        const response = await axios.post(OCTAVE_REFERENCE_API_URL, referenceRequest, {
-          headers: {
-            'Content-Type': 'application/json',
-            'api_key': apiKey
-          }
-        });
+    console.log(`📤 Generating ${references.length} client references in ONE API call`);
+    console.log('Reference structure:', JSON.stringify(references, null, 2));
 
-        console.log(`✅ Created reference ${i + 1}: ${ref.companyName} (${response.data.oId})`);
-        createdReferences.push({
-          index: i,
-          companyName: ref.companyName,
-          industry: ref.industry,
-          oId: response.data.oId,
-          data: response.data
-        });
+    const generateRequest = {
+      primaryOfferingOId: productOId,
+      linkingStrategy: {
+        mode: 'ALL'
+      },
+      references: references
+    };
 
-      } catch (error: any) {
-        console.error(`❌ Error creating reference ${i + 1}:`, error.response?.data || error.message);
-        errors.push({
-          index: i,
-          companyName: ref.companyName,
-          error: error.response?.data?.message || error.message
-        });
+    console.log('Generate request payload:', JSON.stringify(generateRequest, null, 2));
+
+    // Call the new generate endpoint with the workspace API key
+    const response = await axios.post(OCTAVE_REFERENCE_API_URL, generateRequest, {
+      headers: {
+        'Content-Type': 'application/json',
+        'api_key': workspaceApiKey  // <-- USE WORKSPACE API KEY, NOT .ENV KEY
       }
-    }
+    });
 
-    console.log(`✅ Successfully created ${createdReferences.length} / ${clientReferences.length} references`);
-    if (errors.length > 0) {
-      console.log(`⚠️ ${errors.length} references failed:`, errors);
-    }
+    console.log('✅ Generate References Response:', JSON.stringify(response.data, null, 2));
+
+    const generatedReferences = response.data?.data || [];
+    console.log(`✅ Successfully generated ${generatedReferences.length} / ${clientReferences.length} references`);
 
     return NextResponse.json({
       success: true,
-      created: createdReferences.length,
+      created: generatedReferences.length,
       total: clientReferences.length,
-      references: createdReferences,
-      errors: errors.length > 0 ? errors : undefined
+      references: generatedReferences
     });
 
   } catch (error: any) {
-    console.error('❌ Error in reference creation API:', error);
+    console.error('❌ Error in reference generation API:', error.response?.data || error.message);
     return NextResponse.json(
       { 
         success: false,
-        error: error.message || 'Failed to create client references'
+        error: error.response?.data?.message || error.message || 'Failed to generate client references',
+        details: error.response?.data
       },
       { status: 500 }
     );
   }
 }
-

@@ -7,23 +7,25 @@ const OCTAVE_SEGMENT_API_URL = 'https://app.octavehq.com/api/v2/segment/create';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { clientReferences, primaryOfferingOId, workspaceOId } = body as {
+    const { clientReferences, primaryOfferingOId, workspaceOId, workspaceApiKey } = body as {
       clientReferences: ClientReference[];
       primaryOfferingOId?: string;
       workspaceOId?: string;
+      workspaceApiKey?: string;
     };
 
     console.log('📥 Creating segments in Octave from client references');
     console.log('📥 Number of client references:', clientReferences.length);
     console.log('📥 Primary Offering OId:', primaryOfferingOId);
     console.log('📥 Workspace OId:', workspaceOId);
+    console.log('🔑 Workspace API Key:', workspaceApiKey ? `${workspaceApiKey.substring(0, 10)}...` : 'Using .env key');
 
-    // Get API key from server environment
-    const apiKey = process.env.OCTAVE_API_KEY;
+    // Use workspace API key if provided, otherwise fall back to .env key
+    const apiKey = workspaceApiKey || process.env.OCTAVE_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'Octave API key not configured' },
+        { error: 'Octave API key not configured (neither workspace key nor .env key available)' },
         { status: 500 }
       );
     }

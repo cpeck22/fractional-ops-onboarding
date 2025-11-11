@@ -142,6 +142,19 @@ export async function POST(request: NextRequest) {
       console.log('🔍 response.data.data keys:', Object.keys(response.data.data || {}));
     }
 
+    // Extract the workspace API key from response (CRITICAL for generating references)
+    const workspaceApiKey = response.data?.apiKey 
+      || response.data?.workspace?.apiKey 
+      || response.data?.data?.apiKey
+      || response.data?.data?.workspace?.apiKey;
+
+    console.log('🔑 Workspace API Key:', workspaceApiKey ? `${workspaceApiKey.substring(0, 10)}...` : 'NOT FOUND');
+
+    if (!workspaceApiKey) {
+      console.error('❌ WARNING: Could not extract workspace API key from response!');
+      console.error('This API key is REQUIRED for generating client references.');
+    }
+
     // If productOId is still undefined, log warning
     if (!productOId) {
       console.error('❌ WARNING: Could not extract productOId from response!');
@@ -164,7 +177,8 @@ export async function POST(request: NextRequest) {
             body: JSON.stringify({
               clientReferences,
               productOId: productOId,
-              workspaceOId: workspaceOId
+              workspaceOId: workspaceOId,
+              workspaceApiKey: workspaceApiKey
             }),
           });
 
@@ -197,7 +211,8 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             clientReferences,
             primaryOfferingOId: productOId,
-            workspaceOId: workspaceOId
+            workspaceOId: workspaceOId,
+            workspaceApiKey: workspaceApiKey
           }),
         });
 
