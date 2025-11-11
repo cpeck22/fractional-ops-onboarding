@@ -251,7 +251,7 @@ export default function ReviewPage() {
                               {value.map((ref: any, refIndex: number) => (
                                 <div key={refIndex} className="bg-gray-50 p-3 rounded border border-fo-light">
                                   <div className="font-medium text-fo-primary text-xs mb-2">Client Reference #{refIndex + 1}</div>
-                                  <div className="space-y-1 text-xs">
+                                  <div className="space-y-1 text-xs text-gray-900">
                                     <div><span className="font-medium">Company:</span> {ref.companyName || 'Not provided'}</div>
                                     <div><span className="font-medium">Website:</span> {ref.companyDomain || 'Not provided'}</div>
                                     <div><span className="font-medium">Industry:</span> {ref.industry || 'Not provided'}</div>
