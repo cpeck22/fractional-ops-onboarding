@@ -93,6 +93,9 @@ export async function POST(request: NextRequest) {
           }
         });
 
+        // 🔍 DEBUG: Log the FULL response to see where oId is located
+        console.log('🔍 FULL REFERENCE RESPONSE:', JSON.stringify(response.data, null, 2));
+
         // Try multiple possible paths for oId extraction
         const referenceOId = response.data?.data?.oId 
           || response.data?.oId 
