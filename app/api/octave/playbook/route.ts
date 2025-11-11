@@ -72,12 +72,13 @@ export async function POST(request: NextRequest) {
       try {
         console.log(`📚 Creating playbook ${i + 1}/${segments.length} for segment: ${segment.name}`);
 
-        // Filter references that match this segment's industry
-        const matchingReferences = references.filter(ref => ref.industry === segment.name);
-        const referenceOIds = matchingReferences.map(ref => ref.oId);
+        // Filter references that match this segment's industry AND have valid oIds
+        const matchingReferences = references.filter(ref => ref.industry === segment.name && ref.oId);
+        const referenceOIds = matchingReferences.map(ref => ref.oId).filter(oId => oId); // Filter out nulls/undefined
         const referenceNames = matchingReferences.map(ref => ref.companyName);
 
         console.log(`📚 Found ${matchingReferences.length} matching references for ${segment.name}:`, referenceNames);
+        console.log(`📚 Valid reference oIds:`, referenceOIds);
 
         // Generate key insight
         const keyInsight = matchingReferences.length > 0

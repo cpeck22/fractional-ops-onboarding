@@ -93,13 +93,23 @@ export async function POST(request: NextRequest) {
           }
         });
 
-        console.log(`✅ Created reference ${i + 1}: ${ref.companyName} (${response.data.data.oId})`);
+        // Try multiple possible paths for oId extraction
+        const referenceOId = response.data?.data?.oId 
+          || response.data?.oId 
+          || response.data?.reference?.oId;
+
+        console.log('🔍 Reference response data keys:', Object.keys(response.data || {}));
+        if (response.data?.data) {
+          console.log('🔍 response.data.data keys:', Object.keys(response.data.data || {}));
+        }
+        console.log(`✅ Created reference ${i + 1}: ${ref.companyName} (${referenceOId})`);
+        
         createdReferences.push({
           index: i,
           companyName: ref.companyName,
           industry: ref.industry,
-          oId: response.data.data.oId,
-          data: response.data.data
+          oId: referenceOId,
+          data: response.data.data || response.data
         });
 
       } catch (error: any) {
