@@ -14,12 +14,12 @@ export async function POST(request: NextRequest) {
     };
     
     // Get Zapier webhook URL from environment
-    const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL;
+    const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT;
     
     if (!zapierWebhookUrl) {
-      console.error('❌ Zapier webhook URL not configured');
+      console.error('❌ Zapier questionnaire submit webhook URL not configured');
       return NextResponse.json(
-        { error: 'Zapier webhook URL not configured' },
+        { error: 'Zapier questionnaire submit webhook URL not configured' },
         { status: 500 }
       );
     }

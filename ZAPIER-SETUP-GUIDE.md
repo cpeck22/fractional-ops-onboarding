@@ -4,7 +4,7 @@
 
 - [ ] Create Zapier Webhook
 - [ ] Configure Monday.com Action
-- [ ] Add `ZAPIER_WEBHOOK_URL` to environment variables
+- [ ] Add `ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT` to environment variables
 - [ ] Test the integration
 - [ ] Deploy to production
 
@@ -69,7 +69,7 @@
 
 1. **Create/Edit `.env.local`** file in your project root:
    ```env
-   ZAPIER_WEBHOOK_URL=https://hooks.zapier.com/hooks/catch/12345678/abcdefg/
+   ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT=https://hooks.zapier.com/hooks/catch/12345678/abcdefg/
    ```
    (Replace with your actual webhook URL from Step 1)
 
@@ -84,7 +84,7 @@
 2. Select your project
 3. Go to **Settings** → **Environment Variables**
 4. Add new variable:
-   - **Name**: `ZAPIER_WEBHOOK_URL`
+   - **Name**: `ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT`
    - **Value**: `https://hooks.zapier.com/hooks/catch/12345678/abcdefg/`
    - **Environment**: Production (and Preview if needed)
 5. Click "Save"
@@ -228,7 +228,7 @@ Check Zapier dashboard for the trigger.
 **Problem**: Zapier doesn't receive webhook
 
 **Solutions**:
-- ✅ Verify `ZAPIER_WEBHOOK_URL` is correct in `.env.local`
+- ✅ Verify `ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT` is correct in `.env.local`
 - ✅ Check Zapier Zap is turned ON
 - ✅ Look at server console logs for Zapier call
 - ✅ Test webhook URL with curl
@@ -245,7 +245,7 @@ Check Zapier dashboard for the trigger.
 
 ### Environment Variable Not Working
 
-**Problem**: "ZAPIER_WEBHOOK_URL not configured" error
+**Problem**: "ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT not configured" error
 
 **Solutions**:
 - ✅ Create `.env.local` file

@@ -6,12 +6,12 @@ export async function POST(request: NextRequest) {
     const { email, userId, timestamp } = body;
     
     // Get Zapier webhook URL from environment
-    const zapierSignupWebhookUrl = process.env.ZAPIER_SIGNUP_WEBHOOK_URL;
+    const zapierSignupWebhookUrl = process.env.ZAPIER_WEBHOOK_USER_SIGNUP;
     
     if (!zapierSignupWebhookUrl) {
-      console.error('❌ Zapier signup webhook URL not configured');
+      console.error('❌ Zapier user signup webhook URL not configured');
       return NextResponse.json(
-        { error: 'Zapier signup webhook URL not configured' },
+        { error: 'Zapier user signup webhook URL not configured' },
         { status: 500 }
       );
     }

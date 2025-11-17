@@ -53,7 +53,7 @@ This app now tracks verified user signups and sends them to Zapier for HubSpot i
 #### Local Development
 Add to `.env.local`:
 ```env
-ZAPIER_SIGNUP_WEBHOOK_URL=https://hooks.zapier.com/hooks/catch/YOUR_WEBHOOK_ID/
+ZAPIER_WEBHOOK_USER_SIGNUP=https://hooks.zapier.com/hooks/catch/YOUR_WEBHOOK_ID/
 ```
 
 Then restart your dev server:
@@ -66,7 +66,7 @@ npm run dev
 2. Select your project
 3. Go to **Settings** → **Environment Variables**
 4. Add:
-   - **Name**: `ZAPIER_SIGNUP_WEBHOOK_URL`
+   - **Name**: `ZAPIER_WEBHOOK_USER_SIGNUP`
    - **Value**: Your Zapier webhook URL
    - **Environment**: Production (and Preview if needed)
 5. Redeploy the app
@@ -127,13 +127,13 @@ Check server logs (Vercel or local) for:
 ### 🛠️ Troubleshooting:
 
 **Webhook not triggering?**
-- ✅ Check `ZAPIER_SIGNUP_WEBHOOK_URL` is set correctly
+- ✅ Check `ZAPIER_WEBHOOK_USER_SIGNUP` is set correctly
 - ✅ Verify Zap is turned ON in Zapier
 - ✅ Look at server logs for errors
 - ✅ Test webhook URL manually with curl
 
 **Getting "URL not configured" error?**
-- ✅ Add `ZAPIER_SIGNUP_WEBHOOK_URL` to environment variables
+- ✅ Add `ZAPIER_WEBHOOK_USER_SIGNUP` to environment variables
 - ✅ Restart dev server (local) or redeploy (Vercel)
 - ✅ Check for typos in variable name
 
@@ -150,7 +150,7 @@ Check server logs (Vercel or local) for:
 
 1. ✅ Get your Zapier webhook URL
 2. ✅ Configure Zapier actions (HubSpot + Email)
-3. ✅ Add `ZAPIER_SIGNUP_WEBHOOK_URL` to environment
+3. ✅ Add `ZAPIER_WEBHOOK_USER_SIGNUP` to environment
 4. ✅ Test with a real signup
 5. ✅ Monitor first few signups to ensure it works
 

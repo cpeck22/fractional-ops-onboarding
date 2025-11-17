@@ -13,7 +13,7 @@
 ### Step 2: Add Environment Variable (1 min)
 ```bash
 # Add to .env.local
-ZAPIER_WEBHOOK_URL=https://hooks.zapier.com/hooks/catch/xxxxx/yyyyy/
+ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT=https://hooks.zapier.com/hooks/catch/xxxxx/yyyyy/
 
 # Restart server
 npm run dev

@@ -69,7 +69,7 @@ npm install jspdf form-data
 5. Add it to your `.env.local` file:
 
 ```env
-ZAPIER_WEBHOOK_URL=https://hooks.zapier.com/hooks/catch/xxxxx/yyyyy/
+ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT=https://hooks.zapier.com/hooks/catch/xxxxx/yyyyy/
 ```
 
 ### 3. Configure Zapier to Monday.com
@@ -228,7 +228,7 @@ POST /api/octave/workspace
 
 **Issue**: Zapier returns 404 or error
 **Solution**:
-- Verify `ZAPIER_WEBHOOK_URL` is correct in `.env.local`
+- Verify `ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT` is correct in `.env.local`
 - Test the webhook URL directly with curl:
   ```bash
   curl -X POST https://hooks.zapier.com/hooks/catch/xxxxx/yyyyy/ \
@@ -248,10 +248,10 @@ POST /api/octave/workspace
 
 ### Environment Variable Not Found
 
-**Issue**: `ZAPIER_WEBHOOK_URL` not configured error
+**Issue**: `ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT` not configured error
 **Solution**:
 - Create `.env.local` file in project root
-- Add: `ZAPIER_WEBHOOK_URL=your-webhook-url`
+- Add: `ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT=your-webhook-url`
 - Restart dev server: `npm run dev`
 - For production: Add to Vercel environment variables
 
@@ -264,7 +264,7 @@ POST /api/octave/workspace
 1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
 2. Add:
    ```
-   ZAPIER_WEBHOOK_URL = https://hooks.zapier.com/hooks/catch/xxxxx/yyyyy/
+   ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT = https://hooks.zapier.com/hooks/catch/xxxxx/yyyyy/
    ```
 3. Redeploy the application
 

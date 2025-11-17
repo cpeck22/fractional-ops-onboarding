@@ -79,7 +79,7 @@ Client Submits → Generate PDF → Send to Zapier → Monday.com File Upload
    - Added necessary imports
 
 3. **`/SETUP.md`**
-   - Added `ZAPIER_WEBHOOK_URL` environment variable documentation
+   - Added `ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT` environment variable documentation
 
 4. **`/package.json`**
    - Added jspdf and form-data dependencies
@@ -93,7 +93,7 @@ Client Submits → Generate PDF → Send to Zapier → Monday.com File Upload
 Add to your `.env.local` file:
 
 ```env
-ZAPIER_WEBHOOK_URL=https://hooks.zapier.com/hooks/catch/xxxxx/yyyyy/
+ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT=https://hooks.zapier.com/hooks/catch/xxxxx/yyyyy/
 ```
 
 ### Complete .env.local Structure
@@ -108,7 +108,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 OCTAVE_API_KEY=your-octave-api-key
 
 # Zapier Webhook (NEW!)
-ZAPIER_WEBHOOK_URL=your-zapier-webhook-url-here
+ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT=your-zapier-webhook-url-here
 ```
 
 ---
@@ -157,7 +157,7 @@ Follow the `ZAPIER-SETUP-GUIDE.md` to:
 **Local Development**:
 ```bash
 # Create/edit .env.local
-echo 'ZAPIER_WEBHOOK_URL=https://hooks.zapier.com/hooks/catch/xxxxx/yyyyy/' >> .env.local
+echo 'ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT=https://hooks.zapier.com/hooks/catch/xxxxx/yyyyy/' >> .env.local
 
 # Restart dev server
 npm run dev
@@ -166,7 +166,7 @@ npm run dev
 **Production (Vercel)**:
 1. Go to Vercel Dashboard
 2. Settings → Environment Variables
-3. Add `ZAPIER_WEBHOOK_URL`
+3. Add `ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT`
 4. Redeploy
 
 ### 3. Test the Integration
@@ -219,7 +219,7 @@ Client Submits → Review Page (gets email)
 - [ ] Install dependencies (`npm install`)
 - [ ] Build project (`npm run build`) ✅ PASSED
 - [ ] Create Zapier webhook
-- [ ] Add `ZAPIER_WEBHOOK_URL` to `.env.local`
+- [ ] Add `ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT` to `.env.local`
 - [ ] Start dev server (`npm run dev`)
 - [ ] Complete and submit questionnaire
 - [ ] Verify console logs show PDF generation
@@ -235,7 +235,7 @@ Client Submits → Review Page (gets email)
 
 | Issue | Solution |
 |-------|----------|
-| "ZAPIER_WEBHOOK_URL not configured" | Add to `.env.local` and restart server |
+| "ZAPIER_WEBHOOK_QUESTIONNAIRE_SUBMIT not configured" | Add to `.env.local` and restart server |
 | PDF not generating | Check console for errors, verify jsPDF installed |
 | Zapier not receiving webhook | Verify webhook URL is correct, test with curl |
 | File not in Monday.com | Check Zapier action configuration and permissions |
