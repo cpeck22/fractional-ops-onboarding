@@ -43,6 +43,8 @@ export const signInWithEmail = async (email: string, password: string) => {
   // Create initial questionnaire entry for verified user (if it doesn't exist)
   if (data?.user && !error) {
     console.log('📝 Checking if user has questionnaire entry:', data.user.id);
+    
+    // Track verified signup (only once on first login)
     try {
       // Check if user already has any questionnaire data
       const { data: existingData, error: checkError } = await supabase
@@ -51,9 +53,29 @@ export const signInWithEmail = async (email: string, password: string) => {
         .eq('user_id', data.user.id)
         .limit(1);
       
+      const isFirstLogin = !existingData || existingData.length === 0;
+      
+      if (isFirstLogin) {
+        console.log('🎉 First login detected for verified user:', data.user.email);
+        
+        // Send to signup tracking webhook (non-blocking, fire and forget)
+        fetch('/api/webhooks/signup-tracking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: data.user.email,
+            userId: data.user.id,
+            timestamp: new Date().toISOString()
+          })
+        }).catch(trackingError => {
+          // Don't fail login if tracking fails
+          console.error('⚠️ Signup tracking failed (non-critical):', trackingError);
+        });
+      }
+      
       if (checkError) {
         console.error('📝 Error checking existing questionnaire data:', checkError);
-      } else if (!existingData || existingData.length === 0) {
+      } else if (isFirstLogin) {
         console.log('📝 No existing data found, creating initial questionnaire entry...');
         
         // Create initial empty entries for all sections
