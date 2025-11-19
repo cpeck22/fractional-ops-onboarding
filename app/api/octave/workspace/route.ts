@@ -409,8 +409,6 @@ export async function POST(request: NextRequest) {
     // STEP 5: RUN AGENTS TO GENERATE STRATEGY
     // ============================================
     
-    console.log('🎯 ===== STARTING AGENT EXECUTION =====');
-    
     let agentResults = {
       campaignIdeas: [] as any[],
       prospectList: [] as any[],
@@ -436,8 +434,57 @@ export async function POST(request: NextRequest) {
     // Only run agents if we have workspace API key
     if (workspaceApiKey && companyDomain) {
       
+      // STEP 6: LIST PERSONAS TO GET JOB TITLES FOR PROSPECTOR
+      let fuzzyTitles: string[] = [];
+      if (personas.length > 0) {
+        console.log('📋 Listing personas to extract job titles for Prospector...');
+        try {
+          const listPersonasResponse = await axios.get(
+            'https://app.octavehq.com/api/v2/persona/list',
+            {
+              headers: { 'api_key': workspaceApiKey },
+              params: {
+                limit: 50 // Get all personas
+              }
+            }
+          );
+
+          if (listPersonasResponse.data?.data) {
+            const personaList = listPersonasResponse.data.data;
+            console.log(`📋 Found ${personaList.length} personas in workspace`);
+            
+            // Extract all commonJobTitles from all personas
+            personaList.forEach((persona: any) => {
+              const jobTitles = persona.data?.commonJobTitles || [];
+              fuzzyTitles.push(...jobTitles);
+            });
+            
+            // Remove duplicates
+            fuzzyTitles = Array.from(new Set(fuzzyTitles));
+            console.log(`✅ Extracted ${fuzzyTitles.length} unique job titles from personas`);
+            console.log(`   Sample titles:`, fuzzyTitles.slice(0, 5).join(', '), fuzzyTitles.length > 5 ? '...' : '');
+          }
+        } catch (listPersonasError: any) {
+          console.error('⚠️ Error listing personas (non-critical):', listPersonasError.message);
+          // Fallback to basic titles if persona list fails
+          fuzzyTitles = [
+            'Chief Digital Officer',
+            'VP of E-Commerce',
+            'Director of Marketing',
+            'VP of Sales'
+          ];
+          console.log('⚠️ Using fallback job titles:', fuzzyTitles.join(', '));
+        }
+      }
+
+      console.log('🎯 ===== STARTING AGENT EXECUTION =====');
+      
       // Agent 1: Prospector Agent (Find prospects)
-      console.log('👥 Running Prospector Agent...');
+      if (newAgentIds.prospector) {
+        console.log('👥 Running Prospector Agent...');
+        console.log(`🎯 Searching for ${personas.length} personas: ${personas.slice(0, 3).map((p: any) => p.name).join(', ')}${personas.length > 3 ? '...' : ''}`);
+        console.log(`🎯 Using ${fuzzyTitles.length} job titles for search`);
+      }
       try {
         const prospectorResponse = await fetch(`${request.nextUrl.origin}/api/octave/agents`, {
           method: 'POST',
@@ -446,7 +493,11 @@ export async function POST(request: NextRequest) {
             agentType: 'prospector',
             workspaceApiKey: workspaceApiKey,
             companyDomain: companyDomain,
-            agentOId: newAgentIds.prospector // Pass the NEW agent ID
+            agentOId: newAgentIds.prospector, // Pass the NEW agent ID
+            searchContext: {
+              personaOIds: personas.map((p: any) => p.oId),
+              fuzzyTitles: fuzzyTitles
+            }
           })
         });
 

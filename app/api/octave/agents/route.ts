@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       jobTitle = '',
       linkedInProfile = '',
       runtimeContext = {},
+      searchContext = {}, // Search context for Prospector agent
       agentOId: providedAgentOId // Accept agent ID from caller (NEW workspace ID)
     } = body;
     
@@ -66,7 +67,8 @@ export async function POST(request: NextRequest) {
           companyDomain: companyDomain, // MUST be first
           agentOId: agentOId,           // MUST be second per API docs
           limit: 25,                    // First 25 prospects
-          minimal: true
+          minimal: true,
+          searchContext: searchContext  // Pass search context with personaOIds and fuzzyTitles
         };
         break;
 
