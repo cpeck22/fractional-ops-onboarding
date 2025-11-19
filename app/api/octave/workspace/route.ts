@@ -79,7 +79,14 @@ export async function POST(request: NextRequest) {
         name: workspaceName,
         url: workspaceUrl,
         addExistingUsers: true,
-        agentOIds: []
+        agentOIds: [
+          'ca_lSWcHq7U7KboGGaaESrQX', // Prospector Agent
+          'ca_dobh4WdpkbFWQT8pJqJJg', // Sequence Agent
+          'ca_1ikwfmH5JBxJbygNGlgoc', // Call Prep Agent
+          'ca_LpMPulsXSRPkhO9T2fJo8', // LinkedIn Post Agent
+          'ca_oztYMqaYywqjiCZLjKWTs', // Newsletter Agent
+          'ca_R9tuDLXcizpmvV1ICjsyu'  // LinkedIn DM Agent
+        ]
       },
       offering: generateOffering(questionnaireData),
       runtimeContext: runtimeContextString,
@@ -153,6 +160,57 @@ export async function POST(request: NextRequest) {
     if (!workspaceApiKey) {
       console.error('❌ WARNING: Could not extract workspace API key from response!');
       console.error('This API key is REQUIRED for generating client references.');
+    }
+
+    // List agents in the new workspace to get their NEW IDs (copied from template)
+    let newAgentIds: any = {};
+    if (workspaceApiKey) {
+      console.log('📋 Listing agents in new workspace to get copied agent IDs...');
+      try {
+        const agentListResponse = await axios.get('https://app.octavehq.com/api/v2/agents/list', {
+          headers: {
+            'Content-Type': 'application/json',
+            'api_key': workspaceApiKey
+          }
+        });
+
+        console.log('📋 Agent list response:', JSON.stringify(agentListResponse.data, null, 2));
+        
+        const agents = agentListResponse.data?.agents || agentListResponse.data?.data?.agents || [];
+        console.log(`📋 Found ${agents.length} agents in new workspace`);
+
+        // Map agents by type to get their new IDs
+        agents.forEach((agent: any) => {
+          const agentType = agent.type?.toLowerCase() || agent.agentType?.toLowerCase();
+          const agentName = agent.name?.toLowerCase() || '';
+          const agentOId = agent.oId || agent.agentOId;
+
+          console.log(`  - Agent: ${agent.name || 'Unknown'} (Type: ${agentType}, ID: ${agentOId})`);
+
+          // Map by type
+          if (agentType === 'prospector' || agentName.includes('prospect')) {
+            newAgentIds.prospector = agentOId;
+          } else if (agentType === 'sequence' || agentType === 'email' || agentName.includes('sequence') || agentName.includes('email')) {
+            newAgentIds.sequence = agentOId;
+          } else if (agentType === 'call_prep' || agentType === 'callprep' || agentName.includes('call prep') || agentName.includes('call-prep')) {
+            newAgentIds.callPrep = agentOId;
+          } else if (agentType === 'content' || agentType === 'generate_content') {
+            // Try to differentiate content agents by name
+            if (agentName.includes('linkedin') && agentName.includes('post')) {
+              newAgentIds.linkedinPost = agentOId;
+            } else if (agentName.includes('newsletter')) {
+              newAgentIds.newsletter = agentOId;
+            } else if (agentName.includes('linkedin') && agentName.includes('dm')) {
+              newAgentIds.linkedinDM = agentOId;
+            }
+          }
+        });
+
+        console.log('✅ Mapped agent IDs:', newAgentIds);
+      } catch (agentListError: any) {
+        console.error('⚠️ Failed to list agents in new workspace (non-critical):', agentListError.message);
+        console.error('Will use template agent IDs as fallback');
+      }
     }
 
     // If productOId is still undefined, log warning
@@ -348,7 +406,8 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             agentType: 'prospector',
             workspaceApiKey: workspaceApiKey,
-            companyDomain: companyDomain
+            companyDomain: companyDomain,
+            agentOId: newAgentIds.prospector // Pass the NEW agent ID
           })
         });
 
@@ -387,6 +446,7 @@ export async function POST(request: NextRequest) {
               email: firstProspect.email,
               firstName: firstProspect.name?.split(' ')[0] || '',
               jobTitle: firstProspect.title,
+              agentOId: newAgentIds.sequence, // Pass the NEW agent ID
               runtimeContext: {
                 targetCompany: firstProspect.company
               }
@@ -422,6 +482,7 @@ export async function POST(request: NextRequest) {
             workspaceApiKey: workspaceApiKey,
             companyDomain: companyDomain,
             companyName: companyName,
+            agentOId: newAgentIds.linkedinPost, // Pass the NEW agent ID
             runtimeContext: {
               topic: agentResults.campaignIdeas[0]?.title || 'Industry insights'
             }
@@ -451,6 +512,7 @@ export async function POST(request: NextRequest) {
             workspaceApiKey: workspaceApiKey,
             companyDomain: companyDomain,
             companyName: companyName,
+            agentOId: newAgentIds.newsletter, // Pass the NEW agent ID
             runtimeContext: {
               topic: `${companyName} Industry Insights and Updates`
             }
@@ -483,6 +545,7 @@ export async function POST(request: NextRequest) {
               companyName: companyName,
               firstName: firstProspect.name?.split(' ')[0] || '',
               jobTitle: firstProspect.title,
+              agentOId: newAgentIds.linkedinDM, // Pass the NEW agent ID
               runtimeContext: {
                 prospectCompany: firstProspect.company
               }
@@ -517,6 +580,7 @@ export async function POST(request: NextRequest) {
               email: firstProspect.email,
               firstName: firstProspect.name?.split(' ')[0] || '',
               jobTitle: firstProspect.title,
+              agentOId: newAgentIds.callPrep, // Pass the NEW agent ID
               runtimeContext: {
                 prospectCompany: firstProspect.company
               }

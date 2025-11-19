@@ -25,7 +25,8 @@ export async function POST(request: NextRequest) {
       email = '',
       jobTitle = '',
       linkedInProfile = '',
-      runtimeContext = {}
+      runtimeContext = {},
+      agentOId: providedAgentOId // Accept agent ID from caller (NEW workspace ID)
     } = body;
 
     console.log(`🤖 Running ${agentType} agent...`);
@@ -40,7 +41,11 @@ export async function POST(request: NextRequest) {
 
     let endpoint = '';
     let requestBody: any = {};
-    const agentOId = AGENT_IDS[agentType as keyof typeof AGENT_IDS];
+    
+    // Use provided agent ID (from new workspace) or fallback to template IDs
+    const agentOId = providedAgentOId || AGENT_IDS[agentType as keyof typeof AGENT_IDS];
+
+    console.log(`🆔 Using agent ID: ${agentOId} (${providedAgentOId ? 'from new workspace' : 'fallback to template'})`);
 
     if (!agentOId) {
       return NextResponse.json(
@@ -92,7 +97,7 @@ export async function POST(request: NextRequest) {
       case 'linkedinPost':
       case 'newsletter':
       case 'linkedinDM':
-        endpoint = `${OCTAVE_BASE_URL}/content/run`;
+        endpoint = `${OCTAVE_BASE_URL}/generate-content/run`; // Fixed: was /content/run
         requestBody = {
           agentOId: agentOId,
           email: email || null,
