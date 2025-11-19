@@ -452,6 +452,17 @@ export async function POST(request: NextRequest) {
 
         const prospectorResult = await prospectorResponse.json();
         
+        console.log('📋 Prospector result structure:', JSON.stringify({
+          success: prospectorResult.success,
+          hasData: !!prospectorResult.data,
+          dataKeys: prospectorResult.data ? Object.keys(prospectorResult.data) : [],
+          found: prospectorResult.data?.found,
+          hasDataData: !!prospectorResult.data?.data,
+          dataDataKeys: prospectorResult.data?.data ? Object.keys(prospectorResult.data.data) : [],
+          contactsCount: prospectorResult.data?.data?.contacts?.length || 0
+        }, null, 2));
+        
+        // API returns: { success: true, data: { found: true, data: { contacts: [...] } } }
         if (prospectorResult.success && prospectorResult.data?.data?.contacts) {
           agentResults.prospectList = prospectorResult.data.data.contacts.map((c: any) => ({
             name: `${c.contact?.firstName || ''} ${c.contact?.lastName || ''}`.trim(),
@@ -463,6 +474,7 @@ export async function POST(request: NextRequest) {
           console.log(`✅ Prospector found ${agentResults.prospectList.length} prospects`);
         } else {
           console.warn('⚠️ Prospector agent returned no results:', prospectorResult.error || 'Unknown error');
+          console.warn('Full prospector response:', JSON.stringify(prospectorResult, null, 2));
         }
       } catch (prospectorError: any) {
         console.error('⚠️ Prospector agent error (non-critical):', prospectorError.message);
@@ -494,6 +506,14 @@ export async function POST(request: NextRequest) {
 
           const sequenceResult = await sequenceResponse.json();
           
+          console.log('📋 Sequence result structure:', JSON.stringify({
+            success: sequenceResult.success,
+            hasData: !!sequenceResult.data,
+            dataKeys: sequenceResult.data ? Object.keys(sequenceResult.data) : [],
+            hasEmails: !!sequenceResult.data?.data?.emails,
+            emailsCount: sequenceResult.data?.data?.emails?.length || 0
+          }, null, 2));
+          
           if (sequenceResult.success && sequenceResult.data?.data?.emails) {
             agentResults.emailSequences = sequenceResult.data.data.emails.map((email: any, index: number) => ({
               emailNumber: index + 1,
@@ -504,6 +524,7 @@ export async function POST(request: NextRequest) {
             console.log(`✅ Generated ${agentResults.emailSequences.length} email sequences`);
           } else {
             console.warn('⚠️ Sequence agent returned no results:', sequenceResult.error || 'Unknown error');
+            console.warn('Full sequence response:', JSON.stringify(sequenceResult, null, 2));
           }
         } catch (sequenceError: any) {
           console.error('⚠️ Sequence agent error (non-critical):', sequenceError.message);
@@ -593,11 +614,19 @@ export async function POST(request: NextRequest) {
 
           const linkedinDMResult = await linkedinDMResponse.json();
           
+          console.log('📋 LinkedIn DM result structure:', JSON.stringify({
+            success: linkedinDMResult.success,
+            hasData: !!linkedinDMResult.data,
+            dataKeys: linkedinDMResult.data ? Object.keys(linkedinDMResult.data) : [],
+            hasContent: !!linkedinDMResult.data?.data?.content
+          }, null, 2));
+          
           if (linkedinDMResult.success && linkedinDMResult.data?.data?.content) {
             agentResults.linkedinDM = linkedinDMResult.data.data.content;
             console.log(`✅ Generated LinkedIn DM (${agentResults.linkedinDM.length} chars)`);
           } else {
             console.warn('⚠️ LinkedIn DM agent returned no results:', linkedinDMResult.error || 'Unknown error');
+            console.warn('Full LinkedIn DM response:', JSON.stringify(linkedinDMResult, null, 2));
           }
         } catch (linkedinDMError: any) {
           console.error('⚠️ LinkedIn DM agent error (non-critical):', linkedinDMError.message);
@@ -628,11 +657,20 @@ export async function POST(request: NextRequest) {
 
           const callPrepResult = await callPrepResponse.json();
           
+          console.log('📋 Call Prep result structure:', JSON.stringify({
+            success: callPrepResult.success,
+            hasData: !!callPrepResult.data,
+            dataKeys: callPrepResult.data ? Object.keys(callPrepResult.data) : [],
+            hasDataData: !!callPrepResult.data?.data,
+            dataDataKeys: callPrepResult.data?.data ? Object.keys(callPrepResult.data.data) : []
+          }, null, 2));
+          
           if (callPrepResult.success && callPrepResult.data?.data) {
             agentResults.callPrepExample = callPrepResult.data.data;
             console.log(`✅ Generated call prep example`);
           } else {
             console.warn('⚠️ Call prep agent returned no results:', callPrepResult.error || 'Unknown error');
+            console.warn('Full call prep response:', JSON.stringify(callPrepResult, null, 2));
           }
         } catch (callPrepError: any) {
           console.error('⚠️ Call prep agent error (non-critical):', callPrepError.message);

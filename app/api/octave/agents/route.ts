@@ -14,10 +14,13 @@ const AGENT_IDS = {
 };
 
 export async function POST(request: NextRequest) {
+  let agentType: string = 'unknown';
+  let requestBody: any = {};
+  
   try {
     const body = await request.json();
     const { 
-      agentType,  // 'prospector', 'sequence', 'callPrep', 'linkedinPost', 'newsletter', 'linkedinDM'
+      agentType: bodyAgentType,  // 'prospector', 'sequence', 'callPrep', 'linkedinPost', 'newsletter', 'linkedinDM'
       workspaceApiKey,
       companyDomain,
       companyName,
@@ -28,6 +31,8 @@ export async function POST(request: NextRequest) {
       runtimeContext = {},
       agentOId: providedAgentOId // Accept agent ID from caller (NEW workspace ID)
     } = body;
+    
+    agentType = bodyAgentType;
 
     console.log(`🤖 Running ${agentType} agent...`);
     console.log(`🔑 Using workspace API key: ${workspaceApiKey?.substring(0, 10)}...`);
@@ -58,9 +63,9 @@ export async function POST(request: NextRequest) {
       case 'prospector':
         endpoint = `${OCTAVE_BASE_URL}/prospector/run`;
         requestBody = {
-          agentOId: agentOId,
-          companyDomain: companyDomain,
-          limit: 25, // First 25 prospects
+          companyDomain: companyDomain, // MUST be first
+          agentOId: agentOId,           // MUST be second per API docs
+          limit: 25,                    // First 25 prospects
           minimal: true
         };
         break;
@@ -130,6 +135,14 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ ${agentType} agent completed successfully`);
     console.log(`📊 Response status:`, response.status);
+    console.log(`📊 Response data structure:`, JSON.stringify({
+      hasData: !!response.data,
+      dataKeys: response.data ? Object.keys(response.data) : [],
+      found: response.data?.found,
+      message: response.data?.message,
+      hasContacts: !!response.data?.data?.contacts,
+      contactsCount: response.data?.data?.contacts?.length || 0
+    }, null, 2));
 
     return NextResponse.json({
       success: true,
@@ -138,7 +151,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error(`❌ Agent error:`, error.response?.data || error.message);
+    console.error(`❌ ${agentType} Agent Error Details:`);
+    console.error(`   Status: ${error.response?.status}`);
+    console.error(`   Message: ${error.message}`);
+    console.error(`   Response Data:`, JSON.stringify(error.response?.data, null, 2));
+    console.error(`   Request Body:`, JSON.stringify(requestBody, null, 2));
     
     // Return graceful error for display
     return NextResponse.json(
