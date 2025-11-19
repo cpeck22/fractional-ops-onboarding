@@ -548,10 +548,7 @@ export async function POST(request: NextRequest) {
               email: firstProspect.email,
               firstName: firstProspect.name?.split(' ')[0] || '',
               jobTitle: firstProspect.title,
-              agentOId: newAgentIds.sequence, // Pass the NEW agent ID
-              runtimeContext: {
-                targetCompany: firstProspect.company
-              }
+              agentOId: newAgentIds.sequence // Pass the NEW agent ID
             })
           });
 
@@ -656,10 +653,7 @@ export async function POST(request: NextRequest) {
               companyName: companyName,
               firstName: firstProspect.name?.split(' ')[0] || '',
               jobTitle: firstProspect.title,
-              agentOId: newAgentIds.linkedinDM, // Pass the NEW agent ID
-              runtimeContext: {
-                prospectCompany: firstProspect.company
-              }
+              agentOId: newAgentIds.linkedinDM // Pass the NEW agent ID
             })
           });
 
@@ -699,10 +693,7 @@ export async function POST(request: NextRequest) {
               email: firstProspect.email,
               firstName: firstProspect.name?.split(' ')[0] || '',
               jobTitle: firstProspect.title,
-              agentOId: newAgentIds.callPrep, // Pass the NEW agent ID
-              runtimeContext: {
-                prospectCompany: firstProspect.company
-              }
+              agentOId: newAgentIds.callPrep // Pass the NEW agent ID
             })
           });
 
