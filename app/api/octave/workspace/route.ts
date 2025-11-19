@@ -168,9 +168,35 @@ export async function POST(request: NextRequest) {
     console.log('👥 Extracted personas:', personas.length);
     console.log('🎯 Extracted use cases:', useCases.length);
 
+    // Determine effective user ID for database operations
+    let effectiveUserId = userId;
+    
+    if (!effectiveUserId) {
+      console.log('⚠️ No userId from client, attempting to get from cookies...');
+      const cookieStore = await cookies();
+      const supabaseForAuth = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              cookie: cookieStore.toString()
+            }
+          }
+        }
+      );
+      
+      const { data: { user } } = await supabaseForAuth.auth.getUser();
+      effectiveUserId = user?.id;
+      console.log('👤 User ID from cookies:', effectiveUserId || 'null');
+    } else {
+      console.log('✅ Using userId from client:', effectiveUserId);
+    }
+
     // Step 2: Create Client References in Octave (if we have client references)
     const clientReferences = questionnaireData.socialProof?.clientReferences || [];
     let createdReferences: any[] = [];
+    let createdSegments: any[] = [];
     
     if (Array.isArray(clientReferences) && clientReferences.length > 0) {
       if (!productOId) {
@@ -208,8 +234,6 @@ export async function POST(request: NextRequest) {
       }
 
       // Step 3: Create Segments in Octave based on industries from client references
-      let createdSegments: any[] = [];
-      
       if (!productOId) {
         console.error('❌ Cannot create segments: productOId is missing');
       } else {
@@ -284,34 +308,291 @@ export async function POST(request: NextRequest) {
       console.log('ℹ️ No client references provided, skipping reference, segment, and playbook creation');
     }
 
+    // ============================================
+    // STEP 5: RUN AGENTS TO GENERATE STRATEGY
+    // ============================================
+    
+    console.log('🎯 ===== STARTING AGENT EXECUTION =====');
+    
+    let agentResults = {
+      campaignIdeas: [] as any[],
+      prospectList: [] as any[],
+      emailSequences: [] as any[],
+      linkedinPost: '',
+      newsletter: '',
+      linkedinDM: '',
+      callPrepExample: null as any
+    };
+
+    // Generate campaign ideas from playbooks (if any)
+    if (createdSegments.length > 0) {
+      agentResults.campaignIdeas = createdSegments.map((segment: any, index: number) => ({
+        id: index + 1,
+        title: `${segment.name} Campaign`,
+        description: `Targeted outreach campaign for ${segment.name} companies`,
+        segmentName: segment.name,
+        segmentOId: segment.oId
+      }));
+      console.log(`💡 Generated ${agentResults.campaignIdeas.length} campaign ideas from segments`);
+    }
+
+    // Only run agents if we have workspace API key
+    if (workspaceApiKey && companyDomain) {
+      
+      // Agent 1: Prospector Agent (Find prospects)
+      console.log('👥 Running Prospector Agent...');
+      try {
+        const prospectorResponse = await fetch(`${request.nextUrl.origin}/api/octave/agents`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agentType: 'prospector',
+            workspaceApiKey: workspaceApiKey,
+            companyDomain: companyDomain
+          })
+        });
+
+        const prospectorResult = await prospectorResponse.json();
+        
+        if (prospectorResult.success && prospectorResult.data?.data?.contacts) {
+          agentResults.prospectList = prospectorResult.data.data.contacts.map((c: any) => ({
+            name: `${c.contact?.firstName || ''} ${c.contact?.lastName || ''}`.trim(),
+            title: c.contact?.title || '',
+            company: c.contact?.companyName || '',
+            email: c.contact?.email || '',
+            linkedIn: c.contact?.profileUrl || ''
+          }));
+          console.log(`✅ Prospector found ${agentResults.prospectList.length} prospects`);
+        } else {
+          console.warn('⚠️ Prospector agent returned no results:', prospectorResult.error || 'Unknown error');
+        }
+      } catch (prospectorError: any) {
+        console.error('⚠️ Prospector agent error (non-critical):', prospectorError.message);
+      }
+
+      // Agent 2: Sequence Agent (Generate cold email sequence)
+      // Use first prospect if available
+      const firstProspect = agentResults.prospectList[0];
+      if (firstProspect) {
+        console.log('📧 Running Sequence Agent...');
+        try {
+          const sequenceResponse = await fetch(`${request.nextUrl.origin}/api/octave/agents`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              agentType: 'sequence',
+              workspaceApiKey: workspaceApiKey,
+              companyDomain: companyDomain,
+              companyName: companyName,
+              email: firstProspect.email,
+              firstName: firstProspect.name?.split(' ')[0] || '',
+              jobTitle: firstProspect.title,
+              runtimeContext: {
+                targetCompany: firstProspect.company
+              }
+            })
+          });
+
+          const sequenceResult = await sequenceResponse.json();
+          
+          if (sequenceResult.success && sequenceResult.data?.data?.emails) {
+            agentResults.emailSequences = sequenceResult.data.data.emails.map((email: any, index: number) => ({
+              emailNumber: index + 1,
+              subject: email.subject || '',
+              body: email.email || '',
+              sections: email.sections || {}
+            }));
+            console.log(`✅ Generated ${agentResults.emailSequences.length} email sequences`);
+          } else {
+            console.warn('⚠️ Sequence agent returned no results:', sequenceResult.error || 'Unknown error');
+          }
+        } catch (sequenceError: any) {
+          console.error('⚠️ Sequence agent error (non-critical):', sequenceError.message);
+        }
+      }
+
+      // Agent 3: LinkedIn Post Agent
+      console.log('📱 Running LinkedIn Post Agent...');
+      try {
+        const linkedinPostResponse = await fetch(`${request.nextUrl.origin}/api/octave/agents`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agentType: 'linkedinPost',
+            workspaceApiKey: workspaceApiKey,
+            companyDomain: companyDomain,
+            companyName: companyName,
+            runtimeContext: {
+              topic: agentResults.campaignIdeas[0]?.title || 'Industry insights'
+            }
+          })
+        });
+
+        const linkedinPostResult = await linkedinPostResponse.json();
+        
+        if (linkedinPostResult.success && linkedinPostResult.data?.data?.content) {
+          agentResults.linkedinPost = linkedinPostResult.data.data.content;
+          console.log(`✅ Generated LinkedIn post (${agentResults.linkedinPost.length} chars)`);
+        } else {
+          console.warn('⚠️ LinkedIn post agent returned no results:', linkedinPostResult.error || 'Unknown error');
+        }
+      } catch (linkedinPostError: any) {
+        console.error('⚠️ LinkedIn post agent error (non-critical):', linkedinPostError.message);
+      }
+
+      // Agent 4: Newsletter Agent
+      console.log('📰 Running Newsletter Agent...');
+      try {
+        const newsletterResponse = await fetch(`${request.nextUrl.origin}/api/octave/agents`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agentType: 'newsletter',
+            workspaceApiKey: workspaceApiKey,
+            companyDomain: companyDomain,
+            companyName: companyName,
+            runtimeContext: {
+              topic: `${companyName} Industry Insights and Updates`
+            }
+          })
+        });
+
+        const newsletterResult = await newsletterResponse.json();
+        
+        if (newsletterResult.success && newsletterResult.data?.data?.content) {
+          agentResults.newsletter = newsletterResult.data.data.content;
+          console.log(`✅ Generated newsletter (${agentResults.newsletter.length} chars)`);
+        } else {
+          console.warn('⚠️ Newsletter agent returned no results:', newsletterResult.error || 'Unknown error');
+        }
+      } catch (newsletterError: any) {
+        console.error('⚠️ Newsletter agent error (non-critical):', newsletterError.message);
+      }
+
+      // Agent 5: LinkedIn DM Agent
+      if (firstProspect) {
+        console.log('💬 Running LinkedIn DM Agent...');
+        try {
+          const linkedinDMResponse = await fetch(`${request.nextUrl.origin}/api/octave/agents`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              agentType: 'linkedinDM',
+              workspaceApiKey: workspaceApiKey,
+              companyDomain: companyDomain,
+              companyName: companyName,
+              firstName: firstProspect.name?.split(' ')[0] || '',
+              jobTitle: firstProspect.title,
+              runtimeContext: {
+                prospectCompany: firstProspect.company
+              }
+            })
+          });
+
+          const linkedinDMResult = await linkedinDMResponse.json();
+          
+          if (linkedinDMResult.success && linkedinDMResult.data?.data?.content) {
+            agentResults.linkedinDM = linkedinDMResult.data.data.content;
+            console.log(`✅ Generated LinkedIn DM (${agentResults.linkedinDM.length} chars)`);
+          } else {
+            console.warn('⚠️ LinkedIn DM agent returned no results:', linkedinDMResult.error || 'Unknown error');
+          }
+        } catch (linkedinDMError: any) {
+          console.error('⚠️ LinkedIn DM agent error (non-critical):', linkedinDMError.message);
+        }
+      }
+
+      // Agent 6: Call Prep Agent
+      if (firstProspect) {
+        console.log('📞 Running Call Prep Agent...');
+        try {
+          const callPrepResponse = await fetch(`${request.nextUrl.origin}/api/octave/agents`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              agentType: 'callPrep',
+              workspaceApiKey: workspaceApiKey,
+              companyDomain: companyDomain,
+              companyName: companyName,
+              email: firstProspect.email,
+              firstName: firstProspect.name?.split(' ')[0] || '',
+              jobTitle: firstProspect.title,
+              runtimeContext: {
+                prospectCompany: firstProspect.company
+              }
+            })
+          });
+
+          const callPrepResult = await callPrepResponse.json();
+          
+          if (callPrepResult.success && callPrepResult.data?.data) {
+            agentResults.callPrepExample = callPrepResult.data.data;
+            console.log(`✅ Generated call prep example`);
+          } else {
+            console.warn('⚠️ Call prep agent returned no results:', callPrepResult.error || 'Unknown error');
+          }
+        } catch (callPrepError: any) {
+          console.error('⚠️ Call prep agent error (non-critical):', callPrepError.message);
+        }
+      }
+
+      console.log('🎯 ===== AGENT EXECUTION COMPLETE =====');
+      console.log(`📊 Results Summary:`);
+      console.log(`  - Campaign Ideas: ${agentResults.campaignIdeas.length}`);
+      console.log(`  - Prospects: ${agentResults.prospectList.length}`);
+      console.log(`  - Email Sequences: ${agentResults.emailSequences.length}`);
+      console.log(`  - LinkedIn Post: ${agentResults.linkedinPost ? 'Generated' : 'Failed'}`);
+      console.log(`  - Newsletter: ${agentResults.newsletter ? 'Generated' : 'Failed'}`);
+      console.log(`  - LinkedIn DM: ${agentResults.linkedinDM ? 'Generated' : 'Failed'}`);
+      console.log(`  - Call Prep: ${agentResults.callPrepExample ? 'Generated' : 'Failed'}`);
+
+    } else {
+      console.warn('⚠️ Skipping agent execution - missing workspace API key or company domain');
+    }
+
+    // ============================================
+    // STEP 6: SAVE RESULTS TO DATABASE
+    // ============================================
+    
+    if (effectiveUserId) {
+      console.log('💾 Saving agent outputs to database...');
+      try {
+        const supabaseAdmin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        const { error: insertError } = await supabaseAdmin
+          .from('octave_outputs')
+          .insert({
+            user_id: effectiveUserId,
+            workspace_oid: workspaceOId,
+            company_name: companyName,
+            company_domain: companyDomain,
+            campaign_ideas: agentResults.campaignIdeas,
+            prospect_list: agentResults.prospectList,
+            email_sequences: agentResults.emailSequences,
+            linkedin_post: agentResults.linkedinPost || null,
+            newsletter: agentResults.newsletter || null,
+            linkedin_dm: agentResults.linkedinDM || null,
+            call_prep_example: agentResults.callPrepExample || null
+          });
+
+        if (insertError) {
+          console.error('❌ Error saving outputs to database:', insertError);
+        } else {
+          console.log('✅ Agent outputs saved to database successfully');
+        }
+      } catch (dbError: any) {
+        console.error('⚠️ Database save error (non-critical):', dbError.message);
+      }
+    } else {
+      console.warn('⚠️ No user ID available, skipping database save');
+    }
+
     // After successfully sending to Octave and creating references/segments, send to Zapier
     console.log('📤 Now sending PDF to Zapier...');
     try {
-      // Use userId from client, or try to get from cookies as fallback
-      let effectiveUserId = userId;
-      
-      if (!effectiveUserId) {
-        console.log('⚠️ No userId from client, attempting to get from cookies...');
-        const cookieStore = await cookies();
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          {
-            global: {
-              headers: {
-                cookie: cookieStore.toString()
-              }
-            }
-          }
-        );
-        
-        const { data: { user } } = await supabase.auth.getUser();
-        effectiveUserId = user?.id;
-        console.log('👤 User ID from cookies:', effectiveUserId || 'null');
-      } else {
-        console.log('✅ Using userId from client:', effectiveUserId);
-      }
-      
       const zapierResponse = await fetch(`${request.nextUrl.origin}/api/send-to-zapier`, {
         method: 'POST',
         headers: {

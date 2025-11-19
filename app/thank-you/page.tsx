@@ -68,6 +68,27 @@ export default function ThankYouPage() {
           </div>
         </div>
 
+        {/* View Strategy Button - Above HubSpot */}
+        <div className="bg-gradient-to-r from-fo-primary to-fo-secondary rounded-lg shadow-fo-shadow p-8 mb-8 text-center">
+          <div className="mb-4">
+            <span className="text-5xl">🎯</span>
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-3">
+            Your CRO Strategy is Ready!
+          </h2>
+          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
+            Claire has built your personalized strategy with campaign ideas, prospect lists, email sequences, and more.
+          </p>
+          <button
+            onClick={() => window.open('/results', '_blank')}
+            className="bg-white text-fo-primary px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg inline-flex items-center gap-3"
+          >
+            <span>🎯</span>
+            CRO Strategy Built By Claire - Click to View
+            <span>→</span>
+          </button>
+        </div>
+
         {/* HubSpot Booking Section */}
         <div className="bg-white rounded-lg shadow-fo-shadow p-8">
           <h2 className="text-2xl font-bold text-fo-primary mb-6 text-center">
