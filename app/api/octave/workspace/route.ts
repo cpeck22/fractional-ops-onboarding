@@ -165,7 +165,8 @@ export async function POST(request: NextRequest) {
     // List agents in the new workspace to get their NEW IDs (copied from template)
     let newAgentIds: any = {};
     if (workspaceApiKey) {
-      console.log('📋 Listing agents in new workspace to get copied agent IDs...');
+      console.log('🔍 Listing agents in new workspace to get copied agent IDs...');
+      console.log('🔑 Using workspace API key:', workspaceApiKey?.substring(0, 15) + '...');
       try {
         const agentListResponse = await axios.get('https://app.octavehq.com/api/v2/agents/list', {
           headers: {
@@ -174,42 +175,80 @@ export async function POST(request: NextRequest) {
           }
         });
 
-        console.log('📋 Agent list response:', JSON.stringify(agentListResponse.data, null, 2));
+        console.log('📋 Raw agent list response structure:', JSON.stringify({
+          hasData: !!agentListResponse.data,
+          dataKeys: agentListResponse.data ? Object.keys(agentListResponse.data) : [],
+          total: agentListResponse.data?.total,
+          dataIsArray: Array.isArray(agentListResponse.data?.data)
+        }, null, 2));
         
-        const agents = agentListResponse.data?.agents || agentListResponse.data?.data?.agents || [];
+        // ✅ FIXED: The agents array is at data.data, NOT data.data.agents
+        const agents = agentListResponse.data?.data || [];
         console.log(`📋 Found ${agents.length} agents in new workspace`);
 
+        if (!Array.isArray(agents)) {
+          console.error('❌ ERROR: agents is not an array!', typeof agents);
+          console.error('Full response:', JSON.stringify(agentListResponse.data, null, 2));
+        }
+
         // Map agents by type to get their new IDs
-        agents.forEach((agent: any) => {
-          const agentType = agent.type?.toLowerCase() || agent.agentType?.toLowerCase();
+        agents.forEach((agent: any, index: number) => {
+          // Keep original case for comparison (API returns UPPERCASE types)
+          const agentType = agent.type || agent.agentType || '';
           const agentName = agent.name?.toLowerCase() || '';
           const agentOId = agent.oId || agent.agentOId;
 
-          console.log(`  - Agent: ${agent.name || 'Unknown'} (Type: ${agentType}, ID: ${agentOId})`);
+          console.log(`  [${index + 1}/${agents.length}] Processing Agent:`);
+          console.log(`    Name: "${agent.name}"`);
+          console.log(`    Type: "${agentType}"`);
+          console.log(`    OID: "${agentOId}"`);
 
-          // Map by type
-          if (agentType === 'prospector' || agentName.includes('prospect')) {
+          // Match by TYPE (uppercase from API) and name keywords
+          if (agentType === 'PROSPECTOR' && !newAgentIds.prospector) {
             newAgentIds.prospector = agentOId;
-          } else if (agentType === 'sequence' || agentType === 'email' || agentName.includes('sequence') || agentName.includes('email')) {
+            console.log(`    ✅ MAPPED as PROSPECTOR`);
+          } else if (agentType === 'EMAIL' && agentName.includes('sequence') && !newAgentIds.sequence) {
             newAgentIds.sequence = agentOId;
-          } else if (agentType === 'call_prep' || agentType === 'callprep' || agentName.includes('call prep') || agentName.includes('call-prep')) {
+            console.log(`    ✅ MAPPED as SEQUENCE`);
+          } else if (agentType === 'CALL_PREP' && !newAgentIds.callPrep) {
             newAgentIds.callPrep = agentOId;
-          } else if (agentType === 'content' || agentType === 'generate_content') {
-            // Try to differentiate content agents by name
-            if (agentName.includes('linkedin') && agentName.includes('post')) {
+            console.log(`    ✅ MAPPED as CALL_PREP`);
+          } else if (agentType === 'CONTENT') {
+            // Differentiate content agents by name
+            if (agentName.includes('linkedin') && agentName.includes('post') && !newAgentIds.linkedinPost) {
               newAgentIds.linkedinPost = agentOId;
-            } else if (agentName.includes('newsletter')) {
+              console.log(`    ✅ MAPPED as LINKEDIN_POST`);
+            } else if (agentName.includes('newsletter') && !newAgentIds.newsletter) {
               newAgentIds.newsletter = agentOId;
-            } else if (agentName.includes('linkedin') && agentName.includes('dm')) {
+              console.log(`    ✅ MAPPED as NEWSLETTER`);
+            } else if (agentName.includes('linkedin') && (agentName.includes('message') || agentName.includes('outreach') || agentName.includes('dm')) && !newAgentIds.linkedinDM) {
               newAgentIds.linkedinDM = agentOId;
+              console.log(`    ✅ MAPPED as LINKEDIN_DM`);
+            } else {
+              console.log(`    ⏭️  Skipped (content agent, but doesn't match our criteria)`);
             }
+          } else {
+            console.log(`    ⏭️  Skipped (type: ${agentType}, or already mapped)`);
           }
         });
 
-        console.log('✅ Mapped agent IDs:', newAgentIds);
+        console.log('');
+        console.log('🎯 ===== FINAL AGENT MAPPING =====');
+        console.log('✅ Prospector:', newAgentIds.prospector || '❌ NOT FOUND');
+        console.log('✅ Sequence:', newAgentIds.sequence || '❌ NOT FOUND');
+        console.log('✅ Call Prep:', newAgentIds.callPrep || '❌ NOT FOUND');
+        console.log('✅ LinkedIn Post:', newAgentIds.linkedinPost || '❌ NOT FOUND');
+        console.log('✅ Newsletter:', newAgentIds.newsletter || '❌ NOT FOUND');
+        console.log('✅ LinkedIn DM:', newAgentIds.linkedinDM || '❌ NOT FOUND');
+        console.log('================================');
+        console.log('');
       } catch (agentListError: any) {
-        console.error('⚠️ Failed to list agents in new workspace (non-critical):', agentListError.message);
-        console.error('Will use template agent IDs as fallback');
+        console.error('❌ Failed to list agents in new workspace:', agentListError.message);
+        if (agentListError.response) {
+          console.error('Response status:', agentListError.response.status);
+          console.error('Response data:', JSON.stringify(agentListError.response.data, null, 2));
+        }
+        console.error('⚠️  Will proceed without new agent IDs (agents will likely fail)');
       }
     }
 
