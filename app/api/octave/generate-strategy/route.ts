@@ -231,7 +231,7 @@ export async function POST(request: NextRequest) {
         });
         
         // Remove duplicates
-        fuzzyTitles = [...new Set(fuzzyTitles)];
+        fuzzyTitles = Array.from(new Set(fuzzyTitles));
         console.log(`✅ Extracted ${fuzzyTitles.length} unique job titles from personas`);
         console.log('Sample titles:', fuzzyTitles.slice(0, 5).join(', '), '...');
       }
@@ -494,4 +494,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 
