@@ -46,7 +46,7 @@ export default function ThankYouPage() {
         return;
       }
 
-      // Simulate progress updates (since we don't have SSE yet)
+      // Simulate progress updates (since we do not have SSE yet)
       const progressSteps = [
         { step: 'Listing agents in workspace...', progress: 7 },
         { step: 'Extracting persona job titles...', progress: 13 },
@@ -194,7 +194,7 @@ export default function ThankYouPage() {
                   Generating Your Strategy
                 </h3>
                 <p className="text-fo-secondary">
-                  This will take about 2 minutes. Please don't close this window.
+                  This will take about 2 minutes. Please don&apos;t close this window.
                 </p>
               </div>
 
