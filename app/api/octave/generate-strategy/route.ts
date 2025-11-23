@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
         const prospectorData = prospectorResponse.data;
         console.log('📊 Prospector response structure:', JSON.stringify(prospectorData, null, 2));
         
-        if (prospectorData.success && prospectorData.data?.contacts) {
+        if (prospectorData.found && prospectorData.data?.contacts) {
           prospects = prospectorData.data.contacts;
           console.log(`✅ Prospector found ${prospects.length} prospects`);
         } else if (prospectorData.contacts) {
