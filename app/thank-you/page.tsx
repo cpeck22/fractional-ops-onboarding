@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 import ClaireImage from '../Claire_v1.png';
 
@@ -38,7 +38,6 @@ export default function ThankYouPage() {
 
     try {
       // Get current user
-      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
