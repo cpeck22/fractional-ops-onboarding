@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       offering: generateOffering(questionnaireData),
       runtimeContext: runtimeContextString,
       brandVoiceOId: "bv_fractional_ops",
-      createDefaultAgents: true
+      createDefaultAgents: false // ✅ Changed to false to allow custom agents from agentOIds to be cloned
     };
 
     console.log('=== OCTAVE API CALL DETAILS ===');
