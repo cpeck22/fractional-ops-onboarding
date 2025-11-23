@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
         addExistingUsers: true,
         agentOIds: [
           // Prospector Agent (keep this one)
-          'ca_lSWcHq7U7KboGGaaESrQX',
+          'ca_0EQ3oCpNpE8VubFBIUmYm',
           
           // Cold Email Sequence Agents (5)
           'ca_6ghm6GTyTCtQjUibRJYBn', // COLD EMAIL - 3 Personalized Solutions
