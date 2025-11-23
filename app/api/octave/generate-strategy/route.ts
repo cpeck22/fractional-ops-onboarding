@@ -283,9 +283,15 @@ export async function POST(request: NextRequest) {
         );
 
         const prospectorData = prospectorResponse.data;
+        console.log('📊 Prospector response structure:', JSON.stringify(prospectorData, null, 2));
+        
         if (prospectorData.success && prospectorData.data?.contacts) {
           prospects = prospectorData.data.contacts;
           console.log(`✅ Prospector found ${prospects.length} prospects`);
+        } else if (prospectorData.contacts) {
+          // Sometimes contacts are at root level
+          prospects = prospectorData.contacts;
+          console.log(`✅ Prospector found ${prospects.length} prospects (root level)`);
         } else {
           console.warn('⚠️ Prospector returned no results:', prospectorData.message || 'Unknown error');
         }
@@ -374,7 +380,7 @@ export async function POST(request: NextRequest) {
             linkedInProfile: prospect?.contact?.profileUrl || null
           };
         } else if (agentType === 'content') {
-          endpoint = `${OCTAVE_BASE_URL}/content/run`;
+          endpoint = `${OCTAVE_BASE_URL}/generate-content/run`;
           // Content agents don't need prospect info
         }
 
