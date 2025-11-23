@@ -9,13 +9,23 @@ CREATE TABLE IF NOT EXISTS octave_outputs (
   -- Campaign ideas (from playbooks)
   campaign_ideas JSONB,
   
-  -- Agent outputs
+  -- Agent outputs (nested JSONB structure for multiple variants)
   prospect_list JSONB,
-  email_sequences JSONB,
-  linkedin_post TEXT,
-  newsletter TEXT,
-  linkedin_dm TEXT,
-  call_prep_example JSONB,
+  
+  -- Cold Email Sequences (5 variants)
+  cold_emails JSONB,  -- { personalizedSolutions: [], leadMagnetShort: [], localCity: [], problemSolution: [], leadMagnetLong: [] }
+  
+  -- LinkedIn Posts (3 variants)
+  linkedin_posts JSONB,  -- { inspiring: '', promotional: '', actionable: '' }
+  
+  -- LinkedIn DMs (2 variants)
+  linkedin_dms JSONB,  -- { newsletter: '', leadMagnet: '' }
+  
+  -- Newsletters (2 variants)
+  newsletters JSONB,  -- { tactical: '', leadership: '' }
+  
+  -- Call Prep
+  call_prep JSONB,
   
   -- Metadata
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

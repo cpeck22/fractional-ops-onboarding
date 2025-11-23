@@ -15,11 +15,27 @@ interface OctaveOutputs {
   company_domain: string;
   campaign_ideas: any[];
   prospect_list: any[];
-  email_sequences: any[];
-  linkedin_post: string | null;
-  newsletter: string | null;
-  linkedin_dm: string | null;
-  call_prep_example: any;
+  cold_emails: {
+    personalizedSolutions: any[];
+    leadMagnetShort: any[];
+    localCity: any[];
+    problemSolution: any[];
+    leadMagnetLong: any[];
+  };
+  linkedin_posts: {
+    inspiring: string;
+    promotional: string;
+    actionable: string;
+  };
+  linkedin_dms: {
+    newsletter: string;
+    leadMagnet: string;
+  };
+  newsletters: {
+    tactical: string;
+    leadership: string;
+  };
+  call_prep: any;
   created_at: string;
 }
 
@@ -35,6 +51,10 @@ const ErrorPlaceholder = ({ assetType }: { assetType: string }) => (
 export default function ResultsPage() {
   const [outputs, setOutputs] = useState<OctaveOutputs | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeEmailTab, setActiveEmailTab] = useState('personalizedSolutions');
+  const [activePostTab, setActivePostTab] = useState('inspiring');
+  const [activeDMTab, setActiveDMTab] = useState('newsletter');
+  const [activeNewsletterTab, setActiveNewsletterTab] = useState('tactical');
   const router = useRouter();
 
   useEffect(() => {
@@ -104,6 +124,30 @@ export default function ResultsPage() {
       </div>
     );
   }
+
+  const emailTabs = [
+    { id: 'personalizedSolutions', label: '3 Personalized Solutions', color: 'blue' },
+    { id: 'leadMagnetShort', label: 'Lead Magnet (Short)', color: 'green' },
+    { id: 'localCity', label: 'Local/Same City', color: 'purple' },
+    { id: 'problemSolution', label: 'Problem/Solution', color: 'orange' },
+    { id: 'leadMagnetLong', label: 'Lead Magnet (Long)', color: 'pink' }
+  ];
+
+  const postTabs = [
+    { id: 'inspiring', label: 'Inspiring Post', color: 'blue' },
+    { id: 'promotional', label: 'Promotional Post', color: 'green' },
+    { id: 'actionable', label: 'Actionable Post', color: 'purple' }
+  ];
+
+  const dmTabs = [
+    { id: 'newsletter', label: 'Newsletter CTA', color: 'blue' },
+    { id: 'leadMagnet', label: 'Lead Magnet CTA', color: 'green' }
+  ];
+
+  const newsletterTabs = [
+    { id: 'tactical', label: 'Tactical Writing', color: 'orange' },
+    { id: 'leadership', label: 'Leadership Writing', color: 'purple' }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-fo-light to-white">
@@ -205,15 +249,35 @@ export default function ResultsPage() {
           )}
         </section>
 
-        {/* Email Sequence */}
+        {/* Cold Email Sequences with Tabs */}
         <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
           <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
             <span className="text-3xl">📧</span>
-            Cold Email Sequence
+            Outbound Copy (Cold Emails)
           </h2>
-          {outputs.email_sequences && outputs.email_sequences.length > 0 ? (
+          
+          {/* Tabs */}
+          <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4">
+            {emailTabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveEmailTab(tab.id)}
+                className={`px-4 py-2 rounded-t-lg font-semibold transition-colors ${
+                  activeEmailTab === tab.id
+                    ? 'bg-fo-primary text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Email Content */}
+          {outputs.cold_emails && outputs.cold_emails[activeEmailTab as keyof typeof outputs.cold_emails] && 
+           (outputs.cold_emails[activeEmailTab as keyof typeof outputs.cold_emails] as any[]).length > 0 ? (
             <div className="space-y-6">
-              {outputs.email_sequences.map((email: any, index: number) => (
+              {(outputs.cold_emails[activeEmailTab as keyof typeof outputs.cold_emails] as any[]).map((email: any, index: number) => (
                 <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
                   <div className="bg-fo-primary text-white px-6 py-3">
                     <p className="font-semibold">Email {email.emailNumber}</p>
@@ -228,58 +292,115 @@ export default function ResultsPage() {
               ))}
             </div>
           ) : (
-            <ErrorPlaceholder assetType="Cold Email Sequence" />
+            <ErrorPlaceholder assetType={`${emailTabs.find(t => t.id === activeEmailTab)?.label} Email Sequence`} />
           )}
         </section>
 
-        {/* LinkedIn Post */}
+        {/* LinkedIn Posts with Tabs */}
         <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
           <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
             <span className="text-3xl">📱</span>
-            LinkedIn Post
+            LinkedIn Post Copy
           </h2>
-          {outputs.linkedin_post ? (
+          
+          {/* Tabs */}
+          <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4">
+            {postTabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActivePostTab(tab.id)}
+                className={`px-4 py-2 rounded-t-lg font-semibold transition-colors ${
+                  activePostTab === tab.id
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Post Content */}
+          {outputs.linkedin_posts && outputs.linkedin_posts[activePostTab as keyof typeof outputs.linkedin_posts] ? (
             <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg border-2 border-blue-200">
               <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
-                {outputs.linkedin_post}
+                {outputs.linkedin_posts[activePostTab as keyof typeof outputs.linkedin_posts]}
               </pre>
             </div>
           ) : (
-            <ErrorPlaceholder assetType="LinkedIn Post" />
+            <ErrorPlaceholder assetType={`${postTabs.find(t => t.id === activePostTab)?.label}`} />
           )}
         </section>
 
-        {/* Newsletter */}
-        <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
-          <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
-            <span className="text-3xl">📰</span>
-            Newsletter
-          </h2>
-          {outputs.newsletter ? (
-            <div className="bg-gradient-to-br from-orange-50 to-yellow-50 p-6 rounded-lg border-2 border-orange-200">
-              <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
-                {outputs.newsletter}
-              </pre>
-            </div>
-          ) : (
-            <ErrorPlaceholder assetType="Newsletter" />
-          )}
-        </section>
-
-        {/* LinkedIn DM */}
+        {/* LinkedIn DMs with Tabs */}
         <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
           <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
             <span className="text-3xl">💬</span>
-            LinkedIn DM Template
+            LinkedIn Connection Copy
           </h2>
-          {outputs.linkedin_dm ? (
+          
+          {/* Tabs */}
+          <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4">
+            {dmTabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveDMTab(tab.id)}
+                className={`px-4 py-2 rounded-t-lg font-semibold transition-colors ${
+                  activeDMTab === tab.id
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* DM Content */}
+          {outputs.linkedin_dms && outputs.linkedin_dms[activeDMTab as keyof typeof outputs.linkedin_dms] ? (
             <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-6 rounded-lg border-2 border-indigo-200">
               <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
-                {outputs.linkedin_dm}
+                {outputs.linkedin_dms[activeDMTab as keyof typeof outputs.linkedin_dms]}
               </pre>
             </div>
           ) : (
-            <ErrorPlaceholder assetType="LinkedIn DM Template" />
+            <ErrorPlaceholder assetType={`LinkedIn DM ${dmTabs.find(t => t.id === activeDMTab)?.label}`} />
+          )}
+        </section>
+
+        {/* Newsletters with Tabs */}
+        <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
+          <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
+            <span className="text-3xl">📰</span>
+            Newsletter Copy
+          </h2>
+          
+          {/* Tabs */}
+          <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4">
+            {newsletterTabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveNewsletterTab(tab.id)}
+                className={`px-4 py-2 rounded-t-lg font-semibold transition-colors ${
+                  activeNewsletterTab === tab.id
+                    ? 'bg-orange-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Newsletter Content */}
+          {outputs.newsletters && outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters] ? (
+            <div className="bg-gradient-to-br from-orange-50 to-yellow-50 p-6 rounded-lg border-2 border-orange-200">
+              <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
+                {outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters]}
+              </pre>
+            </div>
+          ) : (
+            <ErrorPlaceholder assetType={`Newsletter ${newsletterTabs.find(t => t.id === activeNewsletterTab)?.label}`} />
           )}
         </section>
 
@@ -287,38 +408,38 @@ export default function ResultsPage() {
         <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
           <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
             <span className="text-3xl">📞</span>
-            Call Prep Example
+            Sample Call-Prep
           </h2>
-          {outputs.call_prep_example ? (
+          {outputs.call_prep ? (
             <div className="space-y-6">
-              {outputs.call_prep_example.discoveryQuestions && outputs.call_prep_example.discoveryQuestions.length > 0 && (
+              {outputs.call_prep.discoveryQuestions && outputs.call_prep.discoveryQuestions.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-fo-primary mb-3">Discovery Questions:</h3>
                   <ul className="list-disc list-inside space-y-2 text-sm text-gray-700">
-                    {outputs.call_prep_example.discoveryQuestions.map((q: string, i: number) => (
+                    {outputs.call_prep.discoveryQuestions.map((q: string, i: number) => (
                       <li key={i}>{q}</li>
                     ))}
                   </ul>
                 </div>
               )}
               
-              {outputs.call_prep_example.callScript && (
+              {outputs.call_prep.callScript && (
                 <div>
                   <h3 className="font-semibold text-fo-primary mb-3">Call Script:</h3>
                   <div className="bg-fo-light p-4 rounded-lg">
                     <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700">
-                      {outputs.call_prep_example.callScript}
+                      {outputs.call_prep.callScript}
                     </pre>
                   </div>
                 </div>
               )}
               
-              {outputs.call_prep_example.objectionHandling && (
+              {outputs.call_prep.objectionHandling && (
                 <div>
                   <h3 className="font-semibold text-fo-primary mb-3">Objection Handling:</h3>
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                     <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700">
-                      {outputs.call_prep_example.objectionHandling}
+                      {outputs.call_prep.objectionHandling}
                     </pre>
                   </div>
                 </div>
@@ -346,5 +467,3 @@ export default function ResultsPage() {
     </div>
   );
 }
-
-
