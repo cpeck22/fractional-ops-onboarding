@@ -227,3 +227,4 @@ while (hasNext) {
 - All agent outputs support graceful degradation (show placeholder if agent fails)
 - Database stores only latest generation per user (Option A for MVP)
 
+

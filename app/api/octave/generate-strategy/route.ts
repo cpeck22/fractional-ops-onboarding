@@ -3,6 +3,9 @@ import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
+// Octave API base URL
+const OCTAVE_BASE_URL = 'https://app.octavehq.com/api/v2/agents';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -260,25 +263,31 @@ export async function POST(request: NextRequest) {
         console.log(`🎯 Lookalike source domain: ${lookalikeSource}`);
 
         const prospectorResponse = await axios.post(
-          `${process.env.NEXT_PUBLIC_APP_URL}/api/octave/agents`,
+          `${OCTAVE_BASE_URL}/prospector/run`,
           {
-            agentType: 'prospector',
-            workspaceApiKey: workspaceApiKey,
             companyDomain: lookalikeSource,
             agentOId: newAgentIds.prospector,
+            limit: 25,
+            minimal: true,
             searchContext: {
               personaOIds: personas.map((p: any) => p.oId),
               fuzzyTitles: fuzzyTitles
+            }
+          },
+          {
+            headers: {
+              'api_key': workspaceApiKey,
+              'Content-Type': 'application/json'
             }
           }
         );
 
         const prospectorData = prospectorResponse.data;
-        if (prospectorData.success && prospectorData.data?.data?.contacts) {
-          prospects = prospectorData.data.data.contacts;
+        if (prospectorData.success && prospectorData.data?.contacts) {
+          prospects = prospectorData.data.contacts;
           console.log(`✅ Prospector found ${prospects.length} prospects`);
         } else {
-          console.warn('⚠️ Prospector returned no results:', prospectorData.error || 'Unknown error');
+          console.warn('⚠️ Prospector returned no results:', prospectorData.message || 'Unknown error');
         }
       } catch (error: any) {
         console.error('❌ Prospector agent failed:', error.response?.data || error.message);
@@ -335,34 +344,58 @@ export async function POST(request: NextRequest) {
       try {
         const prospect = prospects[prospectIndex % prospects.length];
         
-        const requestBody: any = {
-          agentType: agentType,
-          workspaceApiKey: workspaceApiKey,
-          companyDomain: companyDomain,
-          companyName: companyName,
+        let endpoint = '';
+        let requestBody: any = {
           agentOId: agentOId
         };
 
-        // Add prospect info if available
-        if (prospect) {
-          requestBody.email = prospect.contact?.companyDomain || companyDomain;
-          requestBody.jobTitle = prospect.contact?.title || '';
-          requestBody.firstName = prospect.contact?.firstName || '';
-          requestBody.linkedInProfile = prospect.contact?.profileUrl || '';
+        // Build request based on agent type
+        if (agentType === 'sequence') {
+          endpoint = `${OCTAVE_BASE_URL}/sequence/run`;
+          requestBody = {
+            ...requestBody,
+            email: prospect?.contact?.companyDomain || companyDomain || null,
+            companyDomain: prospect?.contact?.companyDomain || companyDomain || null,
+            companyName: prospect?.contact?.company || companyName || null,
+            firstName: prospect?.contact?.firstName || null,
+            jobTitle: prospect?.contact?.title || null,
+            linkedInProfile: prospect?.contact?.profileUrl || null,
+            outputFormat: 'text'
+          };
+        } else if (agentType === 'callPrep') {
+          endpoint = `${OCTAVE_BASE_URL}/call-prep/run`;
+          requestBody = {
+            ...requestBody,
+            email: prospect?.contact?.companyDomain || companyDomain || null,
+            companyDomain: prospect?.contact?.companyDomain || companyDomain || null,
+            companyName: prospect?.contact?.company || companyName || null,
+            firstName: prospect?.contact?.firstName || null,
+            jobTitle: prospect?.contact?.title || null,
+            linkedInProfile: prospect?.contact?.profileUrl || null
+          };
+        } else if (agentType === 'content') {
+          endpoint = `${OCTAVE_BASE_URL}/content/run`;
+          // Content agents don't need prospect info
         }
 
         console.log(`🔄 Running ${agentName}...`);
         
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_APP_URL}/api/octave/agents`,
-          requestBody
+          endpoint,
+          requestBody,
+          {
+            headers: {
+              'api_key': workspaceApiKey,
+              'Content-Type': 'application/json'
+            }
+          }
         );
 
         if (response.data?.success) {
           console.log(`✅ ${agentName} completed successfully`);
-          return response.data.data;
+          return response.data;
         } else {
-          console.warn(`⚠️ ${agentName} failed:`, response.data?.error);
+          console.warn(`⚠️ ${agentName} failed:`, response.data?.message);
           return null;
         }
       } catch (error: any) {

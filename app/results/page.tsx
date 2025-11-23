@@ -36,6 +36,17 @@ interface OctaveOutputs {
     leadership: string;
   };
   call_prep: any;
+  // Library materials
+  service_offering?: {
+    type: string;
+    name: string;
+    differentiatedValue: string;
+    statusQuo: string;
+  };
+  use_cases?: any[];
+  personas?: any[];
+  client_references?: any[];
+  segments?: any[];
   created_at: string;
 }
 
@@ -448,6 +459,142 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType="Call Prep Example" />
           )}
+        </section>
+
+        {/* Workspace Library (Misc. Section) */}
+        <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
+          <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
+            <span className="text-3xl">📚</span>
+            Workspace Library
+          </h2>
+          <p className="text-fo-secondary mb-6">
+            Here are all the foundational materials created in your Octave workspace
+          </p>
+
+          <div className="space-y-6">
+            {/* Service Offering */}
+            {outputs.service_offering && (
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-fo-primary mb-3 flex items-center gap-2">
+                  <span>🎯</span> Service Offering
+                </h3>
+                <div className="space-y-2">
+                  <p className="text-gray-700">
+                    <strong>Name:</strong> {outputs.service_offering.name}
+                  </p>
+                  <p className="text-gray-700">
+                    <strong>Type:</strong> {outputs.service_offering.type}
+                  </p>
+                  <p className="text-gray-700">
+                    <strong>Differentiated Value:</strong> {outputs.service_offering.differentiatedValue}
+                  </p>
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-fo-primary font-semibold hover:underline">
+                      View Status Quo Context
+                    </summary>
+                    <p className="mt-2 text-sm text-gray-600 whitespace-pre-wrap pl-4 border-l-2 border-fo-primary/30">
+                      {outputs.service_offering.statusQuo}
+                    </p>
+                  </details>
+                </div>
+              </div>
+            )}
+
+            {/* Personas */}
+            {outputs.personas && outputs.personas.length > 0 && (
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-fo-primary mb-3 flex items-center gap-2">
+                  <span>👥</span> Personas ({outputs.personas.length} created)
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {outputs.personas.map((persona: any, index: number) => (
+                    <div key={index} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <p className="font-semibold text-fo-primary mb-2">{persona.name}</p>
+                      {persona.data?.commonJobTitles && persona.data.commonJobTitles.length > 0 && (
+                        <details>
+                          <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800">
+                            View Job Titles ({persona.data.commonJobTitles.length})
+                          </summary>
+                          <ul className="mt-2 text-xs text-gray-600 space-y-1 pl-4">
+                            {persona.data.commonJobTitles.slice(0, 5).map((title: string, i: number) => (
+                              <li key={i}>• {title}</li>
+                            ))}
+                            {persona.data.commonJobTitles.length > 5 && (
+                              <li className="text-gray-500">+ {persona.data.commonJobTitles.length - 5} more</li>
+                            )}
+                          </ul>
+                        </details>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Use Cases */}
+            {outputs.use_cases && outputs.use_cases.length > 0 && (
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-fo-primary mb-3 flex items-center gap-2">
+                  <span>✨</span> Use Cases ({outputs.use_cases.length} created)
+                </h3>
+                <div className="space-y-3">
+                  {outputs.use_cases.map((useCase: any, index: number) => (
+                    <div key={index} className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      <p className="font-semibold text-fo-primary">{useCase.name}</p>
+                      {useCase.description && (
+                        <p className="text-sm text-gray-600 mt-1">{useCase.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Segments */}
+            {outputs.segments && outputs.segments.length > 0 && (
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-fo-primary mb-3 flex items-center gap-2">
+                  <span>🎯</span> Market Segments ({outputs.segments.length} created)
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {outputs.segments.map((segment: any, index: number) => (
+                    <div key={index} className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <p className="font-semibold text-fo-primary mb-1">{segment.name}</p>
+                      {segment.industry && (
+                        <p className="text-sm text-gray-600">
+                          <strong>Industry:</strong> {segment.industry}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Client References */}
+            {outputs.client_references && outputs.client_references.length > 0 && (
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-fo-primary mb-3 flex items-center gap-2">
+                  <span>🏢</span> Client References ({outputs.client_references.length} created)
+                </h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {outputs.client_references.map((reference: any, index: number) => (
+                    <div key={index} className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                      <p className="font-semibold text-fo-primary mb-1">{reference.companyName}</p>
+                      {reference.companyDomain && (
+                        <p className="text-xs text-gray-500 mb-1">{reference.companyDomain}</p>
+                      )}
+                      {reference.industry && (
+                        <p className="text-sm text-gray-600">
+                          <strong>Industry:</strong> {reference.industry}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </section>
 
         {/* CTA Section */}

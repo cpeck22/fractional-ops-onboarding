@@ -12,3 +12,4 @@ CREATE INDEX IF NOT EXISTS idx_octave_outputs_user_id ON octave_outputs(user_id)
 COMMENT ON COLUMN octave_outputs.workspace_api_key IS 'API key for the newly created Octave workspace, used to run agents';
 COMMENT ON COLUMN octave_outputs.agents_generated_at IS 'Timestamp when agents were last executed and outputs generated';
 
+
