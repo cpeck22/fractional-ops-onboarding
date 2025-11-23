@@ -250,7 +250,27 @@ export async function POST(request: NextRequest) {
               newAgentIds.coldEmails.leadMagnetLong = agentOId;
               console.log(`    ✅ MAPPED as COLD_EMAIL: Lead Magnet Long`);
             } else {
-              console.log(`    ⏭️  Skipped (EMAIL agent, but doesn't match our criteria)`);
+              // FALLBACK: Use any EMAIL agent for missing variants
+              console.log(`    ⚠️  Found EMAIL agent "${agent.name}" but doesn't match specific criteria`);
+              console.log(`    🔄 FALLBACK: Using as generic email agent for missing variants`);
+              
+              // Fill in missing slots with this generic agent
+              if (!newAgentIds.coldEmails.personalizedSolutions) {
+                newAgentIds.coldEmails.personalizedSolutions = agentOId;
+                console.log(`    ✅ FALLBACK MAPPED as COLD_EMAIL: Personalized Solutions`);
+              } else if (!newAgentIds.coldEmails.leadMagnetShort) {
+                newAgentIds.coldEmails.leadMagnetShort = agentOId;
+                console.log(`    ✅ FALLBACK MAPPED as COLD_EMAIL: Lead Magnet Short`);
+              } else if (!newAgentIds.coldEmails.localCity) {
+                newAgentIds.coldEmails.localCity = agentOId;
+                console.log(`    ✅ FALLBACK MAPPED as COLD_EMAIL: Local/Same City`);
+              } else if (!newAgentIds.coldEmails.problemSolution) {
+                newAgentIds.coldEmails.problemSolution = agentOId;
+                console.log(`    ✅ FALLBACK MAPPED as COLD_EMAIL: Problem/Solution`);
+              } else if (!newAgentIds.coldEmails.leadMagnetLong) {
+                newAgentIds.coldEmails.leadMagnetLong = agentOId;
+                console.log(`    ✅ FALLBACK MAPPED as COLD_EMAIL: Lead Magnet Long`);
+              }
             }
           } else if (agentType === 'CALL_PREP') {
             newAgentIds.callPrep = agentOId;
@@ -268,7 +288,18 @@ export async function POST(request: NextRequest) {
                 newAgentIds.linkedinPosts.actionable = agentOId;
                 console.log(`    ✅ MAPPED as LINKEDIN_POST: Actionable`);
               } else {
-                console.log(`    ⏭️  Skipped (LinkedIn Post, but doesn't match our criteria)`);
+                // FALLBACK: Use generic LinkedIn post for missing variants
+                console.log(`    ⚠️  Found LinkedIn Post "${agent.name}" but doesn't match specific criteria`);
+                if (!newAgentIds.linkedinPosts.inspiring) {
+                  newAgentIds.linkedinPosts.inspiring = agentOId;
+                  console.log(`    ✅ FALLBACK MAPPED as LINKEDIN_POST: Inspiring`);
+                } else if (!newAgentIds.linkedinPosts.promotional) {
+                  newAgentIds.linkedinPosts.promotional = agentOId;
+                  console.log(`    ✅ FALLBACK MAPPED as LINKEDIN_POST: Promotional`);
+                } else if (!newAgentIds.linkedinPosts.actionable) {
+                  newAgentIds.linkedinPosts.actionable = agentOId;
+                  console.log(`    ✅ FALLBACK MAPPED as LINKEDIN_POST: Actionable`);
+                }
               }
             } else if (agentName.includes('newsletter')) {
               if (agentName.includes('tactical')) {
@@ -278,7 +309,15 @@ export async function POST(request: NextRequest) {
                 newAgentIds.newsletters.leadership = agentOId;
                 console.log(`    ✅ MAPPED as NEWSLETTER: Leadership`);
               } else {
-                console.log(`    ⏭️  Skipped (Newsletter, but doesn't match our criteria)`);
+                // FALLBACK: Use generic newsletter for missing variants
+                console.log(`    ⚠️  Found Newsletter "${agent.name}" but doesn't match specific criteria`);
+                if (!newAgentIds.newsletters.tactical) {
+                  newAgentIds.newsletters.tactical = agentOId;
+                  console.log(`    ✅ FALLBACK MAPPED as NEWSLETTER: Tactical`);
+                } else if (!newAgentIds.newsletters.leadership) {
+                  newAgentIds.newsletters.leadership = agentOId;
+                  console.log(`    ✅ FALLBACK MAPPED as NEWSLETTER: Leadership`);
+                }
               }
             } else if (agentName.includes('linkedin') && (agentName.includes('connection') || agentName.includes('dm'))) {
               if (agentName.includes('newsletter')) {
@@ -288,7 +327,15 @@ export async function POST(request: NextRequest) {
                 newAgentIds.linkedinDMs.leadMagnet = agentOId;
                 console.log(`    ✅ MAPPED as LINKEDIN_DM: Lead Magnet CTA`);
               } else {
-                console.log(`    ⏭️  Skipped (LinkedIn DM, but doesn't match our criteria)`);
+                // FALLBACK: Use generic LinkedIn DM for missing variants
+                console.log(`    ⚠️  Found LinkedIn DM "${agent.name}" but doesn't match specific criteria`);
+                if (!newAgentIds.linkedinDMs.newsletter) {
+                  newAgentIds.linkedinDMs.newsletter = agentOId;
+                  console.log(`    ✅ FALLBACK MAPPED as LINKEDIN_DM: Newsletter CTA`);
+                } else if (!newAgentIds.linkedinDMs.leadMagnet) {
+                  newAgentIds.linkedinDMs.leadMagnet = agentOId;
+                  console.log(`    ✅ FALLBACK MAPPED as LINKEDIN_DM: Lead Magnet CTA`);
+                }
               }
             } else {
               console.log(`    ⏭️  Skipped (CONTENT agent, but doesn't match our criteria)`);
@@ -319,6 +366,37 @@ export async function POST(request: NextRequest) {
         console.log('   - Tactical:', newAgentIds.newsletters.tactical || '❌');
         console.log('   - Leadership:', newAgentIds.newsletters.leadership || '❌');
         console.log('================================');
+        
+        // Count missing agents
+        const missingAgents = [];
+        if (!newAgentIds.prospector) missingAgents.push('Prospector');
+        if (!newAgentIds.coldEmails.personalizedSolutions) missingAgents.push('Cold Email: Personalized Solutions');
+        if (!newAgentIds.coldEmails.leadMagnetShort) missingAgents.push('Cold Email: Lead Magnet Short');
+        if (!newAgentIds.coldEmails.localCity) missingAgents.push('Cold Email: Local/Same City');
+        if (!newAgentIds.coldEmails.problemSolution) missingAgents.push('Cold Email: Problem/Solution');
+        if (!newAgentIds.coldEmails.leadMagnetLong) missingAgents.push('Cold Email: Lead Magnet Long');
+        if (!newAgentIds.callPrep) missingAgents.push('Call Prep');
+        if (!newAgentIds.linkedinPosts.inspiring) missingAgents.push('LinkedIn Post: Inspiring');
+        if (!newAgentIds.linkedinPosts.promotional) missingAgents.push('LinkedIn Post: Promotional');
+        if (!newAgentIds.linkedinPosts.actionable) missingAgents.push('LinkedIn Post: Actionable');
+        if (!newAgentIds.linkedinDMs.newsletter) missingAgents.push('LinkedIn DM: Newsletter');
+        if (!newAgentIds.linkedinDMs.leadMagnet) missingAgents.push('LinkedIn DM: Lead Magnet');
+        if (!newAgentIds.newsletters.tactical) missingAgents.push('Newsletter: Tactical');
+        if (!newAgentIds.newsletters.leadership) missingAgents.push('Newsletter: Leadership');
+        
+        if (missingAgents.length > 0) {
+          console.warn('');
+          console.warn('⚠️  ===== MISSING AGENTS WARNING =====');
+          console.warn(`⚠️  ${missingAgents.length} specialized agents were not found in the new workspace:`);
+          missingAgents.forEach(name => console.warn(`   ❌ ${name}`));
+          console.warn('');
+          console.warn('🔍 TROUBLESHOOTING:');
+          console.warn('   1. Verify the agent IDs in workspace/route.ts lines 82-100 exist in your SKELETON workspace');
+          console.warn('   2. Check that OCTAVE_API_KEY is from the workspace containing these specific agents');
+          console.warn('   3. The workspace builder can only copy agents that exist in the source workspace');
+          console.warn('   4. Agents will use fallback (generic agents) if available, or skip if not found');
+          console.warn('================================');
+        }
         console.log('');
       } catch (agentListError: any) {
         console.error('❌ Failed to list agents in new workspace:', agentListError.message);

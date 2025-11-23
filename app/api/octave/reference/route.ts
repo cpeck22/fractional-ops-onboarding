@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
         createdReferences.push({
           index: i,
           companyName: ref.companyName,
+          companyDomain: ref.companyDomain,
           industry: ref.industry,
           oId: referenceOId,
           data: response.data.data || response.data
