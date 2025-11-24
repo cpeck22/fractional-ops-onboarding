@@ -65,9 +65,11 @@ export function generateStrategyPDF(data: StrategyPDFData): Buffer {
     const currentPage = doc.internal.pages.length - 1;
     
     // Add logo to top right (skip on title page)
+    // Logo aspect ratio: 1840 x 289 = 6.37:1 (width:height)
     if (logoBase64 && currentPage > 1) {
-      const logoSize = 15; // mm
-      doc.addImage(logoBase64, 'PNG', pageWidth - margin - logoSize, margin - 5, logoSize, logoSize);
+      const logoHeight = 6; // mm
+      const logoWidth = logoHeight * 6.37; // Maintain aspect ratio (~38mm)
+      doc.addImage(logoBase64, 'PNG', pageWidth - margin - logoWidth, margin - 3, logoWidth, logoHeight);
     }
     
     // Add page number at bottom center (skip on title page)
@@ -167,9 +169,11 @@ export function generateStrategyPDF(data: StrategyPDFData): Buffer {
   doc.text(`Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageWidth / 2, 100, { align: 'center' });
   
   // Add logo to title page
+  // Logo aspect ratio: 1840 x 289 = 6.37:1 (width:height)
   if (logoBase64) {
-    const logoSize = 25;
-    doc.addImage(logoBase64, 'PNG', pageWidth / 2 - logoSize / 2, 115, logoSize, logoSize);
+    const logoHeight = 12; // mm
+    const logoWidth = logoHeight * 6.37; // Maintain aspect ratio (~76mm)
+    doc.addImage(logoBase64, 'PNG', pageWidth / 2 - logoWidth / 2, 115, logoWidth, logoHeight);
   }
   
   doc.addPage();
