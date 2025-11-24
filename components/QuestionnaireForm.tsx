@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useQuestionnaire } from './QuestionnaireProvider';
 import ClaireVideoPlaceholder from './ClaireVideoPlaceholder';
-import { supabase } from '@/lib/supabase';
+import { supabase, saveQuestionnaireField } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 
 interface Section {
@@ -341,7 +341,24 @@ export default function QuestionnaireForm({
   const handleSaveField = async (fieldKey: string) => {
     setSavingField(fieldKey);
     try {
-      await saveCurrentData();
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please sign in to save');
+        return;
+      }
+
+      console.log(`💾 Saving individual field: ${section.id}.${fieldKey}`);
+      
+      // Save ONLY this specific field (not all fields!)
+      const fieldValue = formData[fieldKey];
+      await saveQuestionnaireField(user.id, section.id, fieldKey, fieldValue);
+      
+      console.log(`✅ Field ${fieldKey} saved successfully`);
+      toast.success('Saved!', { duration: 2000 });
+    } catch (error) {
+      console.error(`❌ Failed to save field ${fieldKey}:`, error);
+      toast.error('Failed to save. Please try again.');
     } finally {
       setSavingField(null);
     }

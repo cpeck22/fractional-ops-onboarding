@@ -132,43 +132,57 @@ export const saveQuestionnaireField = async (
   userId: string,
   section: string,
   fieldKey: string,
-  fieldValue: any  // Changed from string to any to accept arrays/objects
+  fieldValue: any,  // Changed from string to any to accept arrays/objects
+  retries: number = 3 // Add retry logic for robustness
 ) => {
-  console.log('💾 Calling API route (uses service key on server)');
+  console.log(`💾 Saving field: ${section}.${fieldKey}`);
   
   // Stringify arrays and objects before saving
   let valueToSave = fieldValue;
   if (typeof fieldValue === 'object' && fieldValue !== null) {
     valueToSave = JSON.stringify(fieldValue);
-    console.log(`💾 Stringified ${fieldKey} for storage:`, valueToSave);
+    console.log(`💾 Stringified ${fieldKey} for storage`);
   }
   
-  try {
-    const response = await fetch('/api/save-questionnaire', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        section,
-        fieldKey,
-        fieldValue: valueToSave
-      })
-    });
-    
-    const result = await response.json();
-    
-    if (!response.ok) {
-      console.error('💾 API error:', result.error);
-      throw new Error(result.error);
+  // Retry logic with exponential backoff
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch('/api/save-questionnaire', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          section,
+          fieldKey,
+          fieldValue: valueToSave
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        if (attempt < retries) {
+          console.warn(`💾 Attempt ${attempt}/${retries} failed, retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 500 * attempt)); // Exponential backoff
+          continue;
+        }
+        console.error('💾 API error:', result.error);
+        throw new Error(result.error);
+      }
+      
+      console.log(`💾 Save SUCCESS for ${fieldKey}!`);
+      return result.data;
+    } catch (error) {
+      if (attempt < retries) {
+        console.warn(`💾 Attempt ${attempt}/${retries} failed, retrying in ${500 * attempt}ms...`);
+        await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+        continue;
+      }
+      console.error('💾 Save failed after all retries:', error);
+      throw error;
     }
-    
-    console.log('💾 Save SUCCESS via API!');
-    return result.data;
-  } catch (error) {
-    console.error('💾 Save failed:', error);
-    throw error;
   }
 }
 
