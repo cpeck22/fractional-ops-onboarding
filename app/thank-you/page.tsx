@@ -200,7 +200,7 @@ export default function ThankYouPage() {
                   I&apos;m <span className="bg-gradient-to-r from-fo-primary to-fo-secondary bg-clip-text text-transparent">Generating Your Strategy</span>
                 </h3>
                 <p className="text-fo-secondary mb-2">
-                  This usually takes me <span className="line-through text-gray-400">2 minutes</span>
+                  This usually takes me 2 minutes
                 </p>
                 <p className="text-red-600 font-semibold text-lg">
                   Please don&apos;t close this window.
@@ -226,7 +226,7 @@ export default function ThankYouPage() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${progress >= 20 ? 'bg-green-500' : 'bg-gray-300 animate-pulse'}`}></div>
-                    <span className={progress >= 20 ? 'text-fo-primary' : 'text-fo-secondary'}>Prospector</span>
+                    <span className={progress >= 20 ? 'text-fo-primary' : 'text-fo-secondary'}>List Builder</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${progress >= 53 ? 'bg-green-500' : 'bg-gray-300 animate-pulse'}`}></div>
@@ -252,11 +252,8 @@ export default function ThankYouPage() {
               </div>
 
               <div className="mt-6 text-center text-sm">
-                <p className="text-fo-secondary">
-                  ⚡ <span className="line-through text-gray-400">Running 14 AI agents in parallel to build your custom strategy</span>
-                </p>
-                <p className="text-red-600 font-medium mt-2">
-                  I&apos;m setting up 14 workflows <span className="text-fo-secondary">to build real examples for you.</span>
+                <p className="text-fo-primary font-medium">
+                  ⚡ I&apos;m setting up 14 workflows in parallel to build real examples for you.
                 </p>
               </div>
             </div>
