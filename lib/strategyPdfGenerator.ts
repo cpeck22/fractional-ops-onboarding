@@ -53,7 +53,7 @@ export function generateStrategyPDF(data: StrategyPDFData): Buffer {
   // Load logo as base64
   let logoBase64 = '';
   try {
-    const logoPath = path.join(process.cwd(), 'public', 'Fractional-Ops_Symbol_Main.png');
+    const logoPath = path.join(process.cwd(), 'app', 'Fractional-Ops_Symbol_Main- 2.png');
     const logoBuffer = fs.readFileSync(logoPath);
     logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
   } catch (error) {

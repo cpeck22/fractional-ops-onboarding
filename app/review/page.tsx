@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useQuestionnaire } from '@/components/QuestionnaireProvider';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
-import ClaireImage from '../Claire_v1.png';
+import ClaireImage from '../Claire_v2.png';
 
 // Force dynamic rendering (no static generation)
 export const dynamic = 'force-dynamic';
@@ -337,8 +337,8 @@ export default function ReviewPage() {
                   alt="Claire"
                   width={128}
                   height={128}
-                  className="object-cover scale-110"
-                  style={{ objectPosition: 'center 10%' }}
+                  className="object-cover scale-105"
+                  style={{ objectPosition: 'center center' }}
                   priority
                 />
               </div>

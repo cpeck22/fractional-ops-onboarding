@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
-import ClaireImage from '../Claire_v1.png';
+import ClaireImage from '../Claire_v2.png';
 
 // Force dynamic rendering (no static generation)
 export const dynamic = 'force-dynamic';
@@ -180,11 +180,30 @@ export default function ThankYouPage() {
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-fo-primary to-fo-secondary rounded-full mb-4">
                   <div className="animate-spin h-10 w-10 border-4 border-white border-t-transparent rounded-full"></div>
                 </div>
+                
+                {/* Claire Headshot */}
+                <div className="flex justify-center mb-4">
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-fo-primary shadow-lg">
+                    <Image
+                      src={ClaireImage}
+                      alt="Claire"
+                      width={96}
+                      height={96}
+                      className="object-cover scale-105"
+                      style={{ objectPosition: 'center center' }}
+                      priority
+                    />
+                  </div>
+                </div>
+                
                 <h3 className="text-2xl font-bold text-fo-primary mb-2">
-                  Generating Your Strategy
+                  I&apos;m <span className="bg-gradient-to-r from-fo-primary to-fo-secondary bg-clip-text text-transparent">Generating Your Strategy</span>
                 </h3>
-                <p className="text-fo-secondary">
-                  This will take about 2 minutes. Please don&apos;t close this window.
+                <p className="text-fo-secondary mb-2">
+                  This usually takes me <span className="line-through text-gray-400">2 minutes</span>
+                </p>
+                <p className="text-red-600 font-semibold text-lg">
+                  Please don&apos;t close this window.
                 </p>
               </div>
 
@@ -232,8 +251,13 @@ export default function ThankYouPage() {
                 </div>
               </div>
 
-              <div className="mt-6 text-center text-sm text-fo-secondary">
-                <p>⚡ Running 14 AI agents in parallel to build your custom strategy</p>
+              <div className="mt-6 text-center text-sm">
+                <p className="text-fo-secondary">
+                  ⚡ <span className="line-through text-gray-400">Running 14 AI agents in parallel to build your custom strategy</span>
+                </p>
+                <p className="text-red-600 font-medium mt-2">
+                  I&apos;m setting up 14 workflows <span className="text-fo-secondary">to build real examples for you.</span>
+                </p>
               </div>
             </div>
           </div>
