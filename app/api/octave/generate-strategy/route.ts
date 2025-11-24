@@ -295,6 +295,23 @@ export async function POST(request: NextRequest) {
         } else {
           console.warn('⚠️ Prospector returned no results:', prospectorData.message || 'Unknown error');
         }
+        
+        // Flatten prospect structure for UI compatibility
+        prospects = prospects.map((p: any) => ({
+          name: `${p.contact?.firstName || ''} ${p.contact?.lastName || ''}`.trim(),
+          firstName: p.contact?.firstName,
+          lastName: p.contact?.lastName,
+          title: p.contact?.title,
+          company: p.contact?.companyName,
+          companyDomain: p.contact?.companyDomain,
+          linkedIn: p.contact?.profileUrl,
+          location: p.contact?.location,
+          headline: p.contact?.headline,
+          // Keep original nested structure for agent use
+          contact: p.contact,
+          personas: p.personas
+        }));
+        console.log(`📋 Flattened ${prospects.length} prospects for UI display`);
       } catch (error: any) {
         console.error('❌ Prospector agent failed:', error.response?.data || error.message);
       }
@@ -397,7 +414,10 @@ export async function POST(request: NextRequest) {
           }
         );
 
-        if (response.data?.success) {
+        console.log(`📊 ${agentName} response:`, JSON.stringify(response.data, null, 2));
+
+        // Check for both "success" and "found" fields (Octave API inconsistency)
+        if (response.data?.success || response.data?.found) {
           console.log(`✅ ${agentName} completed successfully`);
           return response.data;
         } else {
