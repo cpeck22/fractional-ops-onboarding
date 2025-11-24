@@ -88,7 +88,35 @@ export default function ResultsPage() {
       if (error) {
         console.error('Error loading results:', error);
       } else {
-        setOutputs(data);
+        // Parse JSONB fields that might be stringified
+        console.log('📦 Raw data from Supabase:', data);
+        
+        const parsedData = {
+          ...data,
+          service_offering: typeof data.service_offering === 'string' 
+            ? JSON.parse(data.service_offering) 
+            : data.service_offering,
+          segments: typeof data.segments === 'string'
+            ? JSON.parse(data.segments)
+            : data.segments,
+          client_references: typeof data.client_references === 'string'
+            ? JSON.parse(data.client_references)
+            : data.client_references,
+          personas: typeof data.personas === 'string'
+            ? JSON.parse(data.personas)
+            : data.personas,
+          use_cases: typeof data.use_cases === 'string'
+            ? JSON.parse(data.use_cases)
+            : data.use_cases
+        };
+        
+        console.log('✅ Parsed data:', {
+          service_offering_type: typeof parsedData.service_offering,
+          segments_count: Array.isArray(parsedData.segments) ? parsedData.segments.length : 'not array',
+          references_count: Array.isArray(parsedData.client_references) ? parsedData.client_references.length : 'not array',
+        });
+        
+        setOutputs(parsedData);
       }
     } catch (err) {
       console.error('Error in loadResults:', err);
