@@ -282,7 +282,7 @@ export async function POST(request: NextRequest) {
           {
             companyDomain: lookalikeSource,
             agentOId: newAgentIds.prospector,
-            limit: 25,
+            limit: 100,
             minimal: true,
             searchContext: {
               personaOIds: personas.map((p: any) => p.oId),
@@ -326,7 +326,25 @@ export async function POST(request: NextRequest) {
           contact: p.contact,
           personas: p.personas
         }));
-        console.log(`📋 Flattened ${prospects.length} prospects for UI display`);
+        
+        // Filter out prospects from client reference companies
+        const referenceDomains = (clientReferences || []).map((ref: any) => {
+          const domain = ref.companyDomain || '';
+          return domain.replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase();
+        });
+        
+        const beforeFilterCount = prospects.length;
+        prospects = prospects.filter((p: any) => {
+          if (!p.companyDomain) return true; // Keep if no domain
+          const prospectDomain = p.companyDomain.replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase();
+          return !referenceDomains.includes(prospectDomain);
+        });
+        
+        const filteredCount = beforeFilterCount - prospects.length;
+        if (filteredCount > 0) {
+          console.log(`🔍 Filtered out ${filteredCount} prospects from reference companies`);
+        }
+        console.log(`📋 Flattened ${prospects.length} prospects for UI display (after filtering)`);
       } catch (error: any) {
         console.error('❌ Prospector agent failed:', error.response?.data || error.message);
       }
