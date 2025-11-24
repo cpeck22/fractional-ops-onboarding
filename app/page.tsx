@@ -58,7 +58,7 @@ export default function Home() {
         {/* Claire's Greeting Video */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold text-blue-600 mb-4 text-center">
-            👋 A Message from Claire
+            👇 Why is there a Login?!
           </h2>
           <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md">
             <iframe
@@ -68,21 +68,6 @@ export default function Home() {
               allowFullScreen
               style={{ border: 'none' }}
             />
-          </div>
-        </div>
-        
-        <div className="text-left">
-          <h1 className="text-4xl font-bold text-blue-600 mb-6">
-            Get Ready...
-          </h1>
-          <div className="text-lg text-gray-700 mb-2">
-            You&apos;re about to get a world-class
-          </div>
-          <div className="text-lg text-gray-700 mb-2">
-            Sales Strategy.
-          </div>
-          <div className="text-base text-gray-700 mb-8">
-            In a format all the best <strong>AI tools</strong> can use automatically.
           </div>
         </div>
         
