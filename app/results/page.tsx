@@ -296,7 +296,7 @@ export default function ResultsPage() {
                   </div>
                   <div className="p-6 bg-white">
                     <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700 leading-relaxed">
-                      {email.body}
+                      {email.email || email.body}
                     </pre>
                   </div>
                 </div>

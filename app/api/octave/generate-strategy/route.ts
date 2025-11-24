@@ -48,7 +48,8 @@ export async function POST(request: NextRequest) {
       workspace_oid: workspaceOId,
       workspace_api_key: workspaceApiKey,
       company_domain: companyDomain,
-      company_name: companyName
+      company_name: companyName,
+      client_references: clientReferences
     } = workspaceData;
 
     if (!workspaceApiKey) {
@@ -249,11 +250,25 @@ export async function POST(request: NextRequest) {
     updateProgress('Running Prospector Agent...', 3, 15);
     
     let prospects: any[] = [];
-    let lookalikeSource = `https://${companyDomain}`;
+    let lookalikeSource = '';
 
-    // Get lookalike source from reference customers if available
-    // For now, use company domain as fallback
-    console.log('🎯 Using lookalike search with reference customer:', lookalikeSource);
+    // Get lookalike source from reference customers (preferred)
+    if (clientReferences && Array.isArray(clientReferences) && clientReferences.length > 0) {
+      // Use the first reference customer with a domain
+      const refWithDomain = clientReferences.find((ref: any) => ref.companyDomain);
+      if (refWithDomain) {
+        lookalikeSource = refWithDomain.companyDomain.startsWith('http') 
+          ? refWithDomain.companyDomain 
+          : `https://${refWithDomain.companyDomain}`;
+        console.log(`🎯 Using reference customer for lookalike search: ${refWithDomain.companyName} (${lookalikeSource})`);
+      }
+    }
+    
+    // Fallback to client domain if no references (not ideal, but prevents failure)
+    if (!lookalikeSource) {
+      lookalikeSource = `https://${companyDomain}`;
+      console.warn('⚠️ No reference customers found. Using client domain as fallback (will find prospects AT client company, not lookalikes)');
+    }
 
     if (newAgentIds.prospector && companyDomain) {
       try {
@@ -398,7 +413,16 @@ export async function POST(request: NextRequest) {
           };
         } else if (agentType === 'content') {
           endpoint = `${OCTAVE_BASE_URL}/generate-content/run`;
-          // Content agents don't need prospect info
+          // Content agents need prospect context for personalization
+          requestBody = {
+            ...requestBody,
+            email: prospect?.contact?.companyDomain || companyDomain || null,
+            companyDomain: prospect?.contact?.companyDomain || companyDomain || null,
+            companyName: prospect?.contact?.company || companyName || null,
+            firstName: prospect?.contact?.firstName || null,
+            jobTitle: prospect?.contact?.title || null,
+            linkedInProfile: prospect?.contact?.profileUrl || null
+          };
         }
 
         console.log(`🔄 Running ${agentName}...`);
