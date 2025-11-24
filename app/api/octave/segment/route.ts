@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { ClientReference } from '@/types';
 
-const OCTAVE_SEGMENT_API_URL = 'https://app.octavehq.com/api/v2/segment/create';
+const OCTAVE_SEGMENT_API_URL = 'https://app.octavehq.com/api/v2/segment/generate';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       workspaceApiKey?: string;
     };
 
-    console.log('📥 Creating segments in Octave from client references');
+    console.log('📥 Generating segments in Octave from client references (GENERATE endpoint with AI enhancement)');
     console.log('📥 Number of client references:', clientReferences.length);
     console.log('📥 Primary Offering OId:', primaryOfferingOId);
     console.log('📥 Workspace OId:', workspaceOId);
@@ -32,11 +32,18 @@ export async function POST(request: NextRequest) {
 
     // Extract unique industries from client references
     const industries = new Set<string>();
+    const industryDetails = new Map<string, ClientReference[]>();
+    
     clientReferences.forEach(ref => {
       if (ref.industry && ref.industry.trim()) {
-        // Normalize the industry name (trim whitespace, lowercase for comparison)
         const normalizedIndustry = ref.industry.trim();
         industries.add(normalizedIndustry);
+        
+        // Group references by industry for richer context
+        if (!industryDetails.has(normalizedIndustry)) {
+          industryDetails.set(normalizedIndustry, []);
+        }
+        industryDetails.get(normalizedIndustry)!.push(ref);
       }
     });
 
@@ -54,76 +61,89 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const createdSegments = [];
-    const errors = [];
+    // Build segments array for batch generation with AI enhancement
+    const segmentsArray = uniqueIndustries.map(industry => {
+      const refsInIndustry = industryDetails.get(industry) || [];
+      const companyNames = refsInIndustry.map(r => r.companyName).join(', ');
+      
+      // Build rich TEXT source for AI enhancement
+      const textSource = `Market Segment: ${industry}
+Number of client references: ${refsInIndustry.length}
+Example companies in this segment: ${companyNames}
+${refsInIndustry[0]?.successStory ? `Example success story: ${refsInIndustry[0].successStory}` : ''}`;
 
-    // Create a segment for each unique industry
-    for (let i = 0; i < uniqueIndustries.length; i++) {
-      const industry = uniqueIndustries[i];
-
-      try {
-        console.log(`📤 Creating segment ${i + 1}/${uniqueIndustries.length}: ${industry}`);
-
-        const segmentRequest = {
-          name: industry,
-          description: `Market segment for ${industry} industry`,
-          data: {},
-          primaryOfferingOId: primaryOfferingOId || undefined,
-          linkingStrategy: {
-            mode: 'ALL'
+      return {
+        name: industry, // Will be used as segment name
+        sources: [
+          {
+            type: 'TEXT',
+            value: textSource
           }
-        };
-
-        console.log('Segment request:', JSON.stringify(segmentRequest, null, 2));
-
-        const response = await axios.post(OCTAVE_SEGMENT_API_URL, segmentRequest, {
-          headers: {
-            'Content-Type': 'application/json',
-            'api_key': apiKey
-          }
-        });
-
-        console.log(`✅ Created segment ${i + 1}: ${industry} (${response.data.data.oId})`);
-        createdSegments.push({
-          index: i,
-          industry: industry,
-          oId: response.data.data.oId,
-          name: response.data.data.name,
-          data: response.data.data
-        });
-
-      } catch (error: any) {
-        console.error(`❌ Error creating segment ${i + 1} (${industry}):`, error.response?.data || error.message);
-        errors.push({
-          index: i,
-          industry: industry,
-          error: error.response?.data?.message || error.message
-        });
-      }
-    }
-
-    console.log(`✅ Successfully created ${createdSegments.length} / ${uniqueIndustries.length} segments`);
-    if (errors.length > 0) {
-      console.log(`⚠️ ${errors.length} segments failed:`, errors);
-    }
-
-    return NextResponse.json({
-      success: true,
-      created: createdSegments.length,
-      total: uniqueIndustries.length,
-      segments: createdSegments,
-      errors: errors.length > 0 ? errors : undefined
+        ]
+      };
     });
 
+    console.log(`🤖 Generating ${segmentsArray.length} segments with AI enhancement...`);
+
+    try {
+      const segmentRequest = {
+        segments: segmentsArray,
+        primaryOfferingOId: primaryOfferingOId || undefined,
+        linkingStrategy: {
+          mode: 'ALL'
+        }
+      };
+
+      console.log('Segment generation request:', JSON.stringify(segmentRequest, null, 2));
+
+      const response = await axios.post(OCTAVE_SEGMENT_API_URL, segmentRequest, {
+        headers: {
+          'Content-Type': 'application/json',
+          'api_key': apiKey
+        }
+      });
+
+      console.log('🔍 FULL SEGMENT GENERATION RESPONSE:', JSON.stringify(response.data, null, 2));
+
+      // Extract created segments from response
+      const createdSegments = response.data?.data?.map((segData: any, index: number) => ({
+        index: index,
+        industry: uniqueIndustries[index],
+        oId: segData.oId,
+        name: segData.name,
+        data: segData
+      })) || [];
+
+      console.log(`✅ Successfully generated ${createdSegments.length} segments with AI enhancement`);
+
+      return NextResponse.json({
+        success: true,
+        created: createdSegments.length,
+        total: uniqueIndustries.length,
+        segments: createdSegments,
+        message: `Generated ${createdSegments.length} segments with AI enhancement`
+      });
+
+    } catch (error: any) {
+      console.error(`❌ Error generating segments:`, error.response?.data || error.message);
+      return NextResponse.json(
+        { 
+          success: false,
+          error: error.response?.data?.message || error.message,
+          details: error.response?.data
+        },
+        { status: 500 }
+      );
+    }
+
   } catch (error: any) {
-    console.error('❌ Error in segment creation API:', error);
+    console.error('❌ Error in segment generation API:', error);
     return NextResponse.json(
       { 
         success: false,
-        error: error.message || 'Failed to create segments'
+        error: error.message || 'Failed to generate segments'
       },
       { status: 500 }
     );
   }
 }
-
