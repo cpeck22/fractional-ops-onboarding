@@ -61,9 +61,9 @@ export default function ClaireVideoPlaceholder({
           {videoUrl && !videoError ? (
             <iframe
               ref={videoRef}
-              src={`${videoUrl}&autoplay=1&mute=1`}
+              src={videoUrl}
               className="w-full h-full"
-              allow="autoplay; encrypted-media"
+              allow="autoplay"
               allowFullScreen
               style={{ border: 'none' }}
             />
