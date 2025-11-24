@@ -29,6 +29,7 @@ export async function POST(request: Request) {
     console.log('🔧 API: Saving with service key');
     console.log(`🔧 API: Upserting ${section}.${fieldKey} for user ${userId}`);
     
+    // Use upsert with explicit select to ensure we get the result back
     const { data, error } = await supabaseAdmin
       .from('questionnaire_responses')
       .upsert(
@@ -40,10 +41,12 @@ export async function POST(request: Request) {
           updated_at: new Date().toISOString()
         },
         {
-          onConflict: 'user_id,section,field_key', // Specify unique constraint columns
-          ignoreDuplicates: false // Always update on conflict
+          onConflict: 'user_id,section,field_key',
+          ignoreDuplicates: false
         }
-      );
+      )
+      .select()
+      .single();
     
     if (error) {
       console.error('🔧 API: Save error:', {
