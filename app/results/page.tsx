@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import ClaireImage from '../Claire_v1.png';
+import ClaireImage from '../Claire_v2.png';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -46,10 +46,10 @@ interface OctaveOutputs {
 }
 
 const ErrorPlaceholder = ({ assetType }: { assetType: string }) => (
-  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-    <div className="text-yellow-600 mb-2">⚠️</div>
-    <p className="text-gray-700 text-sm">
-      I need more context before I create <strong>{assetType}</strong>. You can always book a GTM Kickoff Call on the previous page and we can review this together.
+  <div className="bg-fo-light border-l-4 border-fo-orange rounded-lg p-6">
+    <div className="text-fo-orange mb-2 font-bold">⚠️ Need more context</div>
+    <p className="text-fo-text-secondary text-sm">
+      I need more details to create <strong>{assetType}</strong>. Book a GTM Kickoff Call to review together.
     </p>
   </div>
 );
@@ -138,10 +138,10 @@ export default function ResultsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-fo-light to-white flex items-center justify-center">
+      <div className="min-h-screen bg-fo-light flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-fo-primary mx-auto mb-4"></div>
-          <p className="text-fo-secondary text-lg">Loading your personalized strategy...</p>
+          <p className="text-fo-dark text-lg font-semibold">Loading workflows...</p>
         </div>
       </div>
     );
@@ -149,21 +149,20 @@ export default function ResultsPage() {
 
   if (!outputs) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-fo-light to-white">
+      <div className="min-h-screen bg-fo-light">
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <div className="bg-white rounded-lg shadow-fo-shadow p-12">
-            <div className="text-6xl mb-4">🤔</div>
-            <h1 className="text-3xl font-bold text-fo-primary mb-4">
-              No Strategy Found
+          <div className="bg-white rounded-lg shadow-lg p-12">
+            <h1 className="text-3xl font-bold text-fo-dark mb-4">
+              No workflows found.
             </h1>
-            <p className="text-fo-secondary mb-8">
-              Please complete the questionnaire first to generate your personalized CRO strategy.
+            <p className="text-fo-text-secondary mb-8">
+              Complete the questionnaire to build your revenue system.
             </p>
             <button
               onClick={() => router.push('/questionnaire')}
-              className="px-8 py-3 bg-gradient-to-r from-fo-primary to-fo-secondary text-white rounded-lg hover:opacity-90 font-semibold"
+              className="px-8 py-3 bg-fo-orange text-white rounded-lg hover:bg-opacity-90 font-bold shadow-lg"
             >
-              Start Questionnaire
+              Start Now
             </button>
           </div>
         </div>
@@ -196,30 +195,33 @@ export default function ResultsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-fo-light to-white">
+    <div className="min-h-screen bg-fo-light">
       <div className="max-w-6xl mx-auto px-4 py-8">
         
         {/* Header with Claire */}
         <div className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
           <div className="flex items-center gap-6">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+            <div className="w-24 h-24 bg-gradient-to-br from-fo-primary to-fo-secondary rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 border-4 border-fo-primary">
               <Image
                 src={ClaireImage}
                 alt="Claire"
                 width={96}
                 height={96}
-                className="object-cover scale-110"
-                style={{ objectPosition: 'center 10%' }}
+                className="object-cover scale-105"
+                style={{ objectPosition: 'center center' }}
                 priority
               />
             </div>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-fo-primary mb-2">
-                {outputs.company_name}&apos;s CRO Strategy
+              <h1 className="text-3xl font-bold text-fo-dark mb-2">
+                {outputs.company_name}&apos;s Revenue Workflows
               </h1>
-              <p className="text-fo-secondary">
-                Built by Claire • Generated on {new Date(outputs.created_at).toLocaleDateString('en-US', { 
-                  month: 'long', 
+              <p className="text-fo-orange font-semibold text-sm mb-1">
+                Actionable systems. Fast results. No drama.
+              </p>
+              <p className="text-fo-text-secondary text-sm">
+                Built by Claire • {new Date(outputs.created_at).toLocaleDateString('en-US', { 
+                  month: 'short', 
                   day: 'numeric', 
                   year: 'numeric' 
                 })}
@@ -228,17 +230,17 @@ export default function ResultsPage() {
             <button
               onClick={handleDownloadPDF}
               disabled={downloadingPDF}
-              className="px-6 py-3 bg-gradient-to-r from-fo-primary to-fo-secondary text-white rounded-lg hover:opacity-90 font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+              className="px-6 py-3 bg-fo-orange text-white rounded-lg hover:bg-opacity-90 font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap shadow-lg"
             >
               {downloadingPDF ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Generating PDF...
+                  Generating...
                 </>
               ) : (
                 <>
                   <span className="text-xl">📄</span>
-                  Download Strategy
+                  Download Report
                 </>
               )}
             </button>
@@ -246,10 +248,9 @@ export default function ResultsPage() {
         </div>
 
         {/* Campaign Ideas */}
-        <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
-          <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
-            <span className="text-3xl">💡</span>
-            Campaign Ideas
+        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-primary">
+          <h2 className="text-2xl font-bold text-fo-dark mb-6">
+            💡 Campaign Workflows
           </h2>
           {outputs.campaign_ideas && outputs.campaign_ideas.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-4">
@@ -268,10 +269,9 @@ export default function ResultsPage() {
         </section>
 
         {/* Prospect List */}
-        <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
-          <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
-            <span className="text-3xl">👥</span>
-            Real Prospect List
+        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-green">
+          <h2 className="text-2xl font-bold text-fo-dark mb-6">
+            👥 Qualified Prospects
           </h2>
           {outputs.prospect_list && outputs.prospect_list.length > 0 ? (
             <>
@@ -313,10 +313,9 @@ export default function ResultsPage() {
         </section>
 
         {/* Cold Email Sequences with Tabs */}
-        <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
-          <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
-            <span className="text-3xl">📧</span>
-            Outbound Copy (Cold Emails)
+        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-orange">
+          <h2 className="text-2xl font-bold text-fo-dark mb-6">
+            📧 Cold Email Sequences
           </h2>
           
           {/* Tabs */}
@@ -360,10 +359,9 @@ export default function ResultsPage() {
         </section>
 
         {/* LinkedIn Posts with Tabs */}
-        <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
-          <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
-            <span className="text-3xl">📱</span>
-            LinkedIn Post Copy
+        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-secondary">
+          <h2 className="text-2xl font-bold text-fo-dark mb-6">
+            📱 LinkedIn Posts
           </h2>
           
           {/* Tabs */}
@@ -396,10 +394,9 @@ export default function ResultsPage() {
         </section>
 
         {/* LinkedIn DMs with Tabs */}
-        <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
-          <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
-            <span className="text-3xl">💬</span>
-            LinkedIn Connection Copy
+        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-primary">
+          <h2 className="text-2xl font-bold text-fo-dark mb-6">
+            💬 LinkedIn DMs
           </h2>
           
           {/* Tabs */}
@@ -432,10 +429,9 @@ export default function ResultsPage() {
         </section>
 
         {/* Newsletters with Tabs */}
-        <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
-          <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
-            <span className="text-3xl">📰</span>
-            Newsletter Copy
+        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-green">
+          <h2 className="text-2xl font-bold text-fo-dark mb-6">
+            📰 Newsletter Content
           </h2>
           
           {/* Tabs */}
@@ -468,10 +464,9 @@ export default function ResultsPage() {
         </section>
 
         {/* Call Prep */}
-        <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
-          <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
-            <span className="text-3xl">📞</span>
-            Sample Call-Prep
+        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-orange">
+          <h2 className="text-2xl font-bold text-fo-dark mb-6">
+            📞 Call Prep
           </h2>
           {outputs.call_prep ? (
             <div className="space-y-6">
@@ -514,10 +509,9 @@ export default function ResultsPage() {
         </section>
 
         {/* Misc. Section (formerly Workspace Library) */}
-        <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
-          <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
-            <span className="text-3xl">📋</span>
-            Misc.
+        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-accent">
+          <h2 className="text-2xl font-bold text-fo-dark mb-6">
+            📋 Library Assets
           </h2>
           <p className="text-fo-secondary mb-6">
             Foundational library materials created in your Octave workspace
@@ -1006,16 +1000,16 @@ export default function ResultsPage() {
         </section>
 
         {/* CTA Section */}
-        <div className="bg-gradient-to-r from-fo-primary to-fo-secondary text-white rounded-lg shadow-fo-shadow p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">Ready to Turn It On?</h2>
+        <div className="bg-fo-accent text-white rounded-lg shadow-lg p-8 text-center">
+          <h2 className="text-2xl font-bold mb-4">Ready to execute?</h2>
           <p className="mb-6 text-white/90">
-            Book your GTM Kickoff Call with Corey to activate your personalized CRO strategy
+            Book your GTM Kickoff Call with Corey to activate these workflows
           </p>
           <button
             onClick={() => window.close()}
-            className="bg-white text-fo-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+            className="bg-fo-orange text-white px-8 py-3 rounded-lg font-bold hover:bg-opacity-90 transition-all shadow-lg"
           >
-            ← Back to Booking Page
+            ← Back to Booking
           </button>
         </div>
       </div>
