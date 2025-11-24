@@ -79,15 +79,12 @@ export default function Home() {
             Start Now
           </button>
           
-          <div className="mt-6">
-            <div className="text-sm text-gray-500 mb-2">
-              Already have an account?
-            </div>
+          <div className="mt-6 text-center">
             <button
               onClick={() => router.push('/signin')}
-              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors font-medium"
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
             >
-              Sign In
+              Already have an account? Sign In
             </button>
           </div>
         </div>
