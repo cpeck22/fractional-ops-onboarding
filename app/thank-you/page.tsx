@@ -128,26 +128,16 @@ export default function ThankYouPage() {
         {/* Video Section */}
         <div className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
           <h2 className="text-2xl font-bold text-fo-primary mb-6 text-center">
-            A Message from Claire
+            💙 A Message from Claire
           </h2>
-          <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center relative overflow-hidden">
-            <Image
-              src={ClaireImage}
-              alt="Claire"
-              fill
-              className="object-cover scale-110"
-              style={{ objectPosition: 'center 15%' }}
-              priority
+          <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md">
+            <iframe
+              src="https://drive.google.com/file/d/1qCJ8ggOedeMS5HKd58WCUPv4xPzOO38k/preview&autoplay=1&mute=1"
+              className="w-full h-full"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              style={{ border: 'none' }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-            <div className="absolute inset-0 flex items-center justify-center z-10">
-              <div className="text-center text-white">
-                <div className="bg-black/40 backdrop-blur-sm rounded-lg px-8 py-6">
-                  <p className="text-2xl font-bold mb-2">Thank You Video</p>
-                  <p className="text-lg">Coming Soon</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 

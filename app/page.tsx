@@ -36,8 +36,8 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 bg-gray-100">
-      <div className="max-w-md w-full space-y-8">
+    <main className="min-h-screen flex items-center justify-center px-4 bg-gray-100 py-12">
+      <div className="max-w-2xl w-full space-y-8">
         <div className="text-center">
           <div className="inline-block relative mb-4">
             <span className="absolute -top-2 -right-8 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
@@ -51,6 +51,22 @@ export default function Home() {
               width={256}
               height={256}
               priority
+            />
+          </div>
+        </div>
+
+        {/* Claire's Greeting Video */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold text-blue-600 mb-4 text-center">
+            👋 A Message from Claire
+          </h2>
+          <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md">
+            <iframe
+              src="https://drive.google.com/file/d/1oqfYYd2P6dxUdxMA55GjzS5YcKfo4iD2/preview&autoplay=1&mute=1"
+              className="w-full h-full"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              style={{ border: 'none' }}
             />
           </div>
         </div>
