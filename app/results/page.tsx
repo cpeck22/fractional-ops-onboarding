@@ -37,12 +37,7 @@ interface OctaveOutputs {
   };
   call_prep: any;
   // Library materials
-  service_offering?: {
-    type: string;
-    name: string;
-    differentiatedValue: string;
-    statusQuo: string;
-  };
+  service_offering?: any;
   use_cases?: any[];
   personas?: any[];
   client_references?: any[];
