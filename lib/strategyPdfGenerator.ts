@@ -62,10 +62,13 @@ export function generateStrategyPDF(data: StrategyPDFData): Buffer {
     doc.setTextColor(color[0], color[1], color[2]);
     
     const lines = doc.splitTextToSize(text, maxWidth);
-    checkPageBreak(lines.length * fontSize * 0.35 + 5);
+    const lineHeight = fontSize * 0.5; // Increased from 0.35 for better spacing
+    const totalHeight = lines.length * lineHeight + 5;
+    
+    checkPageBreak(totalHeight);
     
     doc.text(lines, margin, yPosition);
-    yPosition += lines.length * fontSize * 0.35 + 3;
+    yPosition += totalHeight;
     doc.setTextColor(0, 0, 0); // Reset color
   };
   
@@ -73,13 +76,17 @@ export function generateStrategyPDF(data: StrategyPDFData): Buffer {
     yPosition += space;
   };
   
-  const addSectionHeader = (icon: string, title: string) => {
-    checkPageBreak(15);
-    addSpace(5);
+  const addSectionHeader = (title: string) => {
+    checkPageBreak(20);
+    addSpace(8);
     doc.setFillColor(240, 240, 250);
-    doc.rect(margin - 5, yPosition - 5, pageWidth - (margin * 2) + 10, 12, 'F');
-    addText(`${icon} ${title}`, 14, true, [63, 81, 181]);
-    addSpace(3);
+    doc.rect(margin - 5, yPosition - 3, pageWidth - (margin * 2) + 10, 14, 'F');
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(63, 81, 181);
+    doc.text(title, margin, yPosition + 5);
+    yPosition += 18; // Fixed spacing after header
+    doc.setTextColor(0, 0, 0);
   };
   
   const addDivider = () => {
@@ -107,29 +114,29 @@ export function generateStrategyPDF(data: StrategyPDFData): Buffer {
   
   // Campaign Ideas
   if (data.campaignIdeas && data.campaignIdeas.length > 0) {
-    addSectionHeader('💡', 'Campaign Ideas');
+    addSectionHeader('CAMPAIGN IDEAS');
     data.campaignIdeas.forEach((campaign: any, index: number) => {
       addText(`Campaign ${campaign.id || index + 1}: ${campaign.title}`, 12, true);
       addText(campaign.description, 10, false);
-      addSpace(4);
+      addSpace(5);
     });
     addDivider();
   }
   
   // Prospect List
   if (data.prospectList && data.prospectList.length > 0) {
-    addSectionHeader('👥', 'Real Prospect List');
+    addSectionHeader('REAL PROSPECT LIST');
     addText(`Found ${data.prospectList.length} qualified prospects matching your ideal customer profile`, 10, false, [100, 100, 100]);
-    addSpace(3);
+    addSpace(4);
     
     const prospectsToShow = data.prospectList.slice(0, 10);
     prospectsToShow.forEach((prospect: any, index: number) => {
-      checkPageBreak(15);
+      checkPageBreak(20);
       addText(`${index + 1}. ${prospect.name || `Prospect ${index + 1}`}`, 11, true);
       if (prospect.title) addText(`   ${prospect.title}`, 9, false);
       if (prospect.company) addText(`   ${prospect.company}`, 9, false);
       if (prospect.linkedIn) addText(`   LinkedIn: ${prospect.linkedIn}`, 8, false, [0, 0, 255]);
-      addSpace(2);
+      addSpace(3);
     });
     
     if (data.prospectList.length > 10) {
@@ -147,25 +154,25 @@ export function generateStrategyPDF(data: StrategyPDFData): Buffer {
     { key: 'leadMagnetLong', label: 'Lead Magnet Focus (Long)' }
   ];
   
-  addSectionHeader('📧', 'Outbound Copy (Cold Emails)');
+  addSectionHeader('OUTBOUND COPY (COLD EMAILS)');
   emailVariants.forEach((variant, variantIndex) => {
     const emails = data.coldEmails[variant.key as keyof typeof data.coldEmails];
     if (emails && emails.length > 0) {
-      checkPageBreak(20);
+      checkPageBreak(25);
       addText(`Email Sequence ${variantIndex + 1}: ${variant.label}`, 12, true, [63, 81, 181]);
-      addSpace(2);
+      addSpace(3);
       
       emails.forEach((email: any, emailIndex: number) => {
-        checkPageBreak(25);
+        checkPageBreak(30);
         addText(`Email ${emailIndex + 1}`, 11, true);
         addText(`Subject: ${email.subject}`, 10, true);
-        addSpace(2);
+        addSpace(3);
         addText(email.email || email.body || 'No content available', 9, false);
-        addSpace(4);
+        addSpace(5);
       });
       
       if (variantIndex < emailVariants.length - 1) {
-        addSpace(3);
+        addSpace(4);
       }
     }
   });
@@ -178,15 +185,15 @@ export function generateStrategyPDF(data: StrategyPDFData): Buffer {
     { key: 'actionable', label: 'Actionable Post (Explanation / Analysis)' }
   ];
   
-  addSectionHeader('📱', 'LinkedIn Post Copy');
+  addSectionHeader('LINKEDIN POST COPY');
   postVariants.forEach((variant, index) => {
     const content = data.linkedinPosts[variant.key as keyof typeof data.linkedinPosts];
     if (content) {
-      checkPageBreak(20);
+      checkPageBreak(25);
       addText(`${index + 1}. ${variant.label}`, 11, true);
-      addSpace(2);
+      addSpace(3);
       addText(content, 9, false);
-      addSpace(4);
+      addSpace(5);
     }
   });
   addDivider();
@@ -197,15 +204,15 @@ export function generateStrategyPDF(data: StrategyPDFData): Buffer {
     { key: 'leadMagnet', label: 'Lead Magnet CTA' }
   ];
   
-  addSectionHeader('💬', 'LinkedIn Connection Copy');
+  addSectionHeader('LINKEDIN CONNECTION COPY');
   dmVariants.forEach((variant, index) => {
     const content = data.linkedinDMs[variant.key as keyof typeof data.linkedinDMs];
     if (content) {
-      checkPageBreak(20);
+      checkPageBreak(25);
       addText(`${index + 1}. LinkedIn DM - ${variant.label}`, 11, true);
-      addSpace(2);
+      addSpace(3);
       addText(content, 9, false);
-      addSpace(4);
+      addSpace(5);
     }
   });
   addDivider();
@@ -216,120 +223,129 @@ export function generateStrategyPDF(data: StrategyPDFData): Buffer {
     { key: 'leadership', label: 'Leadership Writing (Nurture Emails)' }
   ];
   
-  addSectionHeader('📰', 'Newsletter Copy');
+  addSectionHeader('NEWSLETTER COPY');
   newsletterVariants.forEach((variant, index) => {
     const content = data.newsletters[variant.key as keyof typeof data.newsletters];
     if (content) {
-      checkPageBreak(20);
+      checkPageBreak(25);
       addText(`${index + 1}. ${variant.label}`, 11, true);
-      addSpace(2);
+      addSpace(3);
       addText(content, 9, false);
-      addSpace(4);
+      addSpace(5);
     }
   });
   addDivider();
   
   // Call Prep
   if (data.callPrep) {
-    addSectionHeader('📞', 'Sample Call-Prep');
+    addSectionHeader('SAMPLE CALL-PREP');
     
     if (data.callPrep.discoveryQuestions && data.callPrep.discoveryQuestions.length > 0) {
       addText('Discovery Questions:', 11, true);
-      addSpace(2);
+      addSpace(3);
       data.callPrep.discoveryQuestions.forEach((question: string, index: number) => {
-        checkPageBreak(10);
+        checkPageBreak(15);
         addText(`${index + 1}. ${question}`, 9, false);
+        addSpace(2);
       });
-      addSpace(4);
+      addSpace(5);
     }
     
     if (data.callPrep.callScript) {
-      checkPageBreak(20);
+      checkPageBreak(30);
       addText('Call Script:', 11, true);
-      addSpace(2);
+      addSpace(3);
       addText(data.callPrep.callScript, 9, false);
-      addSpace(4);
+      addSpace(5);
     }
     
     if (data.callPrep.objectionHandling) {
-      checkPageBreak(20);
+      checkPageBreak(30);
       addText('Objection Handling:', 11, true);
-      addSpace(2);
+      addSpace(3);
       addText(data.callPrep.objectionHandling, 9, false);
+      addSpace(5);
     }
     
     addDivider();
   }
   
   // Workspace Library
-  addSectionHeader('📚', 'Workspace Library');
+  addSectionHeader('WORKSPACE LIBRARY');
   addText('Foundational materials created in your Octave workspace', 10, false, [100, 100, 100]);
-  addSpace(3);
+  addSpace(5);
   
   // Service Offering
   if (data.serviceOffering) {
-    checkPageBreak(15);
+    checkPageBreak(20);
     addText('Service Offering', 12, true);
+    addSpace(2);
     addText(`Name: ${data.serviceOffering.name || 'N/A'}`, 10, false);
     if (data.serviceOffering.differentiatedValue) {
       addText(`Value: ${data.serviceOffering.differentiatedValue}`, 10, false);
     }
-    addSpace(4);
+    addSpace(5);
   }
   
   // Personas
   if (data.personas && data.personas.length > 0) {
-    checkPageBreak(15);
+    checkPageBreak(20);
     addText(`Personas (${data.personas.length} created)`, 12, true);
+    addSpace(2);
     data.personas.forEach((persona: any, index: number) => {
-      checkPageBreak(10);
+      checkPageBreak(15);
       addText(`${index + 1}. ${persona.name || 'Unnamed Persona'}`, 10, true);
       if (persona.data?.commonJobTitles && persona.data.commonJobTitles.length > 0) {
         addText(`   Job Titles: ${persona.data.commonJobTitles.slice(0, 3).join(', ')}...`, 9, false);
       }
+      addSpace(2);
     });
-    addSpace(4);
+    addSpace(5);
   }
   
   // Use Cases
   if (data.useCases && data.useCases.length > 0) {
-    checkPageBreak(15);
+    checkPageBreak(20);
     addText(`Use Cases (${data.useCases.length} created)`, 12, true);
+    addSpace(2);
     data.useCases.forEach((useCase: any, index: number) => {
-      checkPageBreak(15);
+      checkPageBreak(20);
       addText(`${index + 1}. ${useCase.name || 'Unnamed Use Case'}`, 10, true);
       if (useCase.description) {
         addText(useCase.description.substring(0, 200) + '...', 9, false);
       }
-      addSpace(2);
+      addSpace(3);
     });
-    addSpace(4);
+    addSpace(5);
   }
   
   // Segments
   if (data.segments && data.segments.length > 0) {
-    checkPageBreak(15);
+    checkPageBreak(20);
     addText(`Market Segments (${data.segments.length} created)`, 12, true);
+    addSpace(2);
     data.segments.forEach((segment: any, index: number) => {
-      checkPageBreak(10);
+      checkPageBreak(15);
       addText(`${index + 1}. ${segment.name || 'Unnamed Segment'}`, 10, true);
       if (segment.industry) {
         addText(`   Industry: ${segment.industry}`, 9, false);
       }
+      addSpace(2);
     });
-    addSpace(4);
+    addSpace(5);
   }
   
   // Client References
   if (data.clientReferences && data.clientReferences.length > 0) {
-    checkPageBreak(15);
+    checkPageBreak(20);
     addText(`Client References (${data.clientReferences.length} created)`, 12, true);
+    addSpace(2);
     data.clientReferences.forEach((ref: any, index: number) => {
-      checkPageBreak(12);
+      checkPageBreak(15);
       addText(`${index + 1}. ${ref.companyName || 'Unnamed Company'}`, 10, true);
       if (ref.companyDomain) addText(`   Website: ${ref.companyDomain}`, 9, false);
       if (ref.industry) addText(`   Industry: ${ref.industry}`, 9, false);
-      addSpace(2);
+      addSpace(3);
     });
   }
   
