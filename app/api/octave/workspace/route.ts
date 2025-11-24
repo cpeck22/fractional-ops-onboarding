@@ -579,7 +579,40 @@ export async function POST(request: NextRequest) {
       console.log(`💡 Generated ${campaignIdeas.length} campaign ideas from segments`);
     }
 
-    // STEP 6: SAVE RESULTS TO DATABASE
+    // STEP 6: FETCH FULL SERVICE OFFERING FROM OCTAVE
+    // ============================================
+    // Instead of using the minimal generateOffering() object, fetch the full product from Octave
+    let fullServiceOffering = generateOffering(questionnaireData); // Fallback to minimal object
+    
+    if (productOId && workspaceApiKey) {
+      console.log('🎯 Fetching full Service Offering/Product from Octave...');
+      try {
+        const productResponse = await axios.get(
+          `https://app.octavehq.com/api/v2/product/get?oId=${productOId}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'api_key': workspaceApiKey
+            }
+          }
+        );
+
+        if (productResponse.data?.data) {
+          fullServiceOffering = productResponse.data.data;
+          console.log('✅ Fetched full Service Offering with all fields');
+          console.log('📊 Service Offering includes:', Object.keys(fullServiceOffering).join(', '));
+        } else {
+          console.warn('⚠️ Product fetch succeeded but no data in response, using minimal object');
+        }
+      } catch (productError: any) {
+        console.error('⚠️ Failed to fetch full product (non-critical):', productError.message);
+        console.log('📝 Will use minimal service offering object as fallback');
+      }
+    } else {
+      console.warn('⚠️ Cannot fetch full product: missing productOId or workspaceApiKey');
+    }
+
+    // STEP 7: SAVE RESULTS TO DATABASE
     // ============================================
     
     if (effectiveUserId) {
@@ -607,7 +640,7 @@ export async function POST(request: NextRequest) {
             newsletters: null,
             call_prep: null,
             // Library materials (populated at workspace creation)
-            service_offering: generateOffering(questionnaireData),
+            service_offering: fullServiceOffering, // ✅ Now using full product data from Octave
             use_cases: useCases,
             personas: personas,
             client_references: createdReferences,
