@@ -62,6 +62,7 @@ const ErrorPlaceholder = ({ assetType }: { assetType: string }) => (
 export default function ResultsPage() {
   const [outputs, setOutputs] = useState<OctaveOutputs | null>(null);
   const [loading, setLoading] = useState(true);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [activeEmailTab, setActiveEmailTab] = useState('personalizedSolutions');
   const [activePostTab, setActivePostTab] = useState('inspiring');
   const [activeDMTab, setActiveDMTab] = useState('newsletter');
@@ -98,6 +99,45 @@ export default function ResultsPage() {
       console.error('Error in loadResults:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      setDownloadingPDF(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        alert('Please sign in to download your strategy');
+        return;
+      }
+      
+      const response = await fetch('/api/download-strategy-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+      
+      // Download the PDF
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Claire_Strategy_${outputs?.company_name}_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to download PDF. Please try again.');
+    } finally {
+      setDownloadingPDF(false);
     }
   };
 
@@ -190,6 +230,23 @@ export default function ResultsPage() {
                 })}
               </p>
             </div>
+            <button
+              onClick={handleDownloadPDF}
+              disabled={downloadingPDF}
+              className="px-6 py-3 bg-gradient-to-r from-fo-primary to-fo-secondary text-white rounded-lg hover:opacity-90 font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+            >
+              {downloadingPDF ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Generating PDF...
+                </>
+              ) : (
+                <>
+                  <span className="text-xl">📄</span>
+                  Download Strategy
+                </>
+              )}
+            </button>
           </div>
         </div>
 
