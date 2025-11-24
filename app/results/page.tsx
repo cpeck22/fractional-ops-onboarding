@@ -518,68 +518,247 @@ export default function ResultsPage() {
           )}
         </section>
 
-        {/* Workspace Library (Misc. Section) */}
+        {/* Misc. Section (formerly Workspace Library) */}
         <section className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
           <h2 className="text-2xl font-bold text-fo-primary mb-6 flex items-center gap-3">
-            <span className="text-3xl">📚</span>
-            Workspace Library
+            <span className="text-3xl">📋</span>
+            Misc.
           </h2>
           <p className="text-fo-secondary mb-6">
-            Here are all the foundational materials created in your Octave workspace
+            Foundational library materials created in your Octave workspace
           </p>
 
-          <div className="space-y-6">
-            {/* Service Offering */}
+          <div className="space-y-8">
+            {/* Service Offering - FULL DETAIL */}
             {outputs.service_offering && (
-              <div className="border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-fo-primary mb-3 flex items-center gap-2">
+              <div className="border-2 border-gray-300 rounded-lg p-6 bg-gradient-to-br from-blue-50 to-purple-50">
+                <h3 className="text-xl font-bold text-fo-primary mb-4 flex items-center gap-2">
                   <span>🎯</span> Service Offering
                 </h3>
-                <div className="space-y-2">
-                  <p className="text-gray-700">
-                    <strong>Name:</strong> {outputs.service_offering.name}
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Type:</strong> {outputs.service_offering.type}
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Differentiated Value:</strong> {outputs.service_offering.differentiatedValue}
-                  </p>
-                  <details className="mt-3">
-                    <summary className="cursor-pointer text-fo-primary font-semibold hover:underline">
-                      View Status Quo Context
-                    </summary>
-                    <p className="mt-2 text-sm text-gray-600 whitespace-pre-wrap pl-4 border-l-2 border-fo-primary/30">
-                      {outputs.service_offering.statusQuo}
-                    </p>
-                  </details>
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-semibold text-gray-700">Name:</p>
+                    <p className="text-gray-900">{outputs.service_offering.name || 'N/A'}</p>
+                  </div>
+                  
+                  {outputs.service_offering.description && (
+                    <div>
+                      <p className="font-semibold text-gray-700">Description:</p>
+                      <p className="text-gray-900 text-sm">{outputs.service_offering.description}</p>
+                    </div>
+                  )}
+                  
+                  {(outputs.service_offering as any).data?.type && (
+                    <div>
+                      <p className="font-semibold text-gray-700">Type:</p>
+                      <p className="text-gray-900">{(outputs.service_offering as any).data.type}</p>
+                    </div>
+                  )}
+                  
+                  {(outputs.service_offering as any).data?.summary && (
+                    <div>
+                      <p className="font-semibold text-gray-700">Summary:</p>
+                      <p className="text-gray-900 text-sm">{(outputs.service_offering as any).data.summary}</p>
+                    </div>
+                  )}
+                  
+                  {(outputs.service_offering as any).data?.capabilities && (outputs.service_offering as any).data.capabilities.length > 0 && (
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-2">Key Capabilities:</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                        {(outputs.service_offering as any).data.capabilities.map((cap: string, i: number) => (
+                          <li key={i}>{cap}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {(outputs.service_offering as any).data?.differentiatedValue && (outputs.service_offering as any).data.differentiatedValue.length > 0 && (
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-2">Differentiated Value:</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                        {(outputs.service_offering as any).data.differentiatedValue.map((val: string, i: number) => (
+                          <li key={i}>{val}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {(outputs.service_offering as any).data?.statusQuo && (outputs.service_offering as any).data.statusQuo.length > 0 && (
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-2">Status Quo:</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                        {(outputs.service_offering as any).data.statusQuo.map((sq: string, i: number) => (
+                          <li key={i}>{sq}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {(outputs.service_offering as any).data?.challengesAddressed && (outputs.service_offering as any).data.challengesAddressed.length > 0 && (
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-2">Challenges Addressed:</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                        {(outputs.service_offering as any).data.challengesAddressed.map((ch: string, i: number) => (
+                          <li key={i}>{ch}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {(outputs.service_offering as any).data?.customerBenefits && (outputs.service_offering as any).data.customerBenefits.length > 0 && (
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-2">Customer Benefits:</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                        {(outputs.service_offering as any).data.customerBenefits.map((ben: string, i: number) => (
+                          <li key={i}>{ben}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {(outputs.service_offering as any).qualifyingQuestions && (outputs.service_offering as any).qualifyingQuestions.length > 0 && (
+                    <details className="mt-4">
+                      <summary className="cursor-pointer text-fo-primary font-semibold hover:underline">
+                        View Qualifying Questions ({(outputs.service_offering as any).qualifyingQuestions.length})
+                      </summary>
+                      <div className="mt-3 space-y-3 pl-4 border-l-2 border-fo-primary/30">
+                        {(outputs.service_offering as any).qualifyingQuestions.map((q: any, i: number) => (
+                          <div key={i} className="text-sm">
+                            <p className="font-medium text-gray-900">{q.question}</p>
+                            <p className="text-gray-600 text-xs mt-1">{q.rationale}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              <span className={`font-semibold ${q.fitType === 'GOOD' ? 'text-green-600' : 'text-red-600'}`}>
+                                {q.fitType}
+                              </span> • Weight: {q.weight}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* Personas */}
+            {/* Personas - FULL DETAIL */}
             {outputs.personas && outputs.personas.length > 0 && (
-              <div className="border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-fo-primary mb-3 flex items-center gap-2">
-                  <span>👥</span> Personas ({outputs.personas.length} created)
+              <div className="border-2 border-gray-300 rounded-lg p-6 bg-gradient-to-br from-purple-50 to-pink-50">
+                <h3 className="text-xl font-bold text-fo-primary mb-4 flex items-center gap-2">
+                  <span>👥</span> Personas ({outputs.personas.length})
                 </h3>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-6">
                   {outputs.personas.map((persona: any, index: number) => (
-                    <div key={index} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                      <p className="font-semibold text-fo-primary mb-2">{persona.name}</p>
-                      {persona.data?.commonJobTitles && persona.data.commonJobTitles.length > 0 && (
-                        <details>
-                          <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800">
-                            View Job Titles ({persona.data.commonJobTitles.length})
+                    <div key={index} className="bg-white p-5 rounded-lg border border-purple-200 shadow-sm">
+                      <h4 className="font-bold text-lg text-fo-primary mb-3">{persona.name}</h4>
+                      
+                      {persona.internalName && (
+                        <p className="text-sm text-gray-600 mb-2">
+                          <span className="font-semibold">Internal Name:</span> {persona.internalName}
+                        </p>
+                      )}
+                      
+                      {persona.description && (
+                        <p className="text-sm text-gray-700 mb-3">{persona.description}</p>
+                      )}
+                      
+                      <div className="grid md:grid-cols-2 gap-4 mt-4">
+                        {persona.data?.commonJobTitles && persona.data.commonJobTitles.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Common Job Titles:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {persona.data.commonJobTitles.map((title: string, i: number) => (
+                                <li key={i}>{title}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {persona.data?.primaryResponsibilities && persona.data.primaryResponsibilities.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Primary Responsibilities:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {persona.data.primaryResponsibilities.map((resp: string, i: number) => (
+                                <li key={i}>{resp}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {persona.data?.painPoints && persona.data.painPoints.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Pain Points:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {persona.data.painPoints.map((pain: string, i: number) => (
+                                <li key={i}>{pain}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {persona.data?.keyConcerns && persona.data.keyConcerns.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Key Concerns:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {persona.data.keyConcerns.map((concern: string, i: number) => (
+                                <li key={i}>{concern}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {persona.data?.keyObjectives && persona.data.keyObjectives.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Key Objectives:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {persona.data.keyObjectives.map((obj: string, i: number) => (
+                                <li key={i}>{obj}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {persona.data?.whyTheyMatterToUs && persona.data.whyTheyMatterToUs.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Why They Matter To Us:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {persona.data.whyTheyMatterToUs.map((why: string, i: number) => (
+                                <li key={i}>{why}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {persona.data?.whyWeMatterToThem && persona.data.whyWeMatterToThem.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Why We Matter To Them:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {persona.data.whyWeMatterToThem.map((why: string, i: number) => (
+                                <li key={i}>{why}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {persona.qualifyingQuestions && persona.qualifyingQuestions.length > 0 && (
+                        <details className="mt-4">
+                          <summary className="cursor-pointer text-fo-primary font-semibold text-sm hover:underline">
+                            View Qualifying Questions ({persona.qualifyingQuestions.length})
                           </summary>
-                          <ul className="mt-2 text-xs text-gray-600 space-y-1 pl-4">
-                            {persona.data.commonJobTitles.slice(0, 5).map((title: string, i: number) => (
-                              <li key={i}>• {title}</li>
+                          <div className="mt-3 space-y-2 pl-4 border-l-2 border-purple-300">
+                            {persona.qualifyingQuestions.map((q: any, i: number) => (
+                              <div key={i} className="text-xs">
+                                <p className="font-medium text-gray-900">{q.question}</p>
+                                <p className="text-gray-600 mt-1">{q.rationale}</p>
+                                <p className="text-gray-500 mt-1">
+                                  <span className={`font-semibold ${q.fitType === 'GOOD' ? 'text-green-600' : 'text-red-600'}`}>
+                                    {q.fitType}
+                                  </span> • {q.weight}
+                                </p>
+                              </div>
                             ))}
-                            {persona.data.commonJobTitles.length > 5 && (
-                              <li className="text-gray-500">+ {persona.data.commonJobTitles.length - 5} more</li>
-                            )}
-                          </ul>
+                          </div>
                         </details>
                       )}
                     </div>
@@ -588,39 +767,156 @@ export default function ResultsPage() {
               </div>
             )}
 
-            {/* Use Cases */}
+            {/* Use Cases - FULL DETAIL */}
             {outputs.use_cases && outputs.use_cases.length > 0 && (
-              <div className="border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-fo-primary mb-3 flex items-center gap-2">
-                  <span>✨</span> Use Cases ({outputs.use_cases.length} created)
+              <div className="border-2 border-gray-300 rounded-lg p-6 bg-gradient-to-br from-green-50 to-teal-50">
+                <h3 className="text-xl font-bold text-fo-primary mb-4 flex items-center gap-2">
+                  <span>✨</span> Use Cases ({outputs.use_cases.length})
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-6">
                   {outputs.use_cases.map((useCase: any, index: number) => (
-                    <div key={index} className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                      <p className="font-semibold text-fo-primary">{useCase.name}</p>
+                    <div key={index} className="bg-white p-5 rounded-lg border border-green-200 shadow-sm">
+                      <h4 className="font-bold text-lg text-fo-primary mb-2">{useCase.name}</h4>
+                      
+                      {useCase.internalName && (
+                        <p className="text-sm text-gray-600 mb-2">
+                          <span className="font-semibold">Internal Name:</span> {useCase.internalName}
+                        </p>
+                      )}
+                      
                       {useCase.description && (
-                        <p className="text-sm text-gray-600 mt-1">{useCase.description}</p>
+                        <p className="text-sm text-gray-700 mb-3">{useCase.description}</p>
                       )}
+                      
+                      {useCase.data?.summary && (
+                        <div className="mb-3">
+                          <p className="font-semibold text-gray-700 text-sm mb-1">Summary:</p>
+                          <p className="text-sm text-gray-600">{useCase.data.summary}</p>
+                        </div>
+                      )}
+                      
+                      <div className="grid md:grid-cols-2 gap-4 mt-4">
+                        {useCase.data?.scenarios && useCase.data.scenarios.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Scenarios:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {useCase.data.scenarios.map((scenario: string, i: number) => (
+                                <li key={i}>{scenario}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {useCase.data?.desiredOutcomes && useCase.data.desiredOutcomes.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Desired Outcomes:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {useCase.data.desiredOutcomes.map((outcome: string, i: number) => (
+                                <li key={i}>{outcome}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {useCase.data?.businessDrivers && useCase.data.businessDrivers.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Business Drivers:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {useCase.data.businessDrivers.map((driver: string, i: number) => (
+                                <li key={i}>{driver}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Segments */}
+            {/* Segments - FULL DETAIL */}
             {outputs.segments && outputs.segments.length > 0 && (
-              <div className="border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-fo-primary mb-3 flex items-center gap-2">
-                  <span>🎯</span> Market Segments ({outputs.segments.length} created)
+              <div className="border-2 border-gray-300 rounded-lg p-6 bg-gradient-to-br from-yellow-50 to-orange-50">
+                <h3 className="text-xl font-bold text-fo-primary mb-4 flex items-center gap-2">
+                  <span>🎯</span> Market Segments ({outputs.segments.length})
                 </h3>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-6">
                   {outputs.segments.map((segment: any, index: number) => (
-                    <div key={index} className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <p className="font-semibold text-fo-primary mb-1">{segment.name}</p>
-                      {segment.industry && (
-                        <p className="text-sm text-gray-600">
-                          <strong>Industry:</strong> {segment.industry}
+                    <div key={index} className="bg-white p-5 rounded-lg border border-orange-200 shadow-sm">
+                      <h4 className="font-bold text-lg text-fo-primary mb-2">{segment.name}</h4>
+                      
+                      {segment.internalName && (
+                        <p className="text-sm text-gray-600 mb-2">
+                          <span className="font-semibold">Internal Name:</span> {segment.internalName}
                         </p>
+                      )}
+                      
+                      {segment.description && (
+                        <p className="text-sm text-gray-700 mb-3">{segment.description}</p>
+                      )}
+                      
+                      {segment.data?.fitExplanation && (
+                        <div className="mb-3 bg-orange-50 p-3 rounded border border-orange-200">
+                          <p className="font-semibold text-gray-700 text-sm mb-1">Fit Explanation:</p>
+                          <p className="text-sm text-gray-600">{segment.data.fitExplanation}</p>
+                        </div>
+                      )}
+                      
+                      <div className="grid md:grid-cols-2 gap-4 mt-4">
+                        {segment.data?.keyPriorities && segment.data.keyPriorities.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Key Priorities:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {segment.data.keyPriorities.map((priority: string, i: number) => (
+                                <li key={i}>{priority}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {segment.data?.keyConsiderations && segment.data.keyConsiderations.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Key Considerations:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {segment.data.keyConsiderations.map((consideration: string, i: number) => (
+                                <li key={i}>{consideration}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {segment.data?.uniqueApproach && segment.data.uniqueApproach.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Unique Approach:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {segment.data.uniqueApproach.map((approach: string, i: number) => (
+                                <li key={i}>{approach}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {segment.qualifyingQuestions && segment.qualifyingQuestions.length > 0 && (
+                        <details className="mt-4">
+                          <summary className="cursor-pointer text-fo-primary font-semibold text-sm hover:underline">
+                            View Qualifying Questions ({segment.qualifyingQuestions.length})
+                          </summary>
+                          <div className="mt-3 space-y-2 pl-4 border-l-2 border-orange-300">
+                            {segment.qualifyingQuestions.map((q: any, i: number) => (
+                              <div key={i} className="text-xs">
+                                <p className="font-medium text-gray-900">{q.question}</p>
+                                <p className="text-gray-600 mt-1">{q.rationale}</p>
+                                <p className="text-gray-500 mt-1">
+                                  <span className={`font-semibold ${q.fitType === 'GOOD' ? 'text-green-600' : 'text-red-600'}`}>
+                                    {q.fitType}
+                                  </span> • {q.weight}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
                       )}
                     </div>
                   ))}
@@ -628,24 +924,84 @@ export default function ResultsPage() {
               </div>
             )}
 
-            {/* Client References */}
+            {/* Client References - FULL DETAIL */}
             {outputs.client_references && outputs.client_references.length > 0 && (
-              <div className="border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-fo-primary mb-3 flex items-center gap-2">
-                  <span>🏢</span> Client References ({outputs.client_references.length} created)
+              <div className="border-2 border-gray-300 rounded-lg p-6 bg-gradient-to-br from-red-50 to-pink-50">
+                <h3 className="text-xl font-bold text-fo-primary mb-4 flex items-center gap-2">
+                  <span>🏢</span> Client References ({outputs.client_references.length})
                 </h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-6">
                   {outputs.client_references.map((reference: any, index: number) => (
-                    <div key={index} className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                      <p className="font-semibold text-fo-primary mb-1">{reference.companyName}</p>
-                      {reference.companyDomain && (
-                        <p className="text-xs text-gray-500 mb-1">{reference.companyDomain}</p>
-                      )}
-                      {reference.industry && (
-                        <p className="text-sm text-gray-600">
-                          <strong>Industry:</strong> {reference.industry}
+                    <div key={index} className="bg-white p-5 rounded-lg border border-red-200 shadow-sm">
+                      <h4 className="font-bold text-lg text-fo-primary mb-2">{reference.name || reference.internalName || 'Unnamed Reference'}</h4>
+                      
+                      {reference.name && reference.internalName && reference.name !== reference.internalName && (
+                        <p className="text-sm text-gray-600 mb-2">
+                          <span className="font-semibold">Internal Name:</span> {reference.internalName}
                         </p>
                       )}
+                      
+                      {reference.description && (
+                        <p className="text-sm text-gray-700 mb-3">{reference.description}</p>
+                      )}
+                      
+                      <div className="space-y-3 mt-4">
+                        {reference.data?.howTheyMakeMoney && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-1">How They Make Money:</p>
+                            <p className="text-sm text-gray-600">{reference.data.howTheyMakeMoney}</p>
+                          </div>
+                        )}
+                        
+                        {reference.data?.howTheyUseProduct && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-1">How They Use Our Product/Service:</p>
+                            <p className="text-sm text-gray-600">{reference.data.howTheyUseProduct}</p>
+                          </div>
+                        )}
+                        
+                        {reference.data?.howTheyBenefitFromProduct && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-1">How They Benefit:</p>
+                            <p className="text-sm text-gray-600">{reference.data.howTheyBenefitFromProduct}</p>
+                          </div>
+                        )}
+                        
+                        {reference.data?.howWeImpactedTheirBusiness && reference.data.howWeImpactedTheirBusiness.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">How We Impacted Their Business:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {reference.data.howWeImpactedTheirBusiness.map((impact: string, i: number) => (
+                                <li key={i}>{impact}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {reference.data?.keyStats && reference.data.keyStats.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-2">Key Stats:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                              {reference.data.keyStats.map((stat: string, i: number) => (
+                                <li key={i}>{stat}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {reference.data?.emailSnippets && reference.data.emailSnippets.length > 0 && (
+                          <details>
+                            <summary className="cursor-pointer text-fo-primary font-semibold text-sm hover:underline">
+                              View Email Snippets ({reference.data.emailSnippets.length})
+                            </summary>
+                            <div className="mt-2 space-y-2 pl-4 border-l-2 border-red-300">
+                              {reference.data.emailSnippets.map((snippet: string, i: number) => (
+                                <p key={i} className="text-xs text-gray-600 italic">&ldquo;{snippet}&rdquo;</p>
+                              ))}
+                            </div>
+                          </details>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
