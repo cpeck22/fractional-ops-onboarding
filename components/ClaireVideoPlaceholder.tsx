@@ -54,48 +54,50 @@ export default function ClaireVideoPlaceholder({
   }, [videoUrl, sectionId, sectionTitle, hasTracked]);
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-8 border-2 border-blue-200 shadow-md">
-      <div className="flex flex-col md:flex-row items-start gap-6">
-        {/* Video Container */}
-        <div className="flex-shrink-0 w-full md:w-64 h-36 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center relative overflow-hidden shadow-lg">
-          {videoUrl && !videoError ? (
-            <iframe
-              ref={videoRef}
-              src={videoUrl}
-              className="w-full h-full"
-              allow="autoplay"
-              allowFullScreen
-              style={{ border: 'none' }}
-            />
-          ) : (
-            <div className="relative w-full h-full flex items-center justify-center">
-              <Image
-                src={ClaireImage}
-                alt="Claire"
-                fill
-                className="object-cover scale-125"
-                style={{ objectPosition: 'center 20%' }}
-                priority
+    <div className="bg-gradient-to-r from-fo-light to-white rounded-lg p-6 mb-8 border-2 border-fo-primary shadow-lg">
+      {/* Section Info at Top */}
+      <div className="mb-4">
+        <h3 className="text-xl font-bold text-fo-primary mb-2">
+          {sectionTitle}
+        </h3>
+        <p className="text-sm text-fo-text-secondary leading-relaxed">
+          {sectionDescription}
+        </p>
+      </div>
+      
+      {/* Video Container - Centered with 16:9 Aspect Ratio */}
+      <div className="w-full max-w-2xl mx-auto">
+        <div className="relative w-full" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
+          <div className="absolute inset-0 bg-gradient-to-br from-fo-primary to-fo-secondary rounded-lg overflow-hidden shadow-xl">
+            {videoUrl && !videoError ? (
+              <iframe
+                ref={videoRef}
+                src={videoUrl}
+                className="w-full h-full"
+                allow="autoplay"
+                allowFullScreen
+                style={{ border: 'none' }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-              <div className="absolute bottom-2 left-0 right-0 text-center text-white z-10">
-                <div className="text-sm font-semibold">Claire</div>
-                <div className="text-xs">
-                  {videoError ? 'Video Loading...' : 'Video Coming Soon'}
+            ) : (
+              <div className="relative w-full h-full flex items-center justify-center">
+                <Image
+                  src={ClaireImage}
+                  alt="Claire"
+                  fill
+                  className="object-cover scale-125"
+                  style={{ objectPosition: 'center 20%' }}
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div className="absolute bottom-4 left-0 right-0 text-center text-white z-10">
+                  <div className="text-base font-semibold">Claire</div>
+                  <div className="text-sm">
+                    {videoError ? 'Video Loading...' : 'Video Coming Soon'}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-        
-        {/* Section Info */}
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-blue-600 mb-3">
-            {sectionTitle}
-          </h3>
-          <p className="text-sm text-gray-700 leading-relaxed">
-            {sectionDescription}
-          </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
