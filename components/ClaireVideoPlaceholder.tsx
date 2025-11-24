@@ -18,6 +18,7 @@ export default function ClaireVideoPlaceholder({
   sectionId
 }: ClaireVideoPlaceholderProps) {
   const [hasTracked, setHasTracked] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -41,6 +42,15 @@ export default function ClaireVideoPlaceholder({
         console.error('Failed to track video view:', error);
       }
     }
+
+    // Set up iframe error detection
+    if (videoUrl && videoRef.current) {
+      const iframe = videoRef.current;
+      iframe.onerror = () => {
+        console.error('Video failed to load:', videoUrl);
+        setVideoError(true);
+      };
+    }
   }, [videoUrl, sectionId, sectionTitle, hasTracked]);
 
   return (
@@ -48,7 +58,7 @@ export default function ClaireVideoPlaceholder({
       <div className="flex flex-col md:flex-row items-start gap-6">
         {/* Video Container */}
         <div className="flex-shrink-0 w-full md:w-64 h-36 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center relative overflow-hidden shadow-lg">
-          {videoUrl ? (
+          {videoUrl && !videoError ? (
             <iframe
               ref={videoRef}
               src={`${videoUrl}&autoplay=1&mute=1`}
@@ -70,7 +80,9 @@ export default function ClaireVideoPlaceholder({
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
               <div className="absolute bottom-2 left-0 right-0 text-center text-white z-10">
                 <div className="text-sm font-semibold">Claire</div>
-                <div className="text-xs">Video Coming Soon</div>
+                <div className="text-xs">
+                  {videoError ? 'Video Loading...' : 'Video Coming Soon'}
+                </div>
               </div>
             </div>
           )}
