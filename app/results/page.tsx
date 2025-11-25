@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ClaireImage from '../Claire_v2.png';
+import SectionIntro from '@/components/SectionIntro';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -222,6 +223,81 @@ export default function ResultsPage() {
     { id: 'leadership', label: 'Leadership Writing', color: 'purple' }
   ];
 
+  // Section intro content
+  const sectionIntros = {
+    campaignIdeas: [
+      "Launching Marketing Campaigns",
+      "Creating Sales Playbooks for the sales team",
+      "Informing automatic follow-up email drafts",
+      "Informing automatic CRM Call Prep notes",
+      "Setting Parameters for automatic List Building and Prospecting",
+      "Setting Parameters for automatic lead qualification",
+      "Briefing marketers for creative assets, website changes, and content"
+    ],
+    qualifiedProspects: [
+      "Building Targeted Lead Lists for Each Campaign",
+      "Identifying Best-Fit Companies and Decision-Makers",
+      "Automatically Researching Leads and Update CRM Records",
+      "Validating Contact Information (email, mobile phone)",
+      "Sending Personalized Outbound Emails",
+      "Calling Verified Contacts",
+      "Assigning Leads to Sales Reps",
+      "Triggering CRM Workflows and Sequences"
+    ],
+    coldEmails: [
+      "Automatically writing Email Sequences for Each Campaign",
+      "Automatically Personalizing Emails (Role, Industry, Pain, Use Case, etc)",
+      "Referencing The Most Relevant Case Studies for each prospect",
+      "Adjusting Tone and Style automatically",
+      "A/B Testing Different Messaging Variants",
+      "Loading Email Sequences into email Sequencers or CRM",
+      "Triggering Automated Follow-Up Based on Engagement",
+      "Triggering Automated Lead or Deal creation on Engagement",
+      "Providing Sales Reps with Pre-Written personalized Messaging to speed up Manual Outreach"
+    ],
+    callPrep: [
+      "Auto-Generating Call Prep Notes for Booked Meetings",
+      "Researching Companies and Contacts Before Sales Calls",
+      "Inserting Prep Notes Directly into CRM Records",
+      "Tailoring Prep Notes to match your notetakers Sales Methodology - Create personalized Discovery Questions",
+      "Proposing most likely Pain Points, Solutions, and Use Cases",
+      "Giving links to the most relevant Case Studies (to quickly screen share or drop in the chat during meetings)",
+      "Suggesting Talking Points Based on Campaign Context",
+      "Standardizing Pre-Call Research Across the Team",
+      "Personalized sales battlecard for each meeting (the likely objections with a script on how to handle each one)"
+    ],
+    linkedinPosts: [
+      "Writing LinkedIn Posts That Match Campaign Messaging",
+      "Publishing Thought Leadership While Campaigns Are Live",
+      "Reinforcing Cold Email Messaging with Social Content",
+      "Aligning Website, LinkedIn, and Sales Language",
+      "Increasing Trust and Awareness with Asynchronous Buyers",
+      "Scheduling Campaign-Aligned Posts on Personal and Company Pages",
+      "Driving Inbound Interest from Prospects Who Don't Respond Directly",
+      "Giving Reps Social Content to Repost or Reference in DMs"
+    ],
+    linkedinDMs: [
+      "Connecting with Target Prospects via LinkedIn",
+      "Sending Connection Requests to Website Visitors",
+      "Liking Recent Posts to Warm Up New Connections",
+      "Sending First-Response DMs After Connection is Accepted",
+      "Aligning LinkedIn Messaging with Active Campaigns",
+      "Personalizing Outreach Based on Role, Company, or Behavior",
+      "Handing Off Engaged Prospects to Sales Reps for Follow-Up",
+      "Updating Future DMs Based on real-world Feedback and Results"
+    ],
+    newsletters: [
+      "Automatically Writing Newsletters That Align with Active Campaigns",
+      "Sending Value-Add Content to New Connections and Website Visitors",
+      "Educating Prospects During the Buyer Journey",
+      "Move prospect attention from a \"rented\" to \"owned\" audience",
+      "Giving a value-first reason to reach out to stalled Deals",
+      "Building Trust and Familiarity Before Direct Outreach",
+      "Nurturing Cold or Passive Leads Over Time",
+      "Giving Reps Content to Reference in Follow-Up Messages"
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-fo-light">
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -280,6 +356,13 @@ export default function ResultsPage() {
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             💡 Campaign Workflows
           </h2>
+          
+          {/* Section Intro */}
+          <SectionIntro 
+            whatIsThisFor={sectionIntros.campaignIdeas}
+            sectionId="campaign-ideas"
+          />
+          
           {outputs.campaign_ideas && outputs.campaign_ideas.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-4">
               {outputs.campaign_ideas.map((campaign: any, index: number) => (
@@ -301,6 +384,13 @@ export default function ResultsPage() {
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             👥 Qualified Prospects
           </h2>
+          
+          {/* Section Intro */}
+          <SectionIntro 
+            whatIsThisFor={sectionIntros.qualifiedProspects}
+            sectionId="qualified-prospects"
+          />
+          
           {outputs.prospect_list && outputs.prospect_list.length > 0 ? (
             <>
               <p className="text-fo-secondary mb-4">
@@ -345,6 +435,12 @@ export default function ResultsPage() {
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             📧 Cold Email Sequences
           </h2>
+          
+          {/* Section Intro */}
+          <SectionIntro 
+            whatIsThisFor={sectionIntros.coldEmails}
+            sectionId="cold-emails"
+          />
           
           {/* Tabs */}
           <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4">
@@ -392,6 +488,12 @@ export default function ResultsPage() {
             📱 LinkedIn Posts
           </h2>
           
+          {/* Section Intro */}
+          <SectionIntro 
+            whatIsThisFor={sectionIntros.linkedinPosts}
+            sectionId="linkedin-posts"
+          />
+          
           {/* Tabs */}
           <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4">
             {postTabs.map(tab => (
@@ -426,6 +528,12 @@ export default function ResultsPage() {
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             💬 LinkedIn DMs
           </h2>
+          
+          {/* Section Intro */}
+          <SectionIntro 
+            whatIsThisFor={sectionIntros.linkedinDMs}
+            sectionId="linkedin-dms"
+          />
           
           {/* Tabs */}
           <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4">
@@ -462,6 +570,12 @@ export default function ResultsPage() {
             📰 Newsletter Content
           </h2>
           
+          {/* Section Intro */}
+          <SectionIntro 
+            whatIsThisFor={sectionIntros.newsletters}
+            sectionId="newsletters"
+          />
+          
           {/* Tabs */}
           <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4">
             {newsletterTabs.map(tab => (
@@ -496,6 +610,13 @@ export default function ResultsPage() {
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             📞 Call Prep
           </h2>
+          
+          {/* Section Intro */}
+          <SectionIntro 
+            whatIsThisFor={sectionIntros.callPrep}
+            sectionId="call-prep"
+          />
+          
           {outputs.call_prep ? (
             <div className="space-y-6">
               {outputs.call_prep.discoveryQuestions && outputs.call_prep.discoveryQuestions.length > 0 && (
