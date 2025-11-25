@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { enrichProspect } from '@/lib/leadmagic';
 
 // Octave API base URL
 const OCTAVE_BASE_URL = 'https://app.octavehq.com/api/v2/agents';
@@ -352,10 +353,61 @@ export async function POST(request: NextRequest) {
 
     console.log(`🎯 Using ${prospects.length} prospects for varied agent outputs`);
 
+    // ============================================
+    // STEP 3B: ENRICH PROSPECTS WITH LEADMAGIC
+    // ============================================
+    
+    console.log('📧 ===== STARTING LEADMAGIC ENRICHMENT =====');
+    updateProgress('Enriching prospects with contact info...', 3.5, 15);
+
+    let enrichedProspects = prospects;
+    
+    if (prospects.length > 0) {
+      console.log(`📧 Enriching ${prospects.length} prospects with LeadMagic...`);
+      
+      const enrichedList = [];
+      let enrichedCount = 0;
+      let emailsFound = 0;
+      let mobilesFound = 0;
+      
+      // Process prospects sequentially to respect rate limits
+      for (let i = 0; i < prospects.length; i++) {
+        const prospect = prospects[i];
+        
+        try {
+          console.log(`📧 [${i + 1}/${prospects.length}] Enriching: ${prospect.name || 'Unnamed'}`);
+          const enriched = await enrichProspect(prospect);
+          enrichedList.push(enriched);
+          enrichedCount++;
+          
+          if (enriched.email) emailsFound++;
+          if (enriched.mobile_number) mobilesFound++;
+          
+          // Update progress every 10 prospects
+          if (i > 0 && i % 10 === 0) {
+            console.log(`📧 Progress: ${i}/${prospects.length} enriched (${emailsFound} emails, ${mobilesFound} mobiles)`);
+          }
+        } catch (error) {
+          console.error(`❌ Failed to enrich prospect ${prospect.name}:`, error);
+          // Keep original prospect if enrichment fails
+          enrichedList.push(prospect);
+        }
+      }
+      
+      enrichedProspects = enrichedList;
+      
+      console.log('📧 ===== LEADMAGIC ENRICHMENT COMPLETE =====');
+      console.log(`   Total prospects: ${enrichedCount}/${prospects.length}`);
+      console.log(`   Emails found: ${emailsFound} (${Math.round((emailsFound / prospects.length) * 100)}%)`);
+      console.log(`   Mobiles found: ${mobilesFound} (${Math.round((mobilesFound / prospects.length) * 100)}%)`);
+    } else {
+      console.log('⚠️ No prospects to enrich');
+    }
+
     // Initialize agent results
     const agentResults = {
       campaignIdeas: [] as any[],
-      prospectList: prospects,
+      prospectList: enrichedProspects,
       coldEmails: {
         personalizedSolutions: [] as any[],
         leadMagnetShort: [] as any[],

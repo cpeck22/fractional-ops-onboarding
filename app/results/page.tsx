@@ -447,32 +447,128 @@ export default function ResultsPage() {
               <p className="text-fo-secondary mb-4">
                 Found <strong>{outputs.prospect_list.length}</strong> qualified prospects matching your ideal customer profile
               </p>
+              
+              {/* Enrichment Stats */}
+              <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {outputs.prospect_list.filter((p: any) => p.email).length}
+                  </div>
+                  <div className="text-xs text-gray-600">📧 Emails Found</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {outputs.prospect_list.filter((p: any) => p.mobile_number).length}
+                  </div>
+                  <div className="text-xs text-gray-600">📱 Mobile Numbers</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-fo-primary">
+                    {outputs.prospect_list.length > 0 
+                      ? Math.round((outputs.prospect_list.filter((p: any) => p.email).length / outputs.prospect_list.length) * 100)
+                      : 0}%
+                  </div>
+                  <div className="text-xs text-gray-600">✅ Contact Rate</div>
+                </div>
+              </div>
+              
               <div className="space-y-3">
                 {outputs.prospect_list.slice(0, 10).map((prospect: any, index: number) => (
                   <div key={index} className="bg-fo-light p-4 rounded-lg border border-gray-200 hover:border-fo-primary transition-colors">
-                    <div className="flex justify-between items-start">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {/* Left: Basic Info */}
                       <div>
                         <p className="font-semibold text-fo-primary">{prospect.name || `Prospect ${index + 1}`}</p>
                         <p className="text-sm text-fo-secondary">{prospect.title}</p>
                         <p className="text-sm text-gray-500">{prospect.company}</p>
+                        
+                        {/* LinkedIn */}
+                        {prospect.linkedIn && (
+                          <a 
+                            href={prospect.linkedIn} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-700 text-xs inline-flex items-center gap-1 mt-2"
+                          >
+                            <span>LinkedIn</span>
+                            <span>→</span>
+                          </a>
+                        )}
                       </div>
-                      {prospect.linkedIn && (
-                        <a 
-                          href={prospect.linkedIn} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-700 text-sm"
-                        >
-                          LinkedIn →
-                        </a>
-                      )}
+                      
+                      {/* Right: Contact Info (ENRICHED DATA!) */}
+                      <div className="space-y-2">
+                        {/* Email */}
+                        {prospect.email ? (
+                          <div className="flex items-start gap-2">
+                            <span className="text-green-600 text-sm">✓</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-gray-500">Email</div>
+                              <a 
+                                href={`mailto:${prospect.email}`}
+                                className="text-sm text-fo-primary hover:underline break-all"
+                              >
+                                {prospect.email}
+                              </a>
+                              {prospect.email_status && (
+                                <span className={`text-xs ml-2 px-1.5 py-0.5 rounded ${
+                                  prospect.email_status === 'valid' ? 'bg-green-100 text-green-700' :
+                                  prospect.email_status === 'valid_catch_all' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-gray-100 text-gray-600'
+                                }`}>
+                                  {prospect.email_status.replace('_', ' ')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-start gap-2">
+                            <span className="text-gray-400 text-sm">✗</span>
+                            <div className="flex-1">
+                              <div className="text-xs text-gray-500">Email</div>
+                              <div className="text-sm text-gray-400">Not found</div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Mobile */}
+                        {prospect.mobile_number ? (
+                          <div className="flex items-start gap-2">
+                            <span className="text-green-600 text-sm">✓</span>
+                            <div className="flex-1">
+                              <div className="text-xs text-gray-500">Mobile</div>
+                              <a 
+                                href={`tel:+${prospect.mobile_number}`}
+                                className="text-sm text-fo-primary hover:underline"
+                              >
+                                +{prospect.mobile_number}
+                              </a>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-start gap-2">
+                            <span className="text-gray-400 text-sm">✗</span>
+                            <div className="flex-1">
+                              <div className="text-xs text-gray-500">Mobile</div>
+                              <div className="text-sm text-gray-400">Not found</div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Additional enrichment data */}
+                        {prospect.enrichment_data?.mx_provider && (
+                          <div className="text-xs text-gray-500 pt-1 border-t border-gray-200">
+                            📮 {prospect.enrichment_data.mx_provider}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
               {outputs.prospect_list.length > 10 && (
                 <p className="text-sm text-fo-secondary mt-4 text-center">
-                  + {outputs.prospect_list.length - 10} more prospects available in your Octave workspace
+                  + {outputs.prospect_list.length - 10} more prospects with contact info available
                 </p>
               )}
             </>
