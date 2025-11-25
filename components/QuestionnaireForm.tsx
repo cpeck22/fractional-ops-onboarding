@@ -353,12 +353,19 @@ export default function QuestionnaireForm({
   };
 
   const handleSaveField = async (fieldKey: string) => {
+    // Prevent duplicate saves for the same field
+    if (savingField === fieldKey) {
+      console.log(`⚠️ Already saving ${fieldKey}, ignoring duplicate click`);
+      return;
+    }
+    
     setSavingField(fieldKey);
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('Please sign in to save');
+        setSavingField(null);
         return;
       }
 
@@ -369,10 +376,15 @@ export default function QuestionnaireForm({
       await saveQuestionnaireField(user.id, section.id, fieldKey, fieldValue);
       
       console.log(`✅ Field ${fieldKey} saved successfully`);
-      toast.success('Saved!', { duration: 2000 });
+      toast.success('Saved!', { 
+        duration: 2000,
+        id: `save-${section.id}-${fieldKey}` // Prevent duplicate toasts
+      });
     } catch (error) {
       console.error(`❌ Failed to save field ${fieldKey}:`, error);
-      toast.error('Failed to save. Please try again.');
+      toast.error('Failed to save. Please try again.', {
+        id: `error-${section.id}-${fieldKey}` // Prevent duplicate error toasts
+      });
     } finally {
       setSavingField(null);
     }

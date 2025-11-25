@@ -3,7 +3,6 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { QuestionnaireData } from '@/types';
 import { supabase, saveQuestionnaireField, loadUserQuestionnaireData, testDatabaseConnection, testRLSPolicy, testBypassRLS } from '@/lib/supabase';
-import { debounce } from 'lodash';
 import toast from 'react-hot-toast';
 
 interface QuestionnaireContextType {
@@ -222,32 +221,9 @@ export function QuestionnaireProvider({ children }: { children: ReactNode }) {
     };
   }, []); // Empty dependency array - only run once on mount
 
-  // Debounced save function - saves entire current section
-  const debouncedSave = debounce(async (userId: string, sectionId: string) => {
-    console.log('💾 QuestionnaireProvider: Debounced save triggered for section:', sectionId);
-    
-    // Get the current data for this section from state
-    const currentSectionData = questionnaireData[sectionId as keyof QuestionnaireData];
-    console.log('💾 QuestionnaireProvider: Current section data:', currentSectionData);
-    
-    setIsSaving(true);
-    
-    try {
-      // Save all fields in the current section
-      const savePromises = Object.entries(currentSectionData || {}).map(([fieldKey, fieldValue]) => 
-        saveQuestionnaireField(userId, sectionId, fieldKey, fieldValue as string)
-      );
-      
-      await Promise.all(savePromises);
-      console.log('💾 QuestionnaireProvider: Section save successful');
-      toast.success('Progress saved!');
-    } catch (error) {
-      console.error('💾 QuestionnaireProvider: Failed to save section data:', error);
-      toast.error('Failed to save your progress');
-    } finally {
-      setIsSaving(false);
-    }
-  }, 5000);
+  // REMOVED: Debounced auto-save was causing race conditions
+  // It would overwrite manual saves with stale data after 5 seconds
+  // Manual save buttons are the ONLY way to save now (no auto-save)
 
   const updateQuestionnaireData = (data: Partial<QuestionnaireData>) => {
     console.log('📊 QuestionnaireProvider: updateQuestionnaireData called with:', data);
