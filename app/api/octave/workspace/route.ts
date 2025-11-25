@@ -478,6 +478,12 @@ export async function POST(request: NextRequest) {
           if (referenceResult.errors) {
             console.warn('⚠️ Some references failed:', referenceResult.errors);
           }
+          console.log('🔍🔍🔍 SUBMIT - CLIENT REFERENCES ARRAY:');
+          console.log(JSON.stringify(createdReferences, null, 2));
+          console.log('🔍🔍🔍 SUBMIT - FIRST REFERENCE .data FIELD:');
+          if (createdReferences[0]) {
+            console.log(JSON.stringify(createdReferences[0].data, null, 2));
+          }
         } else {
           console.error('⚠️ Client reference creation failed (non-critical):', referenceResult);
         }
@@ -512,6 +518,12 @@ export async function POST(request: NextRequest) {
           createdSegments = segmentResult.segments || [];
           if (segmentResult.errors) {
             console.warn('⚠️ Some segments failed:', segmentResult.errors);
+          }
+          console.log('🔍🔍🔍 SUBMIT - SEGMENTS ARRAY:');
+          console.log(JSON.stringify(createdSegments, null, 2));
+          console.log('🔍🔍🔍 SUBMIT - FIRST SEGMENT .data FIELD:');
+          if (createdSegments[0]) {
+            console.log(JSON.stringify(createdSegments[0].data, null, 2));
           }
         } else {
           console.error('⚠️ Segment creation failed (non-critical):', segmentResult);
@@ -601,6 +613,8 @@ export async function POST(request: NextRequest) {
           fullServiceOffering = productResponse.data.data;
           console.log('✅ Fetched full Service Offering with all fields');
           console.log('📊 Service Offering includes:', Object.keys(fullServiceOffering).join(', '));
+          console.log('🔍🔍🔍 SUBMIT - FULL SERVICE OFFERING OBJECT:');
+          console.log(JSON.stringify(fullServiceOffering, null, 2));
         } else {
           console.warn('⚠️ Product fetch succeeded but no data in response, using minimal object');
         }
@@ -622,6 +636,12 @@ export async function POST(request: NextRequest) {
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.SUPABASE_SERVICE_ROLE_KEY!
         );
+
+        console.log('🔍🔍🔍 SUBMIT - ABOUT TO SAVE TO SUPABASE:');
+        console.log('Service Offering type:', typeof fullServiceOffering);
+        console.log('Service Offering keys:', fullServiceOffering ? Object.keys(fullServiceOffering) : 'null');
+        console.log('Segments type:', typeof createdSegments, 'length:', createdSegments.length);
+        console.log('References type:', typeof createdReferences, 'length:', createdReferences.length);
 
         const { error: insertError } = await supabaseAdmin
           .from('octave_outputs')
@@ -652,6 +672,26 @@ export async function POST(request: NextRequest) {
         } else {
           console.log('✅ Workspace info saved to database successfully');
           console.log('ℹ️  Agent strategy generation will be triggered from /thank-you page');
+          
+          console.log('🔍🔍🔍 SUBMIT - VERIFYING WHAT WAS SAVED:');
+          const { data: verifyData, error: verifyError } = await supabaseAdmin
+            .from('octave_outputs')
+            .select('service_offering, segments, client_references')
+            .eq('user_id', effectiveUserId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+          
+          if (verifyError) {
+            console.error('❌ Verify query failed:', verifyError);
+          } else {
+            console.log('Service Offering in DB (type):', typeof verifyData.service_offering);
+            console.log('Service Offering in DB (preview):', JSON.stringify(verifyData.service_offering).substring(0, 500));
+            console.log('Segments in DB (type):', typeof verifyData.segments);
+            console.log('Segments in DB (preview):', JSON.stringify(verifyData.segments).substring(0, 500));
+            console.log('References in DB (type):', typeof verifyData.client_references);
+            console.log('References in DB (preview):', JSON.stringify(verifyData.client_references).substring(0, 500));
+          }
         }
       } catch (dbError: any) {
         console.error('⚠️ Database save error (non-critical):', dbError.message);

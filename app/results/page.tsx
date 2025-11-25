@@ -92,6 +92,26 @@ export default function ResultsPage() {
         // Parse JSONB fields that might be stringified
         console.log('📦 Raw data from Supabase:', data);
         
+        console.log('🔍🔍🔍 RESULTS LOAD - RAW SERVICE OFFERING:');
+        console.log('Type:', typeof data.service_offering);
+        console.log('Value:', JSON.stringify(data.service_offering, null, 2));
+        
+        console.log('🔍🔍🔍 RESULTS LOAD - RAW SEGMENTS:');
+        console.log('Type:', typeof data.segments);
+        console.log('Is Array:', Array.isArray(data.segments));
+        if (Array.isArray(data.segments) && data.segments[0]) {
+          console.log('First segment:', JSON.stringify(data.segments[0], null, 2));
+          console.log('First segment .data type:', typeof data.segments[0].data);
+        }
+        
+        console.log('🔍🔍🔍 RESULTS LOAD - RAW CLIENT REFERENCES:');
+        console.log('Type:', typeof data.client_references);
+        console.log('Is Array:', Array.isArray(data.client_references));
+        if (Array.isArray(data.client_references) && data.client_references[0]) {
+          console.log('First reference:', JSON.stringify(data.client_references[0], null, 2));
+          console.log('First reference .data type:', typeof data.client_references[0].data);
+        }
+        
         const parsedData = {
           ...data,
           service_offering: typeof data.service_offering === 'string' 
@@ -134,6 +154,19 @@ export default function ResultsPage() {
           references_count: Array.isArray(parsedData.client_references) ? parsedData.client_references.length : 'not array',
           references_first_data_type: parsedData.client_references?.[0]?.data ? typeof parsedData.client_references[0].data : 'none',
         });
+        
+        console.log('🔍🔍🔍 RESULTS LOAD - PARSED SERVICE OFFERING:');
+        console.log(JSON.stringify(parsedData.service_offering, null, 2));
+
+        console.log('🔍🔍🔍 RESULTS LOAD - PARSED FIRST SEGMENT:');
+        if (parsedData.segments?.[0]) {
+          console.log(JSON.stringify(parsedData.segments[0], null, 2));
+        }
+
+        console.log('🔍🔍🔍 RESULTS LOAD - PARSED FIRST REFERENCE:');
+        if (parsedData.client_references?.[0]) {
+          console.log(JSON.stringify(parsedData.client_references[0], null, 2));
+        }
         
         setOutputs(parsedData);
       }

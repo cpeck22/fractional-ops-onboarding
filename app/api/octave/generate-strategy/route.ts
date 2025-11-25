@@ -549,6 +549,8 @@ export async function POST(request: NextRequest) {
     // ============================================
     
     console.log('💾 Updating agent outputs in database...');
+    console.log('🔍🔍🔍 GENERATE STRATEGY - UPDATING ONLY AGENT OUTPUTS (NOT LIBRARY MATERIALS)');
+    console.log('🔍🔍🔍 service_offering, segments, client_references should NOT be modified');
     
     const { error: updateError } = await supabase
       .from('octave_outputs')
