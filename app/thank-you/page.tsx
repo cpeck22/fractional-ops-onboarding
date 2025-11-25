@@ -183,14 +183,13 @@ export default function ThankYouPage() {
                 
                 {/* Claire Headshot */}
                 <div className="flex justify-center mb-4">
-                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-fo-primary shadow-lg">
+                  <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-fo-primary shadow-lg">
                     <Image
                       src={ClaireImage}
                       alt="Claire"
-                      width={96}
-                      height={96}
-                      className="object-cover scale-105"
-                      style={{ objectPosition: 'center center' }}
+                      fill
+                      className="object-cover"
+                      style={{ objectPosition: 'center 35%' }}
                       priority
                     />
                   </div>
