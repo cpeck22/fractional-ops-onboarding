@@ -97,12 +97,28 @@ export default function ResultsPage() {
           service_offering: typeof data.service_offering === 'string' 
             ? JSON.parse(data.service_offering) 
             : data.service_offering,
-          segments: typeof data.segments === 'string'
-            ? JSON.parse(data.segments)
-            : data.segments,
-          client_references: typeof data.client_references === 'string'
-            ? JSON.parse(data.client_references)
-            : data.client_references,
+          segments: (() => {
+            let segs = typeof data.segments === 'string' ? JSON.parse(data.segments) : data.segments;
+            // Parse the .data field inside each segment
+            if (Array.isArray(segs)) {
+              segs = segs.map((seg: any) => ({
+                ...seg,
+                data: typeof seg.data === 'string' ? JSON.parse(seg.data) : seg.data
+              }));
+            }
+            return segs;
+          })(),
+          client_references: (() => {
+            let refs = typeof data.client_references === 'string' ? JSON.parse(data.client_references) : data.client_references;
+            // Parse the .data field inside each reference
+            if (Array.isArray(refs)) {
+              refs = refs.map((ref: any) => ({
+                ...ref,
+                data: typeof ref.data === 'string' ? JSON.parse(ref.data) : ref.data
+              }));
+            }
+            return refs;
+          })(),
           personas: typeof data.personas === 'string'
             ? JSON.parse(data.personas)
             : data.personas,
@@ -114,7 +130,9 @@ export default function ResultsPage() {
         console.log('✅ Parsed data:', {
           service_offering_type: typeof parsedData.service_offering,
           segments_count: Array.isArray(parsedData.segments) ? parsedData.segments.length : 'not array',
+          segments_first_data_type: parsedData.segments?.[0]?.data ? typeof parsedData.segments[0].data : 'none',
           references_count: Array.isArray(parsedData.client_references) ? parsedData.client_references.length : 'not array',
+          references_first_data_type: parsedData.client_references?.[0]?.data ? typeof parsedData.client_references[0].data : 'none',
         });
         
         setOutputs(parsedData);
