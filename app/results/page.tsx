@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ClaireImage from '../Claire_v2.png';
 import SectionIntro from '@/components/SectionIntro';
+import ClaireCTA from '@/components/ClaireCTA';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -428,6 +429,8 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType="Campaign Ideas" />
           )}
+          
+          <ClaireCTA />
         </section>
 
         {/* Prospect List */}
@@ -575,6 +578,8 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType="Prospect List" />
           )}
+          
+          <ClaireCTA />
         </section>
 
         {/* Cold Email Sequences with Tabs */}
@@ -627,6 +632,8 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType={`${emailTabs.find(t => t.id === activeEmailTab)?.label} Email Sequence`} />
           )}
+          
+          <ClaireCTA />
         </section>
 
         {/* LinkedIn Posts with Tabs */}
@@ -668,6 +675,8 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType={`${postTabs.find(t => t.id === activePostTab)?.label}`} />
           )}
+          
+          <ClaireCTA />
         </section>
 
         {/* LinkedIn DMs with Tabs */}
@@ -709,6 +718,8 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType={`LinkedIn DM ${dmTabs.find(t => t.id === activeDMTab)?.label}`} />
           )}
+          
+          <ClaireCTA />
         </section>
 
         {/* Newsletters with Tabs */}
@@ -750,6 +761,8 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType={`Newsletter ${newsletterTabs.find(t => t.id === activeNewsletterTab)?.label}`} />
           )}
+          
+          <ClaireCTA />
         </section>
 
         {/* Call Prep */}
@@ -802,6 +815,8 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType="Call Prep Example" />
           )}
+          
+          <ClaireCTA />
         </section>
 
         {/* Misc. Section (formerly Workspace Library) */}

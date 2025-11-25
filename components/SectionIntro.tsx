@@ -47,10 +47,10 @@ export default function SectionIntro({
         </div>
       </div>
 
-      {/* Right: What is this for? */}
+      {/* Right: How do I use this? */}
       <div className="bg-gradient-to-br from-fo-light to-white rounded-lg p-6 border-2 border-fo-primary/30">
         <h3 className="text-lg font-bold text-fo-dark mb-4">
-          💡 What Is This For?
+          💡 How do I use this?
         </h3>
         <div className="space-y-2">
           {whatIsThisFor.map((item, index) => (
