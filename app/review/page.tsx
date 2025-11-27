@@ -142,7 +142,7 @@ export default function ReviewPage() {
             personas: phase1Result.personas,
             useCases: phase1Result.useCases,
             clientReferences: phase1Result.clientReferences,
-            competitors: questionnaireData.positioning?.competitors || []
+            competitors: phase1Result.competitors || questionnaireData.positioning?.competitors || []
           }),
         });
 

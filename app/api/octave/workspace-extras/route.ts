@@ -23,10 +23,17 @@ export async function POST(request: NextRequest) {
     console.log('👤 User ID:', userId);
     console.log('🆔 Workspace OId:', workspaceOId);
     console.log('🆔 Product OId:', productOId);
-    console.log('👥 Personas:', personas?.length || 0);
-    console.log('🎯 Use Cases:', useCases?.length || 0);
-    console.log('📄 Client References:', clientReferences?.length || 0);
-    console.log('⚔️ Competitors:', competitors?.length || 0);
+    console.log('👥 Personas received:', personas?.length || 0);
+    console.log('🎯 Use Cases received:', useCases?.length || 0);
+    console.log('📄 Client References received:', clientReferences?.length || 0);
+    console.log('⚔️ Competitors received:', competitors?.length || 0);
+    
+    if (Array.isArray(clientReferences) && clientReferences.length > 0) {
+      console.log('   → First reference:', clientReferences[0]?.companyName || 'N/A');
+    }
+    if (Array.isArray(competitors) && competitors.length > 0) {
+      console.log('   → First competitor:', competitors[0]?.companyName || 'N/A');
+    }
 
     if (!userId || !workspaceOId || !workspaceApiKey || !productOId) {
       return NextResponse.json(

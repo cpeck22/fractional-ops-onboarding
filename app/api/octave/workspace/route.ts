@@ -641,12 +641,17 @@ export async function POST(request: NextRequest) {
     // ============================================
     // PHASE 1 COMPLETE - RETURN DATA FOR PHASE 2
     // ============================================
+    const competitorsForPhase2 = questionnaireData.positioning?.competitors || [];
+    
     console.log('✅ ===== PHASE 1 COMPLETE =====');
     console.log('   Workspace created:', workspaceOId ? '✅' : '❌');
     console.log('   Product created:', productOId ? '✅' : '❌');
     console.log('   Personas extracted:', personas.length);
     console.log('   Use Cases extracted:', useCases.length);
+    console.log('   Client References for Phase 2:', clientReferences.length);
+    console.log('   Competitors for Phase 2:', competitorsForPhase2.length);
     console.log('   Workspace API Key:', workspaceApiKey ? '✅' : '❌');
+    console.log('📦 Returning data to frontend for Phase 2 call...');
     
     return NextResponse.json({
       success: true,
@@ -657,6 +662,7 @@ export async function POST(request: NextRequest) {
       personas: personas,
       useCases: useCases,
       clientReferences: clientReferences,
+      competitors: competitorsForPhase2,
       message: 'Phase 1 complete - Core workspace created successfully'
     });
 
