@@ -16,35 +16,16 @@ export default function SectionIntro({
 }: SectionIntroProps) {
   return (
     <div className="mb-8 grid md:grid-cols-2 gap-6">
-      {/* Left: Video Placeholder */}
-      <div className="relative w-full" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
-        <div className="absolute inset-0 bg-gradient-to-br from-fo-primary to-fo-secondary rounded-lg overflow-hidden shadow-xl">
-          {videoUrl ? (
-            <iframe
-              src={videoUrl}
-              className="w-full h-full"
-              allow="autoplay"
-              allowFullScreen
-              style={{ border: 'none' }}
-            />
-          ) : (
-            <div className="relative w-full h-full flex items-center justify-center">
-              <Image
-                src={ClaireImage}
-                alt="Claire"
-                fill
-                className="object-cover scale-125"
-                style={{ objectPosition: 'center 20%' }}
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-              <div className="absolute bottom-4 left-0 right-0 text-center text-white z-10">
-                <div className="text-base font-semibold">Claire</div>
-                <div className="text-sm">Video Coming Soon</div>
-              </div>
-            </div>
-          )}
-        </div>
+      {/* Left: Video Embed */}
+      <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-xl" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
+        <iframe 
+          src="https://netorgft15591934-my.sharepoint.com/personal/corey_fractionalops_com/_layouts/15/embed.aspx?UniqueId=9dfe10f0-7d64-4939-90a9-bbad2a68c490&embed=%7B%22ust%22%3Atrue%2C%22hv%22%3A%22CopyEmbedCode%22%7D&referrer=StreamWebApp&referrerScenario=EmbedDialog.Create" 
+          className="absolute top-0 left-0 w-full h-full"
+          scrolling="no" 
+          allowFullScreen 
+          title="Quick-Wave-2.mp4"
+          style={{ border: 'none' }}
+        />
       </div>
 
       {/* Right: How do I use this? */}

@@ -105,13 +105,10 @@ ${refsInIndustry[0]?.successStory ? `Example success story: ${refsInIndustry[0].
 
       console.log('🔍 FULL SEGMENT GENERATION RESPONSE:', JSON.stringify(response.data, null, 2));
 
-      // Extract created segments from response
+      // Extract created segments from response - return full Octave objects
       const createdSegments = response.data?.data?.map((segData: any, index: number) => ({
-        index: index,
-        industry: uniqueIndustries[index],
-        oId: segData.oId,
-        name: segData.name,
-        data: segData
+        ...segData,  // Full Octave object with name, internalName, description, data.fitExplanation, etc.
+        industry: uniqueIndustries[index]  // Add original industry for reference
       })) || [];
 
       console.log(`✅ Successfully generated ${createdSegments.length} segments with AI enhancement`);

@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
     let createdReferences: any[] = [];
     let createdSegments: any[] = [];
     let createdCompetitors: any[] = [];
+    let createdPlaybooks: any[] = [];
     let playbooksCreated = 0;
 
     // ============================================
@@ -76,10 +77,14 @@ export async function POST(request: NextRequest) {
       } catch (referenceError) {
         console.error('⚠️ Client reference creation error (non-critical):', referenceError);
       }
+    } else {
+      console.log('ℹ️ No client references provided, skipping reference creation');
+    }
 
-      // ============================================
-      // STEP 2: CREATE SEGMENTS
-      // ============================================
+    // ============================================
+    // STEP 2: CREATE SEGMENTS
+    // ============================================
+    if (Array.isArray(clientReferences) && clientReferences.length > 0) {
       console.log('📊 Creating segments in Octave from industries...');
       try {
         const segmentResponse = await fetch(`${request.nextUrl.origin}/api/octave/segment`, {
@@ -109,11 +114,14 @@ export async function POST(request: NextRequest) {
       } catch (segmentError) {
         console.error('⚠️ Segment creation error (non-critical):', segmentError);
       }
+    } else {
+      console.log('ℹ️ No client references provided, skipping segment creation');
+    }
 
-      // ============================================
-      // STEP 3: CREATE COMPETITORS
-      // ============================================
-      if (Array.isArray(competitors) && competitors.length > 0) {
+    // ============================================
+    // STEP 3: CREATE COMPETITORS
+    // ============================================
+    if (Array.isArray(competitors) && competitors.length > 0) {
         console.log('⚔️ Creating competitors in Octave...');
         try {
           const competitorResponse = await fetch(`${request.nextUrl.origin}/api/octave/competitor`, {
@@ -143,14 +151,14 @@ export async function POST(request: NextRequest) {
         } catch (competitorError) {
           console.error('⚠️ Competitor creation error (non-critical):', competitorError);
         }
-      } else {
-        console.log('ℹ️ No competitors provided, skipping competitor creation');
-      }
+    } else {
+      console.log('ℹ️ No competitors provided, skipping competitor creation');
+    }
 
-      // ============================================
-      // STEP 4: CREATE PLAYBOOKS
-      // ============================================
-      if (createdSegments.length > 0 && personas.length > 0 && useCases.length > 0) {
+    // ============================================
+    // STEP 4: CREATE PLAYBOOKS
+    // ============================================
+    if (createdSegments.length > 0 && personas.length > 0 && useCases.length > 0) {
         console.log('📚 Creating playbooks in Octave...');
         try {
           const playbookResponse = await fetch(`${request.nextUrl.origin}/api/octave/playbook`, {
@@ -172,6 +180,7 @@ export async function POST(request: NextRequest) {
           
           if (playbookResponse.ok && playbookResult.success) {
             playbooksCreated = playbookResult.created || 0;
+            createdPlaybooks = playbookResult.playbooks || [];
             console.log(`✅ Created ${playbooksCreated}/${playbookResult.total} playbooks`);
             if (playbookResult.errors) {
               console.warn('⚠️ Some playbooks failed:', playbookResult.errors);
@@ -182,16 +191,25 @@ export async function POST(request: NextRequest) {
         } catch (playbookError) {
           console.error('⚠️ Playbook creation error (non-critical):', playbookError);
         }
-      } else {
-        console.log('ℹ️ Skipping playbook creation - missing required data');
-        console.log(`  Segments: ${createdSegments.length}, Personas: ${personas.length}, Use Cases: ${useCases.length}`);
-      }
     } else {
-      console.log('ℹ️ No client references provided, skipping reference, segment, and playbook creation');
+      console.log('ℹ️ Skipping playbook creation - missing required data');
+      console.log(`  Segments: ${createdSegments.length}, Personas: ${personas.length}, Use Cases: ${useCases.length}`);
     }
 
     // ============================================
-    // STEP 5: UPDATE SUPABASE WITH EXTRAS
+    // STEP 5: GENERATE CAMPAIGN IDEAS FROM PLAYBOOKS
+    // ============================================
+    const campaignIdeas = createdPlaybooks.map((playbook: any) => ({
+      title: playbook.playbookName || `${playbook.segmentName} Campaign`,
+      description: `Targeted outreach campaign for ${playbook.segmentName} companies`
+    }));
+
+    if (campaignIdeas.length > 0) {
+      console.log(`💡 Generated ${campaignIdeas.length} campaign ideas from playbooks`);
+    }
+
+    // ============================================
+    // STEP 6: UPDATE SUPABASE WITH EXTRAS
     // ============================================
     console.log('💾 Updating Supabase with Phase 2 data...');
     
@@ -225,6 +243,7 @@ export async function POST(request: NextRequest) {
         segments: createdSegments,
         client_references: createdReferences,
         competitors: createdCompetitors,
+        campaign_ideas: campaignIdeas,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', userId);

@@ -95,16 +95,13 @@ ${ref.successStory ? `Success Story: ${ref.successStory}` : ''}`;
 
       console.log('🔍 FULL REFERENCE GENERATION RESPONSE:', JSON.stringify(response.data, null, 2));
 
-      // Extract created references from response
+      // Extract created references from response - return full Octave objects
       const createdReferences = response.data?.data?.map((refData: any, index: number) => {
         const originalRef = clientReferences.filter(r => r.companyName && r.companyDomain && r.industry)[index];
+        // Return the full Octave reference object with added metadata
         return {
-          index: index,
-          companyName: refData.name || refData.internalName || originalRef.companyName,
-          companyDomain: originalRef.companyDomain,
-          industry: originalRef.industry,
-          oId: refData.oId,
-          data: refData
+          ...refData,  // Full Octave object with name, internalName, description, data, etc.
+          companyDomain: originalRef.companyDomain  // Add original domain for reference
         };
       }) || [];
 

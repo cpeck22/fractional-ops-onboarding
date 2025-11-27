@@ -522,7 +522,7 @@ export default function ResultsPage() {
               {outputs.campaign_ideas.map((campaign: any, index: number) => (
                 <div key={index} className="bg-gradient-to-br from-fo-light to-white p-6 rounded-lg border border-fo-primary/20">
                   <h3 className="font-bold text-lg text-fo-primary mb-2">
-                    Campaign {campaign.id}: {campaign.title}
+                    {campaign.title}
                   </h3>
                   <p className="text-fo-secondary text-sm">{campaign.description}</p>
                 </div>
@@ -578,7 +578,32 @@ export default function ResultsPage() {
               </div>
               
               <div className="space-y-3">
-                {outputs.prospect_list.slice(0, 10).map((prospect: any, index: number) => (
+                {/* Sort prospects by contact quality before displaying */}
+                {outputs.prospect_list
+                  .sort((a: any, b: any) => {
+                    // Priority 1: Email + Mobile (both)
+                    const aHasBoth = a.email && a.mobile_number;
+                    const bHasBoth = b.email && b.mobile_number;
+                    if (aHasBoth && !bHasBoth) return -1;
+                    if (!aHasBoth && bHasBoth) return 1;
+                    
+                    // Priority 2: Mobile only
+                    const aHasMobile = a.mobile_number && !a.email;
+                    const bHasMobile = b.mobile_number && !b.email;
+                    if (aHasMobile && !bHasMobile) return -1;
+                    if (!aHasMobile && bHasMobile) return 1;
+                    
+                    // Priority 3: Email only
+                    const aHasEmail = a.email && !a.mobile_number;
+                    const bHasEmail = b.email && !b.mobile_number;
+                    if (aHasEmail && !bHasEmail) return -1;
+                    if (!aHasEmail && bHasEmail) return 1;
+                    
+                    // Priority 4: No contact info (both equal)
+                    return 0;
+                  })
+                  .slice(0, 10)
+                  .map((prospect: any, index: number) => (
                   <div key={index} className="bg-fo-light p-4 rounded-lg border border-gray-200 hover:border-fo-primary transition-colors">
                     <div className="grid md:grid-cols-2 gap-4">
                       {/* Left: Basic Info */}
