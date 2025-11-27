@@ -274,8 +274,8 @@ export const loadUserQuestionnaireData = async (userId: string) => {
       console.log('🔍 Processing row:', row);
       const section = row.section as keyof typeof questionnaireData;
       if (questionnaireData[section]) {
-        // Handle array/object fields (like seniorityLevel and clientReferences)
-        if ((row.field_key === 'seniorityLevel' || row.field_key === 'clientReferences') && typeof row.field_value === 'string') {
+        // Handle array/object fields (like seniorityLevel, clientReferences, and competitors)
+        if ((row.field_key === 'seniorityLevel' || row.field_key === 'clientReferences' || row.field_key === 'competitors') && typeof row.field_value === 'string') {
           try {
             const parsed = JSON.parse(row.field_value);
             (questionnaireData[section] as any)[row.field_key] = parsed;
@@ -291,6 +291,8 @@ export const loadUserQuestionnaireData = async (userId: string) => {
                 industry: '',
                 successStory: row.field_value // Put old text in success story
               }];
+            } else if (row.field_key === 'competitors') {
+              (questionnaireData[section] as any)[row.field_key] = [];
             }
           }
         } else {

@@ -572,7 +572,8 @@ export async function POST(request: NextRequest) {
             personas: personas,
             // Phase 2 data (will be populated by workspace-extras route)
             client_references: [],
-            segments: []
+            segments: [],
+            competitors: []
           });
 
         if (insertError) {
