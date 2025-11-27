@@ -223,38 +223,39 @@ export async function POST(request: NextRequest) {
     // STEP 6: UPDATE SUPABASE WITH EXTRAS
     // ============================================
     console.log('💾 Updating Supabase with Phase 2 data...');
-    
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Fetch existing record to merge with
-    const { data: existingData } = await supabaseAdmin
-      .from('octave_outputs')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    if (!existingData) {
-      console.error('⚠️ No existing workspace data found for user:', userId);
-      return NextResponse.json({
-        success: true,
-        message: 'Phase 2 completed but could not update database',
-        referencesCreated: createdReferences.length,
-        segmentsCreated: createdSegments.length,
-        competitorsCreated: createdCompetitors.length,
-        playbooksCreated: playbooksCreated
-      });
-    }
-
-    // Update with Phase 2 data
-    console.log('💾 Preparing to update Supabase with Phase 2 data...');
     console.log(`  → References to save: ${createdReferences.length}`);
     console.log(`  → Segments to save: ${createdSegments.length}`);
     console.log(`  → Competitors to save: ${createdCompetitors.length}`);
     console.log(`  → Campaign ideas to save: ${campaignIdeas.length}`);
     
-    const { error: updateError } = await supabaseAdmin
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Fetch the MOST RECENT record for this user (handles multiple records)
+    const { data: existingData, error: fetchError } = await supabaseAdmin
+      .from('octave_outputs')
+      .select('id, workspace_oid, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (fetchError || !existingData) {
+      console.error('❌ Error fetching workspace data:', fetchError);
+      console.error('   User ID:', userId);
+      console.error('   This is CRITICAL - Phase 2 data will NOT be saved!');
+      console.error('   Attempting to save anyway using user_id match...');
+    }
+
+    const recordId = existingData?.id;
+    const workspaceOidFromDb = existingData?.workspace_oid;
+    
+    console.log(`📍 Target record ID: ${recordId || 'UNKNOWN - will use user_id'}`);
+    console.log(`📍 Target workspace OID: ${workspaceOidFromDb || workspaceOId}`);
+
+    // Update with Phase 2 data - use record ID if available, otherwise user_id
+    const updateQuery = supabaseAdmin
       .from('octave_outputs')
       .update({
         segments: createdSegments,
@@ -262,32 +263,63 @@ export async function POST(request: NextRequest) {
         competitors: createdCompetitors,
         campaign_ideas: campaignIdeas,
         updated_at: new Date().toISOString()
-      })
-      .eq('user_id', userId);
+      });
+
+    // Target specific record by ID if we have it, otherwise by user_id (less reliable)
+    const { error: updateError, data: updatedData } = recordId 
+      ? await updateQuery.eq('id', recordId).select()
+      : await updateQuery.eq('user_id', userId).order('created_at', { ascending: false }).limit(1).select();
 
     if (updateError) {
-      console.error('❌ Error updating Supabase with Phase 2 data:', updateError);
-      console.error('   Update was attempting for user_id:', userId);
+      console.error('❌ CRITICAL ERROR updating Supabase with Phase 2 data:', updateError);
+      console.error('   Update target:', recordId ? `Record ID: ${recordId}` : `User ID: ${userId}`);
+      console.error('   Data that FAILED to save:');
+      console.error(`     - ${createdReferences.length} references`);
+      console.error(`     - ${createdSegments.length} segments`);
+      console.error(`     - ${createdCompetitors.length} competitors`);
+      console.error(`     - ${campaignIdeas.length} campaign ideas`);
+      
+      // Return error but with data so we know what was lost
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to save Phase 2 data to database',
+        phase: 2,
+        updateError: updateError,
+        dataLost: {
+          references: createdReferences.length,
+          segments: createdSegments.length,
+          competitors: createdCompetitors.length,
+          campaignIdeas: campaignIdeas.length
+        }
+      }, { status: 500 });
     } else {
-      console.log('✅ Supabase updated with Phase 2 data successfully');
+      console.log('✅ Supabase UPDATE successful!');
+      console.log(`   Updated ${updatedData?.length || 0} record(s)`);
       
-      // Verify what was actually saved
-      const { data: verifyData, error: verifyError } = await supabaseAdmin
-        .from('octave_outputs')
-        .select('segments, client_references, competitors, campaign_ideas')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-      
-      if (verifyError) {
-        console.error('❌ Verification query failed:', verifyError);
+      // Verify what was actually saved using the returned data
+      if (updatedData && updatedData.length > 0) {
+        const saved = updatedData[0];
+        console.log('🔍 VERIFICATION - What was actually saved to Supabase:');
+        console.log(`  → Segments in DB: ${Array.isArray(saved?.segments) ? saved.segments.length : 'NOT ARRAY'}`);
+        console.log(`  → References in DB: ${Array.isArray(saved?.client_references) ? saved.client_references.length : 'NOT ARRAY'}`);
+        console.log(`  → Competitors in DB: ${Array.isArray(saved?.competitors) ? saved.competitors.length : 'NOT ARRAY'}`);
+        console.log(`  → Campaign Ideas in DB: ${Array.isArray(saved?.campaign_ideas) ? saved.campaign_ideas.length : 'NOT ARRAY'}`);
+        
+        // Double-check arrays aren't empty when they should have data
+        if (createdReferences.length > 0 && (!saved?.client_references || saved.client_references.length === 0)) {
+          console.error('⚠️⚠️⚠️ REFERENCES WERE NOT SAVED DESPITE UPDATE SUCCESS!');
+        }
+        if (createdSegments.length > 0 && (!saved?.segments || saved.segments.length === 0)) {
+          console.error('⚠️⚠️⚠️ SEGMENTS WERE NOT SAVED DESPITE UPDATE SUCCESS!');
+        }
+        if (createdCompetitors.length > 0 && (!saved?.competitors || saved.competitors.length === 0)) {
+          console.error('⚠️⚠️⚠️ COMPETITORS WERE NOT SAVED DESPITE UPDATE SUCCESS!');
+        }
+        if (campaignIdeas.length > 0 && (!saved?.campaign_ideas || saved.campaign_ideas.length === 0)) {
+          console.error('⚠️⚠️⚠️ CAMPAIGN IDEAS WERE NOT SAVED DESPITE UPDATE SUCCESS!');
+        }
       } else {
-        console.log('🔍 VERIFICATION - What was actually saved:');
-        console.log(`  → Segments in DB: ${Array.isArray(verifyData?.segments) ? verifyData.segments.length : 'NOT ARRAY'}`);
-        console.log(`  → References in DB: ${Array.isArray(verifyData?.client_references) ? verifyData.client_references.length : 'NOT ARRAY'}`);
-        console.log(`  → Competitors in DB: ${Array.isArray(verifyData?.competitors) ? verifyData.competitors.length : 'NOT ARRAY'}`);
-        console.log(`  → Campaign Ideas in DB: ${Array.isArray(verifyData?.campaign_ideas) ? verifyData.campaign_ideas.length : 'NOT ARRAY'}`);
+        console.warn('⚠️ No data returned from update - cannot verify save');
       }
     }
 
