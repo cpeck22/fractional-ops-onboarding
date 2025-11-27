@@ -528,11 +528,12 @@ export async function POST(request: NextRequest) {
     
     if (prospects.length > 0) {
       // ============================================
-      // OPTIMIZATION: Limit to 25 prospects + Parallelize in batches of 5
-      // This avoids Vercel timeout (was taking 2+ minutes for 39 prospects)
+      // OPTIMIZATION: Enrich up to 99 prospects + Parallelize in batches of 10
+      // This maximizes email coverage while avoiding Vercel timeout
+      // Parallel batches dramatically reduce enrichment time
       // ============================================
-      const MAX_ENRICH = 25;
-      const BATCH_SIZE = 5;
+      const MAX_ENRICH = 99;
+      const BATCH_SIZE = 10;
       
       const prospectsToEnrich = prospects.slice(0, MAX_ENRICH);
       const unenrichedProspects = prospects.slice(MAX_ENRICH);

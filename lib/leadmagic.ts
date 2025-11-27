@@ -114,7 +114,17 @@ export async function findMobile(params: MobileFinderParams): Promise<MobileFind
     }
 
     const data: MobileFinderResponse = await response.json();
-    console.log(`✅ Mobile found: ${data.mobile_number}`);
+    
+    // Debug: Log full response to verify field mappings
+    console.log('🔍 LeadMagic Mobile Response:', JSON.stringify(data, null, 2));
+    
+    // Enhanced logging for mobile results
+    if (data.mobile_number) {
+      console.log(`✅ Mobile found: +${data.mobile_number}`);
+    } else {
+      console.log(`⚠️ Mobile not found in LeadMagic database (email: ${params.work_email?.substring(0, 20)}...)`);
+      console.log(`   Response keys: ${Object.keys(data).join(', ')}`);
+    }
     
     // Add rate limit delay
     await delay(RATE_LIMIT_DELAY_MS);
