@@ -527,43 +527,71 @@ export async function POST(request: NextRequest) {
     let enrichedProspects = prospects;
     
     if (prospects.length > 0) {
-      console.log(`📧 Enriching ${prospects.length} prospects with LeadMagic...`);
+      // ============================================
+      // OPTIMIZATION: Limit to 25 prospects + Parallelize in batches of 5
+      // This avoids Vercel timeout (was taking 2+ minutes for 39 prospects)
+      // ============================================
+      const MAX_ENRICH = 25;
+      const BATCH_SIZE = 5;
+      
+      const prospectsToEnrich = prospects.slice(0, MAX_ENRICH);
+      const unenrichedProspects = prospects.slice(MAX_ENRICH);
+      
+      console.log(`📧 Enriching ${prospectsToEnrich.length} prospects with LeadMagic (${unenrichedProspects.length} will remain unenriched)...`);
+      console.log(`⚡ Using parallel batches of ${BATCH_SIZE} to speed up enrichment`);
       
       const enrichedList = [];
-      let enrichedCount = 0;
       let emailsFound = 0;
       let mobilesFound = 0;
       
-      // Process prospects sequentially to respect rate limits
-      for (let i = 0; i < prospects.length; i++) {
-        const prospect = prospects[i];
+      // Process prospects in parallel batches
+      for (let i = 0; i < prospectsToEnrich.length; i += BATCH_SIZE) {
+        const batch = prospectsToEnrich.slice(i, i + BATCH_SIZE);
+        const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
+        const totalBatches = Math.ceil(prospectsToEnrich.length / BATCH_SIZE);
+        
+        console.log(`📦 Batch ${batchNumber}/${totalBatches}: Enriching ${batch.length} prospects in parallel...`);
         
         try {
-          console.log(`📧 [${i + 1}/${prospects.length}] Enriching: ${prospect.name || 'Unnamed'}`);
-          const enriched = await enrichProspect(prospect);
-          enrichedList.push(enriched);
-          enrichedCount++;
+          // Enrich all prospects in batch simultaneously
+          const batchResults = await Promise.all(
+            batch.map(async (prospect, batchIndex) => {
+              try {
+                const globalIndex = i + batchIndex + 1;
+                console.log(`📧 [${globalIndex}/${prospectsToEnrich.length}] Enriching: ${prospect.name || 'Unnamed'}`);
+                const enriched = await enrichProspect(prospect);
+                
+                if (enriched.email) emailsFound++;
+                if (enriched.mobile_number) mobilesFound++;
+                
+                return enriched;
+              } catch (error) {
+                console.error(`❌ Failed to enrich ${prospect.name}:`, error);
+                return prospect; // Return unenriched on error
+              }
+            })
+          );
           
-          if (enriched.email) emailsFound++;
-          if (enriched.mobile_number) mobilesFound++;
+          enrichedList.push(...batchResults);
+          console.log(`✅ Batch ${batchNumber} complete: ${enrichedList.length}/${prospectsToEnrich.length} enriched (${emailsFound} emails, ${mobilesFound} mobiles)`);
           
-          // Update progress every 10 prospects
-          if (i > 0 && i % 10 === 0) {
-            console.log(`📧 Progress: ${i}/${prospects.length} enriched (${emailsFound} emails, ${mobilesFound} mobiles)`);
-          }
         } catch (error) {
-          console.error(`❌ Failed to enrich prospect ${prospect.name}:`, error);
-          // Keep original prospect if enrichment fails
-          enrichedList.push(prospect);
+          console.error(`❌ Batch ${batchNumber} failed:`, error);
+          // Add original prospects if entire batch fails
+          enrichedList.push(...batch);
         }
       }
       
-      enrichedProspects = enrichedList;
+      // Combine enriched + unenriched prospects
+      enrichedProspects = [...enrichedList, ...unenrichedProspects];
       
       console.log('📧 ===== LEADMAGIC ENRICHMENT COMPLETE =====');
-      console.log(`   Total prospects: ${enrichedCount}/${prospects.length}`);
-      console.log(`   Emails found: ${emailsFound} (${Math.round((emailsFound / prospects.length) * 100)}%)`);
-      console.log(`   Mobiles found: ${mobilesFound} (${Math.round((mobilesFound / prospects.length) * 100)}%)`);
+      console.log(`   Enriched prospects: ${enrichedList.length}/${prospectsToEnrich.length}`);
+      console.log(`   Unenriched prospects: ${unenrichedProspects.length}`);
+      console.log(`   Total prospects: ${enrichedProspects.length}`);
+      console.log(`   Emails found: ${emailsFound} (${Math.round((emailsFound / prospectsToEnrich.length) * 100)}%)`);
+      console.log(`   Mobiles found: ${mobilesFound} (${Math.round((mobilesFound / prospectsToEnrich.length) * 100)}%)`);
+      console.log(`   ⚡ Time saved: ~${Math.round((prospects.length - MAX_ENRICH) * 3)} seconds by limiting enrichment`);
     } else {
       console.log('⚠️ No prospects to enrich');
     }
