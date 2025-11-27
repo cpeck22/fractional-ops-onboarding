@@ -343,6 +343,33 @@ export default function QuestionnaireForm({
     setFormData(data || {});
   }, [data]);
 
+  // Initialize competitors and client references with at least 1 empty item
+  useEffect(() => {
+    if (section.id === 'positioning') {
+      if (!formData.competitors || !Array.isArray(formData.competitors) || formData.competitors.length === 0) {
+        console.log('📝 Initializing competitors with 1 empty item');
+        const newData = { 
+          ...formData, 
+          competitors: [{ companyName: '', companyWebsite: '' }] 
+        };
+        setFormData(newData);
+        onDataChange(newData);
+      }
+    }
+    
+    if (section.id === 'socialProof') {
+      if (!formData.clientReferences || !Array.isArray(formData.clientReferences) || formData.clientReferences.length === 0) {
+        console.log('📝 Initializing clientReferences with 1 empty item');
+        const newData = { 
+          ...formData, 
+          clientReferences: [{ companyName: '', companyDomain: '', industry: '', successStory: '' }] 
+        };
+        setFormData(newData);
+        onDataChange(newData);
+      }
+    }
+  }, [section.id]); // Only run when section changes
+
   const handleFieldChange = (key: string, value: string | string[]) => {
     console.log('📝 QuestionnaireForm: handleFieldChange called with:', { key, value });
     const newData = { ...formData, [key]: value };
@@ -526,10 +553,57 @@ export default function QuestionnaireForm({
       }
     }
 
+    // Special validation for competitors (at least 1 complete competitor required)
+    if (section.id === 'positioning') {
+      const competitors = formData.competitors;
+      if (!Array.isArray(competitors) || competitors.length === 0) {
+        toast.error('Please add at least 1 competitor');
+        return;
+      }
+      
+      // Check if at least one competitor has both companyName and companyWebsite filled
+      const validCompetitors = competitors.filter(
+        (comp: any) => comp.companyName && comp.companyName.trim() !== '' && 
+                       comp.companyWebsite && comp.companyWebsite.trim() !== ''
+      );
+      
+      if (validCompetitors.length === 0) {
+        toast.error('Please complete at least 1 competitor with Company Name and Website');
+        return;
+      }
+    }
+
+    // Special validation for client references (at least 1 complete reference required)
+    if (section.id === 'socialProof') {
+      const clientReferences = formData.clientReferences;
+      if (!Array.isArray(clientReferences) || clientReferences.length === 0) {
+        toast.error('Please add at least 1 client reference');
+        return;
+      }
+      
+      // Check if at least one reference has all required fields filled
+      const validReferences = clientReferences.filter(
+        (ref: any) => ref.companyName && ref.companyName.trim() !== '' && 
+                     ref.companyDomain && ref.companyDomain.trim() !== '' &&
+                     ref.industry && ref.industry.trim() !== ''
+      );
+      
+      if (validReferences.length === 0) {
+        toast.error('Please complete at least 1 client reference with Company Name, Website, and Industry');
+        return;
+      }
+    }
+
     // Validate required fields before proceeding
     const requiredFields = fields.filter(field => field.required);
     const missingFields = requiredFields.filter(field => {
       const value = formData[field.key];
+      
+      // Skip special validation for competitors and clientReferences (handled above)
+      if (field.type === 'competitors' || field.type === 'client-references') {
+        return false;
+      }
+      
       // Check if field is empty or (for multiselect) if array is empty
       if (Array.isArray(value)) {
         return value.length === 0;
