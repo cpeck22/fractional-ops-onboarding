@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { checkTermsAcceptance } from '@/lib/supabase';
 import { useQuestionnaire } from '@/components/QuestionnaireProvider';
+import TermsAndConditionsModal from '@/components/TermsAndConditionsModal';
 import type { User } from '@supabase/supabase-js';
 
 interface ProtectedRouteProps {
@@ -13,6 +14,7 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const router = useRouter();
   const { currentUser } = useQuestionnaire();
 
@@ -22,14 +24,33 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     
     // Use the user from QuestionnaireProvider instead of checking auth independently
     if (currentUser) {
-      console.log('🔐 ProtectedRoute: ✅ User from QuestionnaireProvider, setting user state');
+      console.log('🔐 ProtectedRoute: ✅ User from QuestionnaireProvider, checking T&C status');
       setUser(currentUser);
-      setIsCheckingAuth(false);
+      checkTermsStatus(currentUser);
     } else {
       console.log('🔐 ProtectedRoute: ❌ No user from QuestionnaireProvider, redirecting to signin');
       router.push('/signin');
     }
   }, [currentUser, router]);
+
+  const checkTermsStatus = async (user: User) => {
+    console.log('📜 ProtectedRoute: Checking T&C acceptance status...');
+    const { accepted } = await checkTermsAcceptance(user.id);
+    
+    if (!accepted) {
+      console.log('📜 ProtectedRoute: User has NOT accepted T&C, showing modal');
+      setShowTermsModal(true);
+    } else {
+      console.log('📜 ProtectedRoute: ✅ User has accepted T&C');
+    }
+    
+    setIsCheckingAuth(false);
+  };
+
+  const handleTermsAccepted = () => {
+    console.log('📜 ProtectedRoute: T&C accepted, hiding modal');
+    setShowTermsModal(false);
+  };
 
   // Show loading while checking auth
   if (isCheckingAuth) {
@@ -50,7 +71,19 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return null;
   }
 
-  // User is authenticated, show the questionnaire
-  console.log('🔐 ProtectedRoute: ✅ User authenticated, rendering children');
+  // If user hasn't accepted T&C, show the modal
+  if (showTermsModal) {
+    console.log('🔐 ProtectedRoute: Showing T&C modal');
+    return (
+      <TermsAndConditionsModal
+        userId={user.id}
+        userEmail={user.email!}
+        onAccept={handleTermsAccepted}
+      />
+    );
+  }
+
+  // User is authenticated and has accepted T&C, show the content
+  console.log('🔐 ProtectedRoute: ✅ User authenticated and T&C accepted, rendering children');
   return <>{children}</>;
 }

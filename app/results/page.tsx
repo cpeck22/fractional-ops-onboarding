@@ -64,7 +64,56 @@ export default function ResultsPage() {
   const [activePostTab, setActivePostTab] = useState('inspiring');
   const [activeDMTab, setActiveDMTab] = useState('newsletter');
   const [activeNewsletterTab, setActiveNewsletterTab] = useState('tactical');
+  const [activeSection, setActiveSection] = useState('campaign-workflows');
   const router = useRouter();
+
+  // Table of Contents sections
+  const tocSections = [
+    { id: 'campaign-workflows', label: '💡 Campaign Workflows', emoji: '💡' },
+    { id: 'qualified-prospects', label: '👥 Qualified Prospects', emoji: '👥' },
+    { id: 'cold-email-sequences', label: '📧 Cold Email Sequences', emoji: '📧' },
+    { id: 'linkedin-posts', label: '📱 LinkedIn Posts', emoji: '📱' },
+    { id: 'linkedin-dms', label: '💬 LinkedIn DMs', emoji: '💬' },
+    { id: 'newsletter-content', label: '📰 Newsletter Content', emoji: '📰' },
+    { id: 'call-prep', label: '📞 Call Prep', emoji: '📞' },
+    { id: 'library-assets', label: '📋 Library Assets', emoji: '📋' },
+  ];
+
+  // Smooth scroll to section
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const yOffset = -20; // 20px above the section
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+      setActiveSection(sectionId);
+    }
+  };
+
+  // Track active section on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = tocSections.map(section => ({
+        id: section.id,
+        element: document.getElementById(section.id)
+      })).filter(section => section.element !== null);
+
+      // Find which section is currently in view
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = sections[i];
+        if (section.element) {
+          const rect = section.element.getBoundingClientRect();
+          if (rect.top <= 150) {
+            setActiveSection(section.id);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     loadResults();
@@ -113,39 +162,43 @@ export default function ResultsPage() {
           console.log('First reference .data type:', typeof data.client_references[0].data);
         }
         
+        // Helper function to recursively parse nested .data fields (handles double nesting)
+        const deepParseData = (obj: any): any => {
+          // If it's a string, try to parse it
+          if (typeof obj === 'string') {
+            try {
+              return deepParseData(JSON.parse(obj));
+            } catch {
+              return obj;
+            }
+          }
+          // If it's an array, recursively parse each item
+          if (Array.isArray(obj)) {
+            return obj.map(item => deepParseData(item));
+          }
+          // If it's an object, recursively parse all properties (especially .data)
+          if (obj && typeof obj === 'object') {
+            const parsed: any = {};
+            for (const key in obj) {
+              if (key === 'data') {
+                // Recursively parse .data fields (handles nested .data.data.data...)
+                parsed[key] = deepParseData(obj[key]);
+              } else {
+                parsed[key] = obj[key];
+              }
+            }
+            return parsed;
+          }
+          return obj;
+        };
+
         const parsedData = {
           ...data,
-          service_offering: typeof data.service_offering === 'string' 
-            ? JSON.parse(data.service_offering) 
-            : data.service_offering,
-          segments: (() => {
-            let segs = typeof data.segments === 'string' ? JSON.parse(data.segments) : data.segments;
-            // Parse the .data field inside each segment
-            if (Array.isArray(segs)) {
-              segs = segs.map((seg: any) => ({
-                ...seg,
-                data: typeof seg.data === 'string' ? JSON.parse(seg.data) : seg.data
-              }));
-            }
-            return segs;
-          })(),
-          client_references: (() => {
-            let refs = typeof data.client_references === 'string' ? JSON.parse(data.client_references) : data.client_references;
-            // Parse the .data field inside each reference
-            if (Array.isArray(refs)) {
-              refs = refs.map((ref: any) => ({
-                ...ref,
-                data: typeof ref.data === 'string' ? JSON.parse(ref.data) : ref.data
-              }));
-            }
-            return refs;
-          })(),
-          personas: typeof data.personas === 'string'
-            ? JSON.parse(data.personas)
-            : data.personas,
-          use_cases: typeof data.use_cases === 'string'
-            ? JSON.parse(data.use_cases)
-            : data.use_cases
+          service_offering: deepParseData(data.service_offering),
+          segments: deepParseData(data.segments),
+          client_references: deepParseData(data.client_references),
+          personas: deepParseData(data.personas),
+          use_cases: deepParseData(data.use_cases)
         };
         
         console.log('✅ Parsed data:', {
@@ -352,7 +405,34 @@ export default function ResultsPage() {
 
   return (
     <div className="min-h-screen bg-fo-light">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        
+        {/* Table of Contents - Fixed Left Sidebar */}
+        <nav className="hidden lg:block fixed left-4 top-24 w-64 bg-white rounded-lg shadow-lg p-6 max-h-[calc(100vh-8rem)] overflow-y-auto z-40">
+          <h3 className="text-sm font-bold text-fo-dark mb-4 uppercase tracking-wider">
+            Table of Contents
+          </h3>
+          <ul className="space-y-1">
+            {tocSections.map((section) => (
+              <li key={section.id}>
+                <button
+                  onClick={() => scrollToSection(section.id)}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                    activeSection === section.id
+                      ? 'bg-fo-primary text-white font-semibold shadow-md'
+                      : 'text-fo-text-secondary hover:bg-fo-light hover:text-fo-primary'
+                  }`}
+                >
+                  <span className="mr-2">{section.emoji}</span>
+                  {section.label.replace(section.emoji + ' ', '')}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        
+        {/* Main Content - Shifted right on large screens */}
+        <div className="lg:ml-72 max-w-5xl">
         
         {/* Header with Claire */}
         <div className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
@@ -404,7 +484,7 @@ export default function ResultsPage() {
         </div>
 
         {/* Campaign Ideas */}
-        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-primary">
+        <section id="campaign-workflows" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-primary scroll-mt-8">
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             💡 Campaign Workflows
           </h2>
@@ -434,7 +514,7 @@ export default function ResultsPage() {
         </section>
 
         {/* Prospect List */}
-        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-green">
+        <section id="qualified-prospects" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-green scroll-mt-8">
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             👥 Qualified Prospects
           </h2>
@@ -583,7 +663,7 @@ export default function ResultsPage() {
         </section>
 
         {/* Cold Email Sequences with Tabs */}
-        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-orange">
+        <section id="cold-email-sequences" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-orange scroll-mt-8">
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             📧 Cold Email Sequences
           </h2>
@@ -637,7 +717,7 @@ export default function ResultsPage() {
         </section>
 
         {/* LinkedIn Posts with Tabs */}
-        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-secondary">
+        <section id="linkedin-posts" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-secondary scroll-mt-8">
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             📱 LinkedIn Posts
           </h2>
@@ -680,7 +760,7 @@ export default function ResultsPage() {
         </section>
 
         {/* LinkedIn DMs with Tabs */}
-        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-primary">
+        <section id="linkedin-dms" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-primary scroll-mt-8">
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             💬 LinkedIn DMs
           </h2>
@@ -723,7 +803,7 @@ export default function ResultsPage() {
         </section>
 
         {/* Newsletters with Tabs */}
-        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-green">
+        <section id="newsletter-content" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-green scroll-mt-8">
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             📰 Newsletter Content
           </h2>
@@ -766,7 +846,7 @@ export default function ResultsPage() {
         </section>
 
         {/* Call Prep */}
-        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-orange">
+        <section id="call-prep" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-orange scroll-mt-8">
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             📞 Call Prep
           </h2>
@@ -820,7 +900,7 @@ export default function ResultsPage() {
         </section>
 
         {/* Misc. Section (formerly Workspace Library) */}
-        <section className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-accent">
+        <section id="library-assets" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-accent scroll-mt-8">
           <h2 className="text-2xl font-bold text-fo-dark mb-6">
             📋 Library Assets
           </h2>
@@ -1323,6 +1403,8 @@ export default function ResultsPage() {
             ← Back to Booking
           </button>
         </div>
+        
+        </div> {/* End of lg:ml-72 main content wrapper */}
       </div>
     </div>
   );

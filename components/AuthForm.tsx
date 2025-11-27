@@ -298,7 +298,16 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
 
       <div className="text-center">
         <p className="text-xs text-gray-400">
-          By continuing, you agree to our terms of service and privacy policy.
+          By continuing, you agree to our{' '}
+          <a 
+            href="/terms" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-700 underline"
+          >
+            terms of service
+          </a>{' '}
+          and privacy policy.
         </p>
       </div>
     </div>

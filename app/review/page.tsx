@@ -331,16 +331,18 @@ export default function ReviewPage() {
           <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 relative">
             {/* Claire Avatar */}
             <div className="flex justify-center mb-6">
-              <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
-                <Image
-                  src={ClaireImage}
-                  alt="Claire"
-                  width={128}
-                  height={128}
-                  className="object-cover scale-105"
-                  style={{ objectPosition: 'center center' }}
-                  priority
-                />
+              <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden p-1">
+                <div className="w-full h-full rounded-full overflow-hidden">
+                  <Image
+                    src={ClaireImage}
+                    alt="Claire"
+                    width={140}
+                    height={140}
+                    className="object-cover w-full h-full scale-110"
+                    style={{ objectPosition: 'center 20%' }}
+                    priority
+                  />
+                </div>
               </div>
             </div>
             

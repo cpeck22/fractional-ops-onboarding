@@ -517,3 +517,59 @@ export const testBypassRLS = async (userId: string) => {
     return false;
   }
 }
+
+// Terms and Conditions Acceptance Functions
+export const checkTermsAcceptance = async (userId: string) => {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error || !user) {
+      console.error('📜 Error getting user for T&C check:', error);
+      return { accepted: false };
+    }
+
+    const termsData = user.user_metadata?.terms_acceptance || {};
+    
+    console.log('📜 T&C Status:', {
+      accepted: termsData.accepted || false,
+      version: termsData.version,
+      acceptedAt: termsData.acceptedAt
+    });
+    
+    return {
+      accepted: termsData.accepted || false,
+      acceptedAt: termsData.acceptedAt,
+      version: termsData.version
+    };
+  } catch (error) {
+    console.error('📜 Error checking T&C acceptance:', error);
+    return { accepted: false };
+  }
+};
+
+export const recordTermsAcceptance = async (version: string) => {
+  try {
+    console.log('📜 Recording T&C acceptance, version:', version);
+    
+    const { data, error } = await supabase.auth.updateUser({
+      data: {
+        terms_acceptance: {
+          accepted: true,
+          acceptedAt: new Date().toISOString(),
+          version: version
+        }
+      }
+    });
+
+    if (error) {
+      console.error('📜 Failed to record T&C acceptance:', error);
+      throw error;
+    }
+    
+    console.log('✅ T&C acceptance recorded successfully in user metadata');
+    return data;
+  } catch (error) {
+    console.error('📜 Error recording T&C acceptance:', error);
+    throw error;
+  }
+};

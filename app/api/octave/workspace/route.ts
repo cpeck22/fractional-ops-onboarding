@@ -148,6 +148,140 @@ export async function POST(request: NextRequest) {
     console.log('Response Headers:', response.headers);
     console.log('Response Data:', JSON.stringify(response.data, null, 2));
 
+    // ============================================
+    // CHECK FOR EXISTING WORKSPACE
+    // ============================================
+    if (!response.data.found && response.data.message?.includes('already exists')) {
+      console.log('⚠️ Workspace already exists, fetching existing workspace data...');
+      
+      try {
+        // Create Supabase client for database operations
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+        
+        // List all workspaces to find the one with matching domain
+        const listResponse = await axios.get(
+          'https://app.octavehq.com/api/v2/workspace/list',
+          {
+            headers: {
+              'api_key': apiKey
+            }
+          }
+        );
+        
+        console.log(`🔍 Found ${listResponse.data.total} total workspaces in organization`);
+        
+        // Find workspace with matching domain
+        const existingWorkspace = listResponse.data.data.find((ws: any) => 
+          ws.domain?.toLowerCase() === workspaceUrl.toLowerCase() ||
+          ws.name === workspaceName
+        );
+        
+        if (!existingWorkspace) {
+          throw new Error('Could not find existing workspace with matching domain');
+        }
+        
+        console.log('✅ Found existing workspace:', existingWorkspace.name);
+        console.log('🆔 Existing Workspace OId:', existingWorkspace.oId);
+        
+        // Fetch API keys to get the workspace API key
+        const apiKeyResponse = await axios.get(
+          'https://app.octavehq.com/api/v2/api-key/list',
+          {
+            headers: {
+              'api_key': apiKey
+            }
+          }
+        );
+        
+        console.log(`🔑 Found ${apiKeyResponse.data.total} API keys in organization`);
+        
+        // Find workspace-level API key (not product/playbook specific)
+        const workspaceApiKey = apiKeyResponse.data.data.find((key: any) => 
+          !key.product && !key.playbook && !key.template
+        );
+        
+        if (!workspaceApiKey) {
+          throw new Error('Could not find workspace API key');
+        }
+        
+        console.log('✅ Found workspace API key');
+        
+        // Fetch offerings/products for this workspace
+        let productOId = undefined;
+        try {
+          const offeringResponse = await axios.get(
+            'https://app.octavehq.com/api/v2/offering/list',
+            {
+              headers: {
+                'api_key': workspaceApiKey.key
+              }
+            }
+          );
+          
+          if (offeringResponse.data.data?.length > 0) {
+            productOId = offeringResponse.data.data[0].oId;
+            console.log('✅ Found product OId:', productOId);
+          }
+        } catch (offeringError) {
+          console.warn('⚠️ Could not fetch offerings (non-critical):', offeringError);
+        }
+        
+        // Generate offering from questionnaire data
+        const offering = generateOffering(questionnaireData);
+        
+        // Save to Supabase
+        const { error: saveError } = await supabaseAdmin
+          .from('octave_outputs')
+          .upsert({
+            user_id: userId,
+            workspace_oid: existingWorkspace.oId,
+            workspace_name: existingWorkspace.name,
+            workspace_url: existingWorkspace.domain || workspaceUrl,
+            workspace_api_key: workspaceApiKey.key,
+            product_oid: productOId,
+            service_offering: offering,
+            segments: [],
+            client_references: [],
+            campaign_ideas: [],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          });
+        
+        if (saveError) {
+          console.error('❌ Error saving existing workspace to DB:', saveError);
+          throw saveError;
+        }
+        
+        console.log('✅ Existing workspace data saved to database');
+        
+        // Return success with existing workspace info
+        return NextResponse.json({
+          success: true,
+          message: 'Using existing workspace',
+          workspaceOId: existingWorkspace.oId,
+          workspaceApiKey: workspaceApiKey.key,
+          productOId: productOId,
+          workspaceName: existingWorkspace.name,
+          isExisting: true
+        });
+        
+      } catch (fetchError) {
+        console.error('❌ Error fetching existing workspace:', fetchError);
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: 'Workspace already exists but could not retrieve API key. Please contact support@fractionalops.com',
+            details: fetchError instanceof Error ? fetchError.message : 'Unknown error'
+          },
+          { status: 500 }
+        );
+      }
+    }
+
     // Extract workspace and product information from response
     // Try multiple possible locations for the IDs
     const workspaceOId = response.data?.workspace?.oId 
@@ -594,7 +728,7 @@ export async function POST(request: NextRequest) {
     // STEP 6: FETCH FULL SERVICE OFFERING FROM OCTAVE
     // ============================================
     // Instead of using the minimal generateOffering() object, fetch the full product from Octave
-    let fullServiceOffering = generateOffering(questionnaireData); // Fallback to minimal object
+    let fullServiceOffering: any = generateOffering(questionnaireData); // Fallback to minimal object
     
     if (productOId && workspaceApiKey) {
       console.log('🎯 Fetching full Service Offering/Product from Octave...');
@@ -609,11 +743,20 @@ export async function POST(request: NextRequest) {
           }
         );
 
-        if (productResponse.data?.data) {
-          fullServiceOffering = productResponse.data.data;
+        if (productResponse.data) {
+          // ✅ FIX: Use productResponse.data (complete product) not productResponse.data.data (nested .data field only)
+          // The complete product has: oId, name, description, data, etc.
+          // The nested .data field only has: type, summary, capabilities, etc.
+          fullServiceOffering = productResponse.data; // Changed from .data.data to .data to get the complete object
           console.log('✅ Fetched full Service Offering with all fields');
-          console.log('📊 Service Offering includes:', Object.keys(fullServiceOffering).join(', '));
-          console.log('🔍🔍🔍 SUBMIT - FULL SERVICE OFFERING OBJECT:');
+          console.log('📊 Service Offering top-level keys:', Object.keys(fullServiceOffering).join(', '));
+          
+          // If .data field exists, show what's inside it too
+          if (fullServiceOffering.data) {
+            console.log('📊 Service Offering .data keys:', Object.keys(fullServiceOffering.data).join(', '));
+          }
+          
+          console.log('🔍🔍🔍 SUBMIT - FULL SERVICE OFFERING OBJECT (should include name, description, etc.):');
           console.log(JSON.stringify(fullServiceOffering, null, 2));
         } else {
           console.warn('⚠️ Product fetch succeeded but no data in response, using minimal object');

@@ -128,7 +128,7 @@ export default function ThankYouPage() {
         {/* Video Section */}
         <div className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
           <h2 className="text-2xl font-bold text-fo-primary mb-6 text-center">
-            💙 A Message from Claire
+            A Message from Claire
           </h2>
           <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md">
             <iframe
