@@ -3,9 +3,101 @@ import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { enrichProspect } from '@/lib/leadmagic';
+import OpenAI from 'openai';
 
 // Octave API base URL
 const OCTAVE_BASE_URL = 'https://app.octavehq.com/api/v2/agents';
+
+// ============================================
+// AI-POWERED ICP COMPANY GENERATION
+// ============================================
+
+/**
+ * Generate ICP-matching company domains using OpenAI GPT-4
+ * @param companySize - Target company size/revenue (from questionnaire Q6.3)
+ * @param geographicMarkets - Target geographic markets (from questionnaire Q6.4)
+ * @param industry - Client's industry (for context)
+ * @param whatYouDo - Client's service description (for context)
+ * @returns Array of company domains matching the ICP
+ */
+async function generateICPCompanies(
+  companySize: string,
+  geographicMarkets: string,
+  industry: string,
+  whatYouDo: string
+): Promise<string[]> {
+  const openaiApiKey = process.env.OPENAI_API_KEY;
+  
+  if (!openaiApiKey) {
+    console.warn('⚠️ OPENAI_API_KEY not configured, skipping AI company generation');
+    return [];
+  }
+
+  const openai = new OpenAI({
+    apiKey: openaiApiKey
+  });
+
+  const prompt = `You are a B2B prospecting expert. Generate a list of 5-10 real company domains that match this Ideal Customer Profile (ICP):
+
+**Target Company Profile:**
+- Company Size/Revenue: ${companySize}
+- Geographic Markets: ${geographicMarkets}
+- Industry Context: ${industry}
+- Service We Provide: ${whatYouDo}
+
+**Requirements:**
+1. Return ONLY real, established companies (not startups unless funding info provided)
+2. Companies should be active and have public websites
+3. Include a mix of well-known and mid-market companies
+4. Domains should be clean (example.com, not www.example.com or https://)
+5. Prioritize companies that would benefit from the service described
+6. Ensure companies match the size, revenue, and geographic criteria
+
+Return ONLY a JSON object with this structure:
+{
+  "companies": [
+    {"domain": "company1.com", "reason": "Brief reason why good fit"},
+    {"domain": "company2.com", "reason": "Brief reason why good fit"}
+  ]
+}`;
+
+  try {
+    console.log('🤖 Calling OpenAI to generate ICP-matching companies...');
+    console.log('   ICP: Size:', companySize);
+    console.log('   ICP: Geography:', geographicMarkets);
+    
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a B2B prospecting expert who finds real companies matching specific ICPs. Always return valid JSON."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+      max_tokens: 1000
+    });
+
+    const result = JSON.parse(completion.choices[0].message.content || '{"companies":[]}');
+    const domains = result.companies.map((c: any) => c.domain);
+    
+    console.log(`✅ AI Generated ${domains.length} ICP-matching companies:`);
+    result.companies.forEach((c: any) => {
+      console.log(`   ${c.domain} - ${c.reason}`);
+    });
+    
+    return domains;
+    
+  } catch (error: any) {
+    console.error('❌ AI company generation failed:', error.message);
+    return [];
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -245,120 +337,192 @@ export async function POST(request: NextRequest) {
     }
 
     // ============================================
-    // STEP 3: RUN PROSPECTOR AGENT
+    // STEP 3: LOAD ICP DATA FROM QUESTIONNAIRE
     // ============================================
     
-    updateProgress('Running Prospector Agent...', 3, 15);
+    updateProgress('Loading ICP data from questionnaire...', 3, 15);
     
-    let prospects: any[] = [];
-    let lookalikeSource = '';
-
-    // Get lookalike source from reference customers (preferred)
-    if (clientReferences && Array.isArray(clientReferences) && clientReferences.length > 0) {
-      // Use the first reference customer with a domain
-      const refWithDomain = clientReferences.find((ref: any) => ref.companyDomain);
-      if (refWithDomain) {
-        lookalikeSource = refWithDomain.companyDomain.startsWith('http') 
-          ? refWithDomain.companyDomain 
-          : `https://${refWithDomain.companyDomain}`;
-        console.log(`🎯 Using reference customer for lookalike search: ${refWithDomain.companyName} (${lookalikeSource})`);
+    let companySize = '';
+    let geographicMarkets = '';
+    let industry = '';
+    let whatYouDo = '';
+    
+    try {
+      console.log('📋 Fetching ICP data from questionnaire_responses...');
+      const { data: icpData, error: icpError } = await supabase
+        .from('questionnaire_responses')
+        .select('section, field_key, field_value')
+        .eq('user_id', userId)
+        .in('field_key', ['companySize', 'geographicMarkets', 'industry', 'whatYouDo']);
+      
+      if (icpError) {
+        console.error('❌ Failed to load ICP data:', icpError);
+      } else if (icpData) {
+        icpData.forEach((row: any) => {
+          if (row.field_key === 'companySize') companySize = row.field_value;
+          if (row.field_key === 'geographicMarkets') geographicMarkets = row.field_value;
+          if (row.field_key === 'industry') industry = row.field_value;
+          if (row.field_key === 'whatYouDo') whatYouDo = row.field_value;
+        });
+        
+        console.log('✅ ICP Data loaded:');
+        console.log('   Company Size:', companySize || '(not provided)');
+        console.log('   Geographic Markets:', geographicMarkets || '(not provided)');
+        console.log('   Industry:', industry || '(not provided)');
+      }
+    } catch (error) {
+      console.error('❌ Error loading ICP data:', error);
+    }
+    
+    // ============================================
+    // STEP 4: GENERATE ICP-MATCHING COMPANIES WITH AI
+    // ============================================
+    
+    updateProgress('Generating ICP-matching companies with AI...', 4, 15);
+    
+    let icpCompanyDomains: string[] = [];
+    
+    if (companySize && geographicMarkets) {
+      try {
+        icpCompanyDomains = await generateICPCompanies(
+          companySize,
+          geographicMarkets,
+          industry,
+          whatYouDo
+        );
+        
+        console.log(`✅ Generated ${icpCompanyDomains.length} ICP-matching companies`);
+      } catch (error) {
+        console.error('❌ AI company generation failed:', error);
+      }
+    } else {
+      console.warn('⚠️ Missing ICP data (companySize or geographicMarkets), cannot generate AI companies');
+    }
+    
+    // Fallback 1: Use reference domains if AI fails or returns nothing
+    if (icpCompanyDomains.length === 0) {
+      console.log('⚠️ No AI-generated companies, falling back to reference domains...');
+      if (clientReferences && Array.isArray(clientReferences) && clientReferences.length > 0) {
+        icpCompanyDomains = clientReferences
+          .filter((ref: any) => ref.companyDomain)
+          .map((ref: any) => {
+            const domain = ref.companyDomain;
+            return domain.replace(/^https?:\/\//, '').replace(/^www\./, '');
+          })
+          .slice(0, 5);
+        console.log(`✅ Using ${icpCompanyDomains.length} reference domains as fallback`);
       }
     }
     
-    // Fallback to client domain if no references (not ideal, but prevents failure)
-    if (!lookalikeSource) {
-      lookalikeSource = `https://${companyDomain}`;
-      console.warn('⚠️ No reference customers found. Using client domain as fallback (will find prospects AT client company, not lookalikes)');
+    // Fallback 2: Use client's own domain as last resort
+    if (icpCompanyDomains.length === 0 && companyDomain) {
+      console.log('⚠️ No reference domains, using client domain as last resort');
+      icpCompanyDomains = [companyDomain.replace(/^https?:\/\//, '').replace(/^www\./, '')];
     }
-
-    if (newAgentIds.prospector && companyDomain) {
+    
+    // ============================================
+    // STEP 5: RUN PROSPECTOR AGENT WITH ICP COMPANIES
+    // ============================================
+    
+    updateProgress('Running Prospector Agent with ICP companies...', 5, 15);
+    
+    let prospects: any[] = [];
+    
+    if (newAgentIds.prospector && icpCompanyDomains.length > 0) {
       try {
         console.log('👥 Running Prospector Agent...');
-        console.log(`🎯 Searching for ${personas.length} personas: ${personas.slice(0, 3).map(p => p.name).join(', ')}...`);
+        console.log(`🎯 Searching across ${icpCompanyDomains.length} ICP-matching companies`);
         console.log(`🎯 Using ${fuzzyTitles.length} job titles for search`);
-        console.log(`🎯 Lookalike source domain: ${lookalikeSource}`);
+        console.log(`🎯 Personas: ${personas.slice(0, 3).map((p: any) => p.name).join(', ')}...`);
+        
+        // Run prospector for EACH ICP company domain
+        const prospectorPromises = icpCompanyDomains.map(async (domain) => {
+          try {
+            console.log(`   🔍 Prospecting: ${domain}`);
+            
+            const response = await axios.post(
+              `${OCTAVE_BASE_URL}/prospector/run`,
+              {
+                companyDomain: domain.startsWith('http') ? domain : `https://${domain}`,
+                agentOId: newAgentIds.prospector,
+                limit: 20, // Limit per company to get variety
+                minimal: true,
+                searchContext: {
+                  personaOIds: personas.map((p: any) => p.oId),
+                  fuzzyTitles: fuzzyTitles
+                }
+              },
+              {
+                headers: {
+                  'api_key': workspaceApiKey,
+                  'Content-Type': 'application/json'
+                },
+                timeout: 30000 // 30 second timeout per domain
+              }
+            );
 
-        const prospectorResponse = await axios.post(
-          `${OCTAVE_BASE_URL}/prospector/run`,
-          {
-            companyDomain: lookalikeSource,
-            agentOId: newAgentIds.prospector,
-            limit: 100,
-            minimal: true,
-            searchContext: {
-              personaOIds: personas.map((p: any) => p.oId),
-              fuzzyTitles: fuzzyTitles
-            }
-          },
-          {
-            headers: {
-              'api_key': workspaceApiKey,
-              'Content-Type': 'application/json'
-            }
+            const data = response.data;
+            const contacts = data.found && data.data?.contacts 
+              ? data.data.contacts 
+              : (data.contacts || []);
+            
+            console.log(`   ✅ ${domain}: Found ${contacts.length} prospects`);
+            return contacts;
+            
+          } catch (error: any) {
+            console.warn(`   ⚠️ ${domain}: Prospecting failed -`, error.message);
+            return [];
           }
-        );
+        });
 
-        const prospectorData = prospectorResponse.data;
-        console.log('📊 Prospector response structure:', JSON.stringify(prospectorData, null, 2));
+        // Wait for all prospector calls to complete
+        const allProspectsArrays = await Promise.all(prospectorPromises);
         
-        if (prospectorData.found && prospectorData.data?.contacts) {
-          prospects = prospectorData.data.contacts;
-          console.log(`✅ Prospector found ${prospects.length} prospects`);
-        } else if (prospectorData.contacts) {
-          // Sometimes contacts are at root level
-          prospects = prospectorData.contacts;
-          console.log(`✅ Prospector found ${prospects.length} prospects (root level)`);
-        } else {
-          console.warn('⚠️ Prospector returned no results:', prospectorData.message || 'Unknown error');
-        }
-        
-        // Flatten prospect structure for UI compatibility
-        prospects = prospects.map((p: any) => ({
-          name: `${p.contact?.firstName || ''} ${p.contact?.lastName || ''}`.trim(),
-          firstName: p.contact?.firstName,
-          lastName: p.contact?.lastName,
-          title: p.contact?.title,
-          company: p.contact?.companyName,
-          companyDomain: p.contact?.companyDomain,
-          linkedIn: p.contact?.profileUrl,
-          location: p.contact?.location,
-          headline: p.contact?.headline,
-          // Keep original nested structure for agent use
-          contact: p.contact,
-          personas: p.personas
-        }));
-        
-        // Filter out prospects from client reference companies
-        const referenceDomains = (clientReferences || []).map((ref: any) => {
-          const domain = ref.companyDomain || '';
-          return domain.replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase();
+        // Flatten and structure prospects
+        prospects = allProspectsArrays
+          .flat()
+          .map((p: any) => ({
+            name: `${p.contact?.firstName || ''} ${p.contact?.lastName || ''}`.trim(),
+            firstName: p.contact?.firstName,
+            lastName: p.contact?.lastName,
+            title: p.contact?.title,
+            company: p.contact?.companyName,
+            companyDomain: p.contact?.companyDomain,
+            linkedIn: p.contact?.profileUrl,
+            location: p.contact?.location,
+            headline: p.contact?.headline,
+            // Keep original nested structure for agent use
+            contact: p.contact,
+            personas: p.personas
+          }));
+
+        // Deduplicate by name+company (in case of duplicates across domains)
+        const uniqueProspects = new Map();
+        prospects.forEach(p => {
+          const key = `${p.name}-${p.company}`.toLowerCase();
+          if (!uniqueProspects.has(key)) {
+            uniqueProspects.set(key, p);
+          }
         });
-        
-        const beforeFilterCount = prospects.length;
-        prospects = prospects.filter((p: any) => {
-          if (!p.companyDomain) return true; // Keep if no domain
-          const prospectDomain = p.companyDomain.replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase();
-          return !referenceDomains.includes(prospectDomain);
-        });
-        
-        const filteredCount = beforeFilterCount - prospects.length;
-        if (filteredCount > 0) {
-          console.log(`🔍 Filtered out ${filteredCount} prospects from reference companies`);
-        }
-        console.log(`📋 Flattened ${prospects.length} prospects for UI display (after filtering)`);
+        prospects = Array.from(uniqueProspects.values());
+
+        console.log(`✅ Total unique prospects found: ${prospects.length}`);
+
       } catch (error: any) {
         console.error('❌ Prospector agent failed:', error.response?.data || error.message);
       }
+    } else {
+      console.warn('⚠️ Skipping Prospector - missing agent ID or ICP companies');
     }
-
-    console.log(`🎯 Using ${prospects.length} prospects for varied agent outputs`);
+    
+    console.log(`🎯 Using ${prospects.length} prospects for agent outputs`);
 
     // ============================================
-    // STEP 3B: ENRICH PROSPECTS WITH LEADMAGIC
+    // STEP 6: ENRICH PROSPECTS WITH LEADMAGIC
     // ============================================
     
     console.log('📧 ===== STARTING LEADMAGIC ENRICHMENT =====');
-    updateProgress('Enriching prospects with contact info...', 3.5, 15);
+    updateProgress('Enriching prospects with contact info...', 6, 15);
 
     let enrichedProspects = prospects;
     
