@@ -84,6 +84,8 @@ export async function POST(request: NextRequest) {
     // ============================================
     // STEP 2: CREATE SEGMENTS
     // ============================================
+    // Segments should ALWAYS be attempted if we have references
+    // Don't gate this on clientReferences.length check
     if (Array.isArray(clientReferences) && clientReferences.length > 0) {
       console.log('📊 Creating segments in Octave from industries...');
       try {
@@ -115,7 +117,7 @@ export async function POST(request: NextRequest) {
         console.error('⚠️ Segment creation error (non-critical):', segmentError);
       }
     } else {
-      console.log('ℹ️ No client references provided, skipping segment creation');
+      console.log('⚠️ No client references provided - segments require references, skipping');
     }
 
     // ============================================
@@ -158,8 +160,10 @@ export async function POST(request: NextRequest) {
     // ============================================
     // STEP 4: CREATE PLAYBOOKS
     // ============================================
-    if (createdSegments.length > 0 && personas.length > 0 && useCases.length > 0) {
+    // Playbooks require segments, personas, and use cases
+    if (createdSegments.length > 0 && personas && personas.length > 0 && useCases && useCases.length > 0) {
         console.log('📚 Creating playbooks in Octave...');
+        console.log(`  → ${createdSegments.length} segments × ${personas.length} personas × ${useCases.length} use cases`);
         try {
           const playbookResponse = await fetch(`${request.nextUrl.origin}/api/octave/playbook`, {
             method: 'POST',
@@ -192,8 +196,8 @@ export async function POST(request: NextRequest) {
           console.error('⚠️ Playbook creation error (non-critical):', playbookError);
         }
     } else {
-      console.log('ℹ️ Skipping playbook creation - missing required data');
-      console.log(`  Segments: ${createdSegments.length}, Personas: ${personas.length}, Use Cases: ${useCases.length}`);
+      console.warn('⚠️ Skipping playbook creation - missing required data');
+      console.log(`  → Segments: ${createdSegments.length}, Personas: ${personas?.length || 0}, Use Cases: ${useCases?.length || 0}`);
     }
 
     // ============================================
@@ -237,6 +241,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Update with Phase 2 data
+    console.log('💾 Preparing to update Supabase with Phase 2 data...');
+    console.log(`  → References to save: ${createdReferences.length}`);
+    console.log(`  → Segments to save: ${createdSegments.length}`);
+    console.log(`  → Competitors to save: ${createdCompetitors.length}`);
+    console.log(`  → Campaign ideas to save: ${campaignIdeas.length}`);
+    
     const { error: updateError } = await supabaseAdmin
       .from('octave_outputs')
       .update({
@@ -250,8 +260,28 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error('❌ Error updating Supabase with Phase 2 data:', updateError);
+      console.error('   Update was attempting for user_id:', userId);
     } else {
       console.log('✅ Supabase updated with Phase 2 data successfully');
+      
+      // Verify what was actually saved
+      const { data: verifyData, error: verifyError } = await supabaseAdmin
+        .from('octave_outputs')
+        .select('segments, client_references, competitors, campaign_ideas')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (verifyError) {
+        console.error('❌ Verification query failed:', verifyError);
+      } else {
+        console.log('🔍 VERIFICATION - What was actually saved:');
+        console.log(`  → Segments in DB: ${Array.isArray(verifyData?.segments) ? verifyData.segments.length : 'NOT ARRAY'}`);
+        console.log(`  → References in DB: ${Array.isArray(verifyData?.client_references) ? verifyData.client_references.length : 'NOT ARRAY'}`);
+        console.log(`  → Competitors in DB: ${Array.isArray(verifyData?.competitors) ? verifyData.competitors.length : 'NOT ARRAY'}`);
+        console.log(`  → Campaign Ideas in DB: ${Array.isArray(verifyData?.campaign_ideas) ? verifyData.campaign_ideas.length : 'NOT ARRAY'}`);
+      }
     }
 
     console.log('🎉 ===== PHASE 2 COMPLETE =====');

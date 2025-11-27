@@ -201,6 +201,8 @@ export default function ResultsPage() {
           service_offering: deepParseData(data.service_offering),
           segments: deepParseData(data.segments),
           client_references: deepParseData(data.client_references),
+          competitors: deepParseData(data.competitors),
+          campaign_ideas: deepParseData(data.campaign_ideas),
           personas: deepParseData(data.personas),
           use_cases: deepParseData(data.use_cases)
         };
@@ -211,6 +213,8 @@ export default function ResultsPage() {
           segments_first_data_type: parsedData.segments?.[0]?.data ? typeof parsedData.segments[0].data : 'none',
           references_count: Array.isArray(parsedData.client_references) ? parsedData.client_references.length : 'not array',
           references_first_data_type: parsedData.client_references?.[0]?.data ? typeof parsedData.client_references[0].data : 'none',
+          competitors_count: Array.isArray(parsedData.competitors) ? parsedData.competitors.length : 'not array',
+          campaign_ideas_count: Array.isArray(parsedData.campaign_ideas) ? parsedData.campaign_ideas.length : 'not array',
         });
         
         console.log('🔍🔍🔍 RESULTS LOAD - PARSED SERVICE OFFERING:');
