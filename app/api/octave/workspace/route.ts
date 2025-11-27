@@ -151,135 +151,21 @@ export async function POST(request: NextRequest) {
     // ============================================
     // CHECK FOR EXISTING WORKSPACE
     // ============================================
+    // NOTE: Octave's API doesn't provide a workspace list endpoint,
+    // so we cannot automatically recover existing workspace API keys.
+    // Users will need to contact support if they hit this error.
     if (!response.data.found && response.data.message?.includes('already exists')) {
-      console.log('⚠️ Workspace already exists, fetching existing workspace data...');
+      console.log('⚠️ Workspace already exists - cannot auto-recover without workspace list API');
       
-      try {
-        // Create Supabase client for database operations
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-        
-        // List all workspaces to find the one with matching domain
-        const listResponse = await axios.get(
-          'https://app.octavehq.com/api/v2/workspace/list',
-          {
-            headers: {
-              'api_key': apiKey
-            }
-          }
-        );
-        
-        console.log(`🔍 Found ${listResponse.data.total} total workspaces in organization`);
-        
-        // Find workspace with matching domain
-        const existingWorkspace = listResponse.data.data.find((ws: any) => 
-          ws.domain?.toLowerCase() === workspaceUrl.toLowerCase() ||
-          ws.name === workspaceName
-        );
-        
-        if (!existingWorkspace) {
-          throw new Error('Could not find existing workspace with matching domain');
-        }
-        
-        console.log('✅ Found existing workspace:', existingWorkspace.name);
-        console.log('🆔 Existing Workspace OId:', existingWorkspace.oId);
-        
-        // Fetch API keys to get the workspace API key
-        const apiKeyResponse = await axios.get(
-          'https://app.octavehq.com/api/v2/api-key/list',
-          {
-            headers: {
-              'api_key': apiKey
-            }
-          }
-        );
-        
-        console.log(`🔑 Found ${apiKeyResponse.data.total} API keys in organization`);
-        
-        // Find workspace-level API key (not product/playbook specific)
-        const workspaceApiKey = apiKeyResponse.data.data.find((key: any) => 
-          !key.product && !key.playbook && !key.template
-        );
-        
-        if (!workspaceApiKey) {
-          throw new Error('Could not find workspace API key');
-        }
-        
-        console.log('✅ Found workspace API key');
-        
-        // Fetch offerings/products for this workspace
-        let productOId = undefined;
-        try {
-          const offeringResponse = await axios.get(
-            'https://app.octavehq.com/api/v2/offering/list',
-            {
-              headers: {
-                'api_key': workspaceApiKey.key
-              }
-            }
-          );
-          
-          if (offeringResponse.data.data?.length > 0) {
-            productOId = offeringResponse.data.data[0].oId;
-            console.log('✅ Found product OId:', productOId);
-          }
-        } catch (offeringError) {
-          console.warn('⚠️ Could not fetch offerings (non-critical):', offeringError);
-        }
-        
-        // Generate offering from questionnaire data
-        const offering = generateOffering(questionnaireData);
-        
-        // Save to Supabase
-        const { error: saveError } = await supabaseAdmin
-          .from('octave_outputs')
-          .upsert({
-            user_id: userId,
-            workspace_oid: existingWorkspace.oId,
-            workspace_name: existingWorkspace.name,
-            workspace_url: existingWorkspace.domain || workspaceUrl,
-            workspace_api_key: workspaceApiKey.key,
-            product_oid: productOId,
-            service_offering: offering,
-            segments: [],
-            client_references: [],
-            campaign_ideas: [],
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id'
-          });
-        
-        if (saveError) {
-          console.error('❌ Error saving existing workspace to DB:', saveError);
-          throw saveError;
-        }
-        
-        console.log('✅ Existing workspace data saved to database');
-        
-        // Return success with existing workspace info
-        return NextResponse.json({
-          success: true,
-          message: 'Using existing workspace',
-          workspaceOId: existingWorkspace.oId,
-          workspaceApiKey: workspaceApiKey.key,
-          productOId: productOId,
-          workspaceName: existingWorkspace.name,
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'A workspace for this domain already exists. Please contact support@fractionalops.com to retrieve your workspace access.',
+          workspaceUrl: workspaceUrl,
           isExisting: true
-        });
-        
-      } catch (fetchError) {
-        console.error('❌ Error fetching existing workspace:', fetchError);
-        return NextResponse.json(
-          { 
-            success: false, 
-            error: 'Workspace already exists but could not retrieve API key. Please contact support@fractionalops.com',
-            details: fetchError instanceof Error ? fetchError.message : 'Unknown error'
-          },
-          { status: 500 }
-        );
-      }
+        },
+        { status: 409 } // 409 Conflict
+      );
     }
 
     // Extract workspace and product information from response
@@ -580,150 +466,27 @@ export async function POST(request: NextRequest) {
       console.log('✅ Using userId from client:', effectiveUserId);
     }
 
-    // Step 2: Create Client References in Octave (if we have client references)
-    const clientReferences = questionnaireData.socialProof?.clientReferences || [];
-    let createdReferences: any[] = [];
-    let createdSegments: any[] = [];
+    // ============================================
+    // PHASE 1 COMPLETE - PREPARE DATA FOR PHASE 2
+    // ============================================
+    // References, Segments, and Playbooks will be created in Phase 2
+    // This keeps Phase 1 under 5 minutes to avoid Vercel timeout
     
-    if (Array.isArray(clientReferences) && clientReferences.length > 0) {
-      if (!productOId) {
-        console.error('❌ Cannot create client references: productOId is missing');
-      } else {
-        console.log('📝 Creating client references in Octave...');
-        try {
-          const referenceResponse = await fetch(`${request.nextUrl.origin}/api/octave/reference`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              clientReferences,
-              productOId: productOId,
-              workspaceOId: workspaceOId,
-              workspaceApiKey: workspaceApiKey
-            }),
-          });
-
-        const referenceResult = await referenceResponse.json();
-        
-        if (referenceResponse.ok && referenceResult.success) {
-          console.log(`✅ Created ${referenceResult.created}/${referenceResult.total} client references`);
-          createdReferences = referenceResult.references || [];
-          if (referenceResult.errors) {
-            console.warn('⚠️ Some references failed:', referenceResult.errors);
-          }
-          console.log('🔍🔍🔍 SUBMIT - CLIENT REFERENCES ARRAY:');
-          console.log(JSON.stringify(createdReferences, null, 2));
-          console.log('🔍🔍🔍 SUBMIT - FIRST REFERENCE .data FIELD:');
-          if (createdReferences[0]) {
-            console.log(JSON.stringify(createdReferences[0].data, null, 2));
-          }
-        } else {
-          console.error('⚠️ Client reference creation failed (non-critical):', referenceResult);
-        }
-        } catch (referenceError) {
-          console.error('⚠️ Client reference creation error (non-critical):', referenceError);
-        }
-      }
-
-      // Step 3: Create Segments in Octave based on industries from client references
-      if (!productOId) {
-        console.error('❌ Cannot create segments: productOId is missing');
-      } else {
-        console.log('📊 Creating segments in Octave from industries...');
-      try {
-        const segmentResponse = await fetch(`${request.nextUrl.origin}/api/octave/segment`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            clientReferences,
-            primaryOfferingOId: productOId,
-            workspaceOId: workspaceOId,
-            workspaceApiKey: workspaceApiKey
-          }),
-        });
-
-        const segmentResult = await segmentResponse.json();
-        
-        if (segmentResponse.ok && segmentResult.success) {
-          console.log(`✅ Created ${segmentResult.created}/${segmentResult.total} segments`);
-          createdSegments = segmentResult.segments || [];
-          if (segmentResult.errors) {
-            console.warn('⚠️ Some segments failed:', segmentResult.errors);
-          }
-          console.log('🔍🔍🔍 SUBMIT - SEGMENTS ARRAY:');
-          console.log(JSON.stringify(createdSegments, null, 2));
-          console.log('🔍🔍🔍 SUBMIT - FIRST SEGMENT .data FIELD:');
-          if (createdSegments[0]) {
-            console.log(JSON.stringify(createdSegments[0].data, null, 2));
-          }
-        } else {
-          console.error('⚠️ Segment creation failed (non-critical):', segmentResult);
-        }
-      } catch (segmentError) {
-        console.error('⚠️ Segment creation error (non-critical):', segmentError);
-      }
-      }
-
-      // Step 4: Create Playbooks (one per segment)
-      if (createdSegments.length > 0 && personas.length > 0 && useCases.length > 0) {
-        console.log('📚 Creating playbooks in Octave...');
-        try {
-          const playbookResponse = await fetch(`${request.nextUrl.origin}/api/octave/playbook`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              segments: createdSegments,
-              references: createdReferences,
-              personas: personas,
-              useCases: useCases,
-              productOId: productOId,
-              workspaceApiKey: workspaceApiKey
-            }),
-          });
-
-          const playbookResult = await playbookResponse.json();
-          
-          if (playbookResponse.ok && playbookResult.success) {
-            console.log(`✅ Created ${playbookResult.created}/${playbookResult.total} playbooks`);
-            if (playbookResult.errors) {
-              console.warn('⚠️ Some playbooks failed:', playbookResult.errors);
-            }
-          } else {
-            console.error('⚠️ Playbook creation failed (non-critical):', playbookResult);
-          }
-        } catch (playbookError) {
-          console.error('⚠️ Playbook creation error (non-critical):', playbookError);
-        }
-      } else {
-        console.log('ℹ️ Skipping playbook creation - missing required data');
-        console.log(`  Segments: ${createdSegments.length}, Personas: ${personas.length}, Use Cases: ${useCases.length}`);
-      }
-    } else {
-      console.log('ℹ️ No client references provided, skipping reference, segment, and playbook creation');
-    }
+    console.log('✅ Phase 1 complete - Core workspace creation finished');
+    console.log('📦 Preparing data for Phase 2 (references, segments, playbooks)...');
+    
+    const clientReferences = questionnaireData.socialProof?.clientReferences || [];
+    console.log(`📄 Client references to process in Phase 2: ${clientReferences.length}`);
+    
+    // Initialize empty arrays for now (will be populated in Phase 2)
+    const createdReferences: any[] = [];
+    const createdSegments: any[] = [];
 
     // ============================================
-    // STEP 5: SAVE WORKSPACE INFO TO DATABASE
+    // STEP 5: SAVE PHASE 1 DATA TO DATABASE
     // ============================================
     // Agent execution has been moved to /api/octave/generate-strategy
-    // This allows users to regenerate strategy without recreating workspace
-
-    // Generate campaign ideas from segments (will be saved to DB for later use)
-    const campaignIdeas = createdSegments.map((segment: any, index: number) => ({
-      id: index + 1,
-      title: `${segment.name} Campaign`,
-      description: `Targeted outreach campaign for ${segment.name} companies`,
-      segmentName: segment.name,
-      segmentOId: segment.oId
-    }));
-    if (campaignIdeas.length > 0) {
-      console.log(`💡 Generated ${campaignIdeas.length} campaign ideas from segments`);
-    }
+    // Campaign ideas will be generated in Phase 2 after segments are created
 
     // STEP 6: FETCH FULL SERVICE OFFERING FROM OCTAVE
     // ============================================
@@ -792,9 +555,10 @@ export async function POST(request: NextRequest) {
             user_id: effectiveUserId,
             workspace_oid: workspaceOId,
             workspace_api_key: workspaceApiKey, // ✅ Save workspace API key for agent execution later
+            product_oid: productOId, // ✅ Save product OId for Phase 2
             company_name: companyName,
             company_domain: companyDomain,
-            campaign_ideas: campaignIdeas,
+            campaign_ideas: [], // Will be populated in Phase 2 after segments created
             // Agent outputs will be null initially and populated when /api/octave/generate-strategy is called
             prospect_list: null,
             cold_emails: null,
@@ -802,24 +566,26 @@ export async function POST(request: NextRequest) {
             linkedin_dms: null,
             newsletters: null,
             call_prep: null,
-            // Library materials (populated at workspace creation)
+            // Library materials (populated at workspace creation - Phase 1)
             service_offering: fullServiceOffering, // ✅ Now using full product data from Octave
             use_cases: useCases,
             personas: personas,
-            client_references: createdReferences,
-            segments: createdSegments
+            // Phase 2 data (will be populated by workspace-extras route)
+            client_references: [],
+            segments: []
           });
 
         if (insertError) {
           console.error('❌ Error saving workspace to database:', insertError);
         } else {
-          console.log('✅ Workspace info saved to database successfully');
-          console.log('ℹ️  Agent strategy generation will be triggered from /thank-you page');
+          console.log('✅ Phase 1 data saved to database successfully');
+          console.log('ℹ️ Phase 2 (references, segments, playbooks) will be created next');
+          console.log('ℹ️ Agent strategy generation will be triggered from /thank-you page');
           
-          console.log('🔍🔍🔍 SUBMIT - VERIFYING WHAT WAS SAVED:');
+          console.log('🔍🔍🔍 SUBMIT - VERIFYING WHAT WAS SAVED (PHASE 1):');
           const { data: verifyData, error: verifyError } = await supabaseAdmin
             .from('octave_outputs')
-            .select('service_offering, segments, client_references')
+            .select('service_offering, personas, use_cases, workspace_api_key, product_oid')
             .eq('user_id', effectiveUserId)
             .order('created_at', { ascending: false })
             .limit(1)
@@ -829,11 +595,11 @@ export async function POST(request: NextRequest) {
             console.error('❌ Verify query failed:', verifyError);
           } else {
             console.log('Service Offering in DB (type):', typeof verifyData.service_offering);
-            console.log('Service Offering in DB (preview):', JSON.stringify(verifyData.service_offering).substring(0, 500));
-            console.log('Segments in DB (type):', typeof verifyData.segments);
-            console.log('Segments in DB (preview):', JSON.stringify(verifyData.segments).substring(0, 500));
-            console.log('References in DB (type):', typeof verifyData.client_references);
-            console.log('References in DB (preview):', JSON.stringify(verifyData.client_references).substring(0, 500));
+            console.log('Service Offering in DB (preview):', JSON.stringify(verifyData.service_offering).substring(0, 300));
+            console.log('Personas in DB:', verifyData.personas?.length || 0);
+            console.log('Use Cases in DB:', verifyData.use_cases?.length || 0);
+            console.log('Workspace API Key saved:', verifyData.workspace_api_key ? '✅ Yes' : '❌ No');
+            console.log('Product OId saved:', verifyData.product_oid ? '✅ Yes' : '❌ No');
           }
         }
       } catch (dbError: any) {
@@ -871,9 +637,26 @@ export async function POST(request: NextRequest) {
       // Don't fail the whole request if Zapier fails
     }
 
+    // ============================================
+    // PHASE 1 COMPLETE - RETURN DATA FOR PHASE 2
+    // ============================================
+    console.log('✅ ===== PHASE 1 COMPLETE =====');
+    console.log('   Workspace created:', workspaceOId ? '✅' : '❌');
+    console.log('   Product created:', productOId ? '✅' : '❌');
+    console.log('   Personas extracted:', personas.length);
+    console.log('   Use Cases extracted:', useCases.length);
+    console.log('   Workspace API Key:', workspaceApiKey ? '✅' : '❌');
+    
     return NextResponse.json({
       success: true,
-      data: response.data
+      phase: 1,
+      workspaceOId: workspaceOId,
+      workspaceApiKey: workspaceApiKey,
+      productOId: productOId,
+      personas: personas,
+      useCases: useCases,
+      clientReferences: clientReferences,
+      message: 'Phase 1 complete - Core workspace created successfully'
     });
 
   } catch (error: any) {

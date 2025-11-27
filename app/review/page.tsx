@@ -90,11 +90,15 @@ export default function ReviewPage() {
     setIsSubmitting(true);
     
     try {
-      console.log('Submitting questionnaire data to server...');
+      console.log('🚀 Starting Two-Phase Workspace Creation...');
       console.log('User email:', userEmail);
       console.log('User ID:', userId);
       
-      const response = await fetch('/api/octave/workspace', {
+      // ============================================
+      // PHASE 1: Core Workspace Creation
+      // ============================================
+      console.log('⚙️ Phase 1: Creating core workspace (workspace, offering, personas, use cases)...');
+      const phase1Response = await fetch('/api/octave/workspace', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,59 +110,98 @@ export default function ReviewPage() {
         }),
       });
 
-      const result = await response.json();
+      const phase1Result = await phase1Response.json();
 
-      if (response.ok && result.success) {
-        console.log('✅ Workspace created successfully!');
-        setShowModal(false); // Close the modal
-        toast.success('Onboarding completed successfully!');
-        
-        // Download PDF
-        console.log('📥 Downloading PDF...');
-          try {
-            const pdfResponse = await fetch('/api/download-pdf', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                email: userEmail,
-                userId: userId,
-                questionnaireData
-              }),
-            });
-
-          if (pdfResponse.ok) {
-            const blob = await pdfResponse.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `RevOps_Onboarding_${questionnaireData.companyInfo?.companyName || 'Client'}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            console.log('✅ PDF downloaded successfully');
-            toast.success('PDF downloaded!');
-          } else {
-            console.error('⚠️ PDF download failed (non-critical)');
-            toast.error('PDF download failed, but data was submitted successfully');
-          }
-        } catch (pdfError) {
-          console.error('⚠️ PDF download error (non-critical):', pdfError);
-          // Don't fail the whole flow if PDF download fails
-        }
-        
-        router.push('/thank-you');
-      } else {
-        // Show persistent error modal
-        setShowModal(false); // Close processing modal
-        const errorDetails = result.details ? `\n\nDetails: ${JSON.stringify(result.details, null, 2)}` : '';
-        const debugInfo = result.hasApiKey !== undefined ? `\n\nDebug: API Key ${result.hasApiKey ? 'configured' : 'missing'}` : '';
-        setErrorMessage(`${result.error || 'An unexpected error occurred during submission.'}${errorDetails}${debugInfo}`);
-        setShowErrorModal(true); // Show error modal
-        console.error('API Error:', result);
+      if (!phase1Response.ok || !phase1Result.success) {
+        console.error('❌ Phase 1 failed:', phase1Result.error);
+        throw new Error(phase1Result.error || 'Phase 1 failed');
       }
+
+      console.log('✅ Phase 1 complete!');
+      console.log('   Workspace OId:', phase1Result.workspaceOId);
+      console.log('   Product OId:', phase1Result.productOId);
+      console.log('   Personas:', phase1Result.personas?.length || 0);
+      console.log('   Use Cases:', phase1Result.useCases?.length || 0);
+
+      // ============================================
+      // PHASE 2: References, Segments, Playbooks
+      // ============================================
+      console.log('⚙️ Phase 2: Creating references, segments, and playbooks...');
+      
+      try {
+        const phase2Response = await fetch('/api/octave/workspace-extras', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: userId,
+            workspaceOId: phase1Result.workspaceOId,
+            workspaceApiKey: phase1Result.workspaceApiKey,
+            productOId: phase1Result.productOId,
+            personas: phase1Result.personas,
+            useCases: phase1Result.useCases,
+            clientReferences: phase1Result.clientReferences
+          }),
+        });
+
+        const phase2Result = await phase2Response.json();
+
+        if (phase2Response.ok && phase2Result.success) {
+          console.log('✅ Phase 2 complete!');
+          console.log('   References created:', phase2Result.referencesCreated || 0);
+          console.log('   Segments created:', phase2Result.segmentsCreated || 0);
+          console.log('   Playbooks created:', phase2Result.playbooksCreated || 0);
+        } else {
+          console.warn('⚠️ Phase 2 failed (non-critical):', phase2Result.error);
+          // Don't fail the whole flow if Phase 2 fails - it's nice-to-have
+        }
+      } catch (phase2Error) {
+        console.warn('⚠️ Phase 2 error (non-critical):', phase2Error);
+        // Don't fail the whole flow if Phase 2 fails
+      }
+
+      console.log('🎉 ===== ALL PHASES COMPLETE =====');
+      setShowModal(false); // Close the modal
+      toast.success('Onboarding completed successfully!');
+        
+      // Download PDF
+      console.log('📥 Downloading PDF...');
+      try {
+        const pdfResponse = await fetch('/api/download-pdf', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: userEmail,
+            userId: userId,
+            questionnaireData
+          }),
+        });
+
+        if (pdfResponse.ok) {
+          const blob = await pdfResponse.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `RevOps_Onboarding_${questionnaireData.companyInfo?.companyName || 'Client'}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          console.log('✅ PDF downloaded successfully');
+          toast.success('PDF downloaded!');
+        } else {
+          console.error('⚠️ PDF download failed (non-critical)');
+          toast.error('PDF download failed, but data was submitted successfully');
+        }
+      } catch (pdfError) {
+        console.error('⚠️ PDF download error (non-critical):', pdfError);
+        // Don't fail the whole flow if PDF download fails
+      }
+      
+      router.push('/thank-you');
     } catch (error) {
       // Show persistent error modal
       setShowModal(false); // Close processing modal
