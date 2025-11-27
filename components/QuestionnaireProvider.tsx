@@ -66,7 +66,7 @@ const initialData: QuestionnaireData = {
   },
   // Step 8: Positioning
   positioning: {
-    competitors: ''
+    competitors: []
   },
   // Step 9: Carrots & Lead Magnets
   leadMagnets: {

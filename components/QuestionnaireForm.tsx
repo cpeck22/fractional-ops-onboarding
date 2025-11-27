@@ -36,7 +36,7 @@ const SECTION_VIDEO_URLS: Record<string, string> = {
   brandExamples: 'https://drive.google.com/file/d/1qCJ8ggOedeMS5HKd58WCUPv4xPzOO38k/preview', // Section 10
 };
 
-const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea' | 'dropdown' | 'multiselect' | 'file' | 'client-references', required?: boolean, description?: string, example?: string, options?: string[], questionNumber?: number}>> = {
+const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea' | 'dropdown' | 'multiselect' | 'file' | 'client-references' | 'competitors', required?: boolean, description?: string, example?: string, options?: string[], questionNumber?: number}>> = {
   // Step 1: Who You Are (Q1-2)
   companyInfo: [
     { key: 'companyName', label: 'Company Name', placeholder: 'Please Type Your Answer here', type: 'text', required: true, questionNumber: 1 },
@@ -246,10 +246,10 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
     { 
       key: 'competitors', 
       label: 'Who else can solve this for them?', 
-      placeholder: 'Please Type Your Answer here', 
-      type: 'textarea', 
+      placeholder: '', 
+      type: 'competitors', 
       required: true,
-      description: 'I need a list of our competitors (at least 1–3 to start). All I need is the Company Name and Website.',
+      description: 'Add your direct competitors (at least 1–3 to start, up to 100). For each competitor, provide: Company Name and Website. I\'ll use AI to analyze their positioning, strengths, weaknesses, and why you win.',
       example: '**Corporate Real Estate:**\n• CBRE — https://www.cbre.com\n\n• JLL — https://www.us.jll.com\n\n• Cushman & Wakefield — https://www.cushmanwakefield.com\n\n**Legal Services:**\n• Wilson Sonsini — https://www.wsgr.com\n\n• Cooley LLP — https://www.cooley.com\n\n• Latham & Watkins — https://www.lw.com\n\n**HR Consulting:**\n• Mercer — https://www.mercer.com\n\n• Korn Ferry — https://www.kornferry.com\n\n• Gallup — https://www.gallup.com',
       questionNumber: 21
     }
@@ -812,6 +812,92 @@ export default function QuestionnaireForm({
                 {/* Count display */}
                 <p className="text-xs text-fo-text-secondary text-center">
                   {(Array.isArray(formData[field.key]) ? formData[field.key] : []).length} / 100 client references
+                </p>
+              </div>
+            ) : field.type === 'competitors' ? (
+              <div className="space-y-4">
+                {/* Render each competitor */}
+                {(Array.isArray(formData[field.key]) ? formData[field.key] : []).map((competitor: any, compIndex: number) => (
+                  <div key={compIndex} className="border border-fo-light rounded-lg p-4 bg-white space-y-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="text-sm font-semibold text-fo-primary">Competitor #{compIndex + 1}</h4>
+                      {(Array.isArray(formData[field.key]) ? formData[field.key] : []).length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentComps = Array.isArray(formData[field.key]) ? formData[field.key] : [];
+                            const newComps = currentComps.filter((_: any, idx: number) => idx !== compIndex);
+                            handleFieldChange(field.key, newComps);
+                          }}
+                          className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    
+                    {/* Company Name */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Company Name <span className="text-fo-orange">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={competitor.companyName || ''}
+                        onChange={(e) => {
+                          const currentComps = Array.isArray(formData[field.key]) ? [...formData[field.key]] : [];
+                          currentComps[compIndex] = { ...currentComps[compIndex], companyName: e.target.value };
+                          handleFieldChange(field.key, currentComps);
+                        }}
+                        placeholder="e.g., CBRE, Wilson Sonsini, Mercer"
+                        className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary text-sm text-gray-900"
+                      />
+                    </div>
+
+                    {/* Company Website */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Company Website <span className="text-fo-orange">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={competitor.companyWebsite || ''}
+                        onChange={(e) => {
+                          const currentComps = Array.isArray(formData[field.key]) ? [...formData[field.key]] : [];
+                          currentComps[compIndex] = { ...currentComps[compIndex], companyWebsite: e.target.value };
+                          handleFieldChange(field.key, currentComps);
+                        }}
+                        placeholder="e.g., https://www.cbre.com"
+                        className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary text-sm text-gray-900"
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add Competitor Button */}
+                {(Array.isArray(formData[field.key]) ? formData[field.key] : []).length < 100 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentComps = Array.isArray(formData[field.key]) ? formData[field.key] : [];
+                      const newComps = [...currentComps, { companyName: '', companyWebsite: '' }];
+                      handleFieldChange(field.key, newComps);
+                    }}
+                    className="w-full px-4 py-3 border-2 border-dashed border-fo-primary text-fo-primary rounded-lg hover:bg-fo-light transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Competitor
+                  </button>
+                )}
+
+                {/* Count display */}
+                <p className="text-xs text-fo-text-secondary text-center">
+                  {(Array.isArray(formData[field.key]) ? formData[field.key] : []).length} / 100 competitors
                 </p>
               </div>
             ) : (

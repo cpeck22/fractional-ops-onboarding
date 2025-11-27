@@ -5,6 +5,11 @@ export interface ClientReference {
   successStory?: string; // Optional
 }
 
+export interface Competitor {
+  companyName: string;
+  companyWebsite: string;
+}
+
 export interface QuestionnaireData {
   // Step 1: Who You Are (Q1-2)
   companyInfo: {
@@ -56,7 +61,7 @@ export interface QuestionnaireData {
 
   // Step 8: Positioning (Q21)
   positioning: {
-    competitors: string;
+    competitors: Competitor[];
   };
 
   // Step 9: Carrots & Lead Magnets (Q22)

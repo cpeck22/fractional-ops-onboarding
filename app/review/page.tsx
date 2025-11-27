@@ -141,7 +141,8 @@ export default function ReviewPage() {
             productOId: phase1Result.productOId,
             personas: phase1Result.personas,
             useCases: phase1Result.useCases,
-            clientReferences: phase1Result.clientReferences
+            clientReferences: phase1Result.clientReferences,
+            competitors: questionnaireData.positioning?.competitors || []
           }),
         });
 
@@ -151,6 +152,7 @@ export default function ReviewPage() {
           console.log('✅ Phase 2 complete!');
           console.log('   References created:', phase2Result.referencesCreated || 0);
           console.log('   Segments created:', phase2Result.segmentsCreated || 0);
+          console.log('   Competitors created:', phase2Result.competitorsCreated || 0);
           console.log('   Playbooks created:', phase2Result.playbooksCreated || 0);
         } else {
           console.warn('⚠️ Phase 2 failed (non-critical):', phase2Result.error);

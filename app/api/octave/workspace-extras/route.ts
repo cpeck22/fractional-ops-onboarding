@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
       productOId,
       personas,
       useCases,
-      clientReferences
+      clientReferences,
+      competitors
     } = body;
 
     console.log('🎨 ===== PHASE 2: WORKSPACE EXTRAS =====');
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
     console.log('👥 Personas:', personas?.length || 0);
     console.log('🎯 Use Cases:', useCases?.length || 0);
     console.log('📄 Client References:', clientReferences?.length || 0);
+    console.log('⚔️ Competitors:', competitors?.length || 0);
 
     if (!userId || !workspaceOId || !workspaceApiKey || !productOId) {
       return NextResponse.json(
@@ -38,6 +40,7 @@ export async function POST(request: NextRequest) {
 
     let createdReferences: any[] = [];
     let createdSegments: any[] = [];
+    let createdCompetitors: any[] = [];
     let playbooksCreated = 0;
 
     // ============================================
@@ -108,7 +111,44 @@ export async function POST(request: NextRequest) {
       }
 
       // ============================================
-      // STEP 3: CREATE PLAYBOOKS
+      // STEP 3: CREATE COMPETITORS
+      // ============================================
+      if (Array.isArray(competitors) && competitors.length > 0) {
+        console.log('⚔️ Creating competitors in Octave...');
+        try {
+          const competitorResponse = await fetch(`${request.nextUrl.origin}/api/octave/competitor`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              competitors: competitors,
+              productOId: productOId,
+              workspaceOId: workspaceOId,
+              workspaceApiKey: workspaceApiKey
+            }),
+          });
+
+          const competitorResult = await competitorResponse.json();
+          
+          if (competitorResponse.ok && competitorResult.success) {
+            console.log(`✅ Created ${competitorResult.created}/${competitorResult.total} competitors`);
+            createdCompetitors = competitorResult.competitors || [];
+            if (competitorResult.errors) {
+              console.warn('⚠️ Some competitors failed:', competitorResult.errors);
+            }
+          } else {
+            console.error('⚠️ Competitor creation failed (non-critical):', competitorResult);
+          }
+        } catch (competitorError) {
+          console.error('⚠️ Competitor creation error (non-critical):', competitorError);
+        }
+      } else {
+        console.log('ℹ️ No competitors provided, skipping competitor creation');
+      }
+
+      // ============================================
+      // STEP 4: CREATE PLAYBOOKS
       // ============================================
       if (createdSegments.length > 0 && personas.length > 0 && useCases.length > 0) {
         console.log('📚 Creating playbooks in Octave...');
@@ -151,7 +191,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ============================================
-    // STEP 4: UPDATE SUPABASE WITH EXTRAS
+    // STEP 5: UPDATE SUPABASE WITH EXTRAS
     // ============================================
     console.log('💾 Updating Supabase with Phase 2 data...');
     
@@ -173,6 +213,7 @@ export async function POST(request: NextRequest) {
         message: 'Phase 2 completed but could not update database',
         referencesCreated: createdReferences.length,
         segmentsCreated: createdSegments.length,
+        competitorsCreated: createdCompetitors.length,
         playbooksCreated: playbooksCreated
       });
     }
@@ -183,6 +224,7 @@ export async function POST(request: NextRequest) {
       .update({
         segments: createdSegments,
         client_references: createdReferences,
+        competitors: createdCompetitors,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', userId);
@@ -196,6 +238,7 @@ export async function POST(request: NextRequest) {
     console.log('🎉 ===== PHASE 2 COMPLETE =====');
     console.log(`   References: ${createdReferences.length}`);
     console.log(`   Segments: ${createdSegments.length}`);
+    console.log(`   Competitors: ${createdCompetitors.length}`);
     console.log(`   Playbooks: ${playbooksCreated}`);
 
     return NextResponse.json({
@@ -203,6 +246,7 @@ export async function POST(request: NextRequest) {
       message: 'Phase 2 completed successfully',
       referencesCreated: createdReferences.length,
       segmentsCreated: createdSegments.length,
+      competitorsCreated: createdCompetitors.length,
       playbooksCreated: playbooksCreated
     });
 

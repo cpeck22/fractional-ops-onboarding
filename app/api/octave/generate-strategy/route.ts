@@ -24,7 +24,8 @@ async function generateICPCompanies(
   companySize: string,
   geographicMarkets: string,
   industry: string,
-  whatYouDo: string
+  whatYouDo: string,
+  competitorDomains: string[] = []
 ): Promise<string[]> {
   const openaiApiKey = process.env.OPENAI_API_KEY;
   
@@ -36,6 +37,10 @@ async function generateICPCompanies(
   const openai = new OpenAI({
     apiKey: openaiApiKey
   });
+
+  const excludeCompetitorsText = competitorDomains.length > 0 
+    ? `\n7. **CRITICAL**: EXCLUDE these competitor domains from results:\n   ${competitorDomains.map(d => `- ${d}`).join('\n   ')}`
+    : '';
 
   const prompt = `You are a B2B prospecting expert. Generate a list of 5-10 real company domains that match this Ideal Customer Profile (ICP):
 
@@ -51,7 +56,7 @@ async function generateICPCompanies(
 3. Include a mix of well-known and mid-market companies
 4. Domains should be clean (example.com, not www.example.com or https://)
 5. Prioritize companies that would benefit from the service described
-6. Ensure companies match the size, revenue, and geographic criteria
+6. Ensure companies match the size, revenue, and geographic criteria${excludeCompetitorsText}
 
 Return ONLY a JSON object with this structure:
 {
@@ -380,6 +385,41 @@ export async function POST(request: NextRequest) {
     
     updateProgress('Generating ICP-matching companies with AI...', 4, 15);
     
+    // Extract competitor domains from questionnaire to exclude them from prospecting
+    const competitorDomains: string[] = [];
+    try {
+      console.log('🔍 Fetching competitors from questionnaire_responses...');
+      const { data: competitorData, error: competitorError } = await supabase
+        .from('questionnaire_responses')
+        .select('field_value')
+        .eq('user_id', userId)
+        .eq('field_key', 'competitors')
+        .single();
+      
+      if (!competitorError && competitorData?.field_value) {
+        // Parse the JSON string to get the array of competitors
+        const competitors = JSON.parse(competitorData.field_value);
+        if (Array.isArray(competitors)) {
+          competitors.forEach((comp: any) => {
+            if (comp.companyWebsite) {
+              // Clean the domain (remove protocol, www, trailing slashes, paths)
+              const domain = comp.companyWebsite
+                .replace(/^https?:\/\//, '')
+                .replace(/^www\./, '')
+                .split('/')[0];
+              competitorDomains.push(domain);
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('⚠️ Error loading competitors (non-critical):', error);
+    }
+    
+    if (competitorDomains.length > 0) {
+      console.log(`🚫 Excluding ${competitorDomains.length} competitor domains from ICP generation:`, competitorDomains);
+    }
+    
     let icpCompanyDomains: string[] = [];
     
     if (companySize && geographicMarkets) {
@@ -388,10 +428,11 @@ export async function POST(request: NextRequest) {
           companySize,
           geographicMarkets,
           industry,
-          whatYouDo
+          whatYouDo,
+          competitorDomains
         );
         
-        console.log(`✅ Generated ${icpCompanyDomains.length} ICP-matching companies`);
+        console.log(`✅ Generated ${icpCompanyDomains.length} ICP-matching companies (excluding competitors)`);
       } catch (error) {
         console.error('❌ AI company generation failed:', error);
       }

@@ -44,6 +44,7 @@ interface OctaveOutputs {
   personas?: any[];
   client_references?: any[];
   segments?: any[];
+  competitors?: any[];
   created_at: string;
 }
 
@@ -1401,6 +1402,114 @@ export default function ResultsPage() {
                               ))}
                             </div>
                           </details>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Competitors - FULL DETAIL */}
+            {outputs.competitors && outputs.competitors.length > 0 && (
+              <div className="border-2 border-gray-300 rounded-lg p-6 bg-gradient-to-br from-orange-50 to-yellow-50">
+                <h3 className="text-xl font-bold text-fo-primary mb-4 flex items-center gap-2">
+                  <span>⚔️</span> Competitive Analysis ({outputs.competitors.length})
+                </h3>
+                <div className="space-y-6">
+                  {outputs.competitors.map((competitor: any, index: number) => (
+                    <div key={index} className="bg-white p-5 rounded-lg border border-orange-200 shadow-sm">
+                      <h4 className="font-bold text-lg text-fo-primary mb-2">{competitor.name || competitor.internalName || 'Unnamed Competitor'}</h4>
+                      
+                      {competitor.companyWebsite && (
+                        <p className="text-sm text-gray-600 mb-2">
+                          <span className="font-semibold">Website:</span>{' '}
+                          <a href={competitor.companyWebsite} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                            {competitor.companyWebsite}
+                          </a>
+                        </p>
+                      )}
+                      
+                      {competitor.description && (
+                        <p className="text-sm text-gray-700 mb-3">{competitor.description}</p>
+                      )}
+                      
+                      <div className="space-y-3 mt-4">
+                        {competitor.data?.businessModel && competitor.data.businessModel.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-1">Business Model:</p>
+                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                              {competitor.data.businessModel.map((model: string, idx: number) => (
+                                <li key={idx}>{model}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {competitor.data?.comparativeStrengths && competitor.data.comparativeStrengths.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-1">Their Strengths:</p>
+                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                              {competitor.data.comparativeStrengths.map((strength: string, idx: number) => (
+                                <li key={idx}>{strength}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {competitor.data?.comparativeWeaknesses && competitor.data.comparativeWeaknesses.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-1">Their Weaknesses:</p>
+                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                              {competitor.data.comparativeWeaknesses.map((weakness: string, idx: number) => (
+                                <li key={idx}>{weakness}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {competitor.data?.keyDifferentiators && competitor.data.keyDifferentiators.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-1">Key Differentiators:</p>
+                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                              {competitor.data.keyDifferentiators.map((diff: string, idx: number) => (
+                                <li key={idx}>{diff}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {competitor.data?.reasonsWeWin && competitor.data.reasonsWeWin.length > 0 && (
+                          <div className="bg-green-50 p-3 rounded-md border border-green-200">
+                            <p className="font-semibold text-green-800 text-sm mb-1">🎯 Why We Win:</p>
+                            <ul className="list-disc list-inside text-sm text-green-700 space-y-1">
+                              {competitor.data.reasonsWeWin.map((reason: string, idx: number) => (
+                                <li key={idx}>{reason}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {competitor.data?.customersWeWon && competitor.data.customersWeWon.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-1">Customers We Won From Them:</p>
+                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                              {competitor.data.customersWeWon.map((customer: string, idx: number) => (
+                                <li key={idx}>{customer}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {competitor.data?.customersWeSwitched && competitor.data.customersWeSwitched.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-700 text-sm mb-1">Customers We Switched From Them:</p>
+                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                              {competitor.data.customersWeSwitched.map((customer: string, idx: number) => (
+                                <li key={idx}>{customer}</li>
+                              ))}
+                            </ul>
+                          </div>
                         )}
                       </div>
                     </div>
