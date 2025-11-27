@@ -250,6 +250,7 @@ export default function ReviewPage() {
                       let displayValue = 'Not provided';
                       let isFileField = false;
                       let isClientReferences = false;
+                      let isCompetitors = false;
                       
                       // Check if this is a file upload field (brandDocuments or additionalFiles)
                       if (field.key === 'brandDocuments' || field.key === 'additionalFiles') {
@@ -261,9 +262,14 @@ export default function ReviewPage() {
                         isClientReferences = true;
                       }
                       
+                      // Check if this is the competitors field
+                      if (field.key === 'competitors') {
+                        isCompetitors = true;
+                      }
+                      
                       if (value) {
-                        if (isClientReferences && Array.isArray(value)) {
-                          // Don't compute displayValue for client references, we'll render them specially
+                        if ((isClientReferences || isCompetitors) && Array.isArray(value)) {
+                          // Don't compute displayValue for client references or competitors, we'll render them specially
                         } else if (Array.isArray(value)) {
                           displayValue = value.join(', ');
                         } else if (isFileField && typeof value === 'string' && value.includes('http')) {
@@ -303,6 +309,18 @@ export default function ReviewPage() {
                                     {ref.successStory && (
                                       <div><span className="font-medium">Success Story:</span> {ref.successStory}</div>
                                     )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : isCompetitors && value && Array.isArray(value) ? (
+                            <div className="mt-2 space-y-3">
+                              {value.map((comp: any, compIndex: number) => (
+                                <div key={compIndex} className="bg-orange-50 p-3 rounded border border-orange-200">
+                                  <div className="font-medium text-orange-700 text-xs mb-2">Competitor #{compIndex + 1}</div>
+                                  <div className="space-y-1 text-xs text-gray-900">
+                                    <div><span className="font-medium">Company:</span> {comp.companyName || 'Not provided'}</div>
+                                    <div><span className="font-medium">Website:</span> {comp.companyWebsite || 'Not provided'}</div>
                                   </div>
                                 </div>
                               ))}
