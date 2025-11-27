@@ -59,7 +59,7 @@ export default function TermsAndConditionsModal({ userId, userEmail, onAccept }:
             <h1 className="text-xl font-bold mb-4">Fractional Ops Site Terms and Conditions</h1>
             <p className="text-sm text-gray-600 mb-4">Last updated: November 26, 2025</p>
             
-            <p className="font-bold text-red-600 mb-4">
+            <p className="font-bold mb-4">
               THIS AGREEMENT CONTAINS A RELEASE OF LIABILITY AND WAIVER OF CERTAIN RIGHTS. YOU ARE ADVISED TO READ THIS CAREFULLY BEFORE AGREEING TO ITS TERMS.
             </p>
 
