@@ -48,11 +48,32 @@ interface OctaveOutputs {
 }
 
 const ErrorPlaceholder = ({ assetType }: { assetType: string }) => (
-  <div className="bg-fo-light border-l-4 border-fo-orange rounded-lg p-6">
-    <div className="text-fo-orange mb-2 font-bold">⚠️ Need more context</div>
-    <p className="text-fo-text-secondary text-sm">
+  <div className="bg-gradient-to-br from-fo-light to-white border-l-4 border-fo-orange rounded-lg p-6 shadow-sm">
+    <div className="text-fo-orange mb-3 font-bold text-lg flex items-center gap-2">
+      <span>⚠️</span>
+      <span>Need more context</span>
+    </div>
+    <p className="text-fo-text-secondary text-sm mb-6">
       I need more details to create <strong>{assetType}</strong>. Book a GTM Kickoff Call to review together.
     </p>
+    
+    {/* Video Placeholder */}
+    <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-lg" style={{ paddingBottom: '56.25%' }}>
+      <iframe 
+        src="https://netorgft15591934-my.sharepoint.com/personal/corey_fractionalops_com/_layouts/15/embed.aspx?UniqueId=9dfe10f0-7d64-4939-90a9-bbad2a68c490&embed=%7B%22ust%22%3Atrue%2C%22hv%22%3A%22CopyEmbedCode%22%7D&referrer=StreamWebApp&referrerScenario=EmbedDialog.Create" 
+        className="absolute top-0 left-0 w-full h-full"
+        scrolling="no" 
+        allowFullScreen 
+        title="Quick-Wave-2.mp4"
+        style={{ border: 'none' }}
+      />
+    </div>
+    
+    <div className="mt-4 text-center">
+      <p className="text-fo-secondary text-xs italic">
+        👆 Watch this quick intro to understand how we&apos;ll build this asset together
+      </p>
+    </div>
   </div>
 );
 
