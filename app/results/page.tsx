@@ -530,6 +530,7 @@ export default function ResultsPage() {
           <SectionIntro 
             whatIsThisFor={sectionIntros.campaignIdeas}
             sectionId="campaign-ideas"
+            videoUrl="https://drive.google.com/file/d/13W9LlvCvqBzOl_5R81yeZCLJ9tusC2RW/preview"
           />
           
           {outputs.campaign_ideas && outputs.campaign_ideas.length > 0 ? (
