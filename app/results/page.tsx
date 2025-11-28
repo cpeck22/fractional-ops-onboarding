@@ -7,7 +7,6 @@ import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import ClaireImage from '../Claire_v2.png';
 import SectionIntro from '@/components/SectionIntro';
-import ClaireCTA from '@/components/ClaireCTA';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -547,8 +546,6 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType="Campaign Ideas" />
           )}
-          
-          <ClaireCTA />
         </section>
 
         {/* Prospect List */}
@@ -717,8 +714,6 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType="Prospect List" />
           )}
-          
-          <ClaireCTA />
         </section>
 
         {/* Cold Email Sequences with Tabs */}
@@ -776,8 +771,6 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType={`${emailTabs.find(t => t.id === activeEmailTab)?.label} Email Sequence`} />
           )}
-          
-          <ClaireCTA />
         </section>
 
         {/* LinkedIn Posts with Tabs */}
@@ -824,8 +817,6 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType={`${postTabs.find(t => t.id === activePostTab)?.label}`} />
           )}
-          
-          <ClaireCTA />
         </section>
 
         {/* LinkedIn DMs with Tabs */}
@@ -872,8 +863,6 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType={`LinkedIn DM ${dmTabs.find(t => t.id === activeDMTab)?.label}`} />
           )}
-          
-          <ClaireCTA />
         </section>
 
         {/* Newsletters with Tabs */}
@@ -912,7 +901,7 @@ export default function ResultsPage() {
           {/* Newsletter Content */}
           {outputs.newsletters && outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters] ? (
             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <div className="prose prose-sm max-w-none text-gray-900">
+              <div className="prose prose-sm max-w-none text-gray-900 prose-p:my-4 prose-headings:my-4 prose-ul:my-4 prose-li:my-2">
                 <ReactMarkdown>
                   {outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters]}
                 </ReactMarkdown>
@@ -921,8 +910,6 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType={`Newsletter ${newsletterTabs.find(t => t.id === activeNewsletterTab)?.label}`} />
           )}
-          
-          <ClaireCTA />
         </section>
 
         {/* Call Prep */}
@@ -959,7 +946,7 @@ export default function ResultsPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Call Script:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <div className="prose prose-sm max-w-none text-gray-900">
+                    <div className="prose prose-sm max-w-none text-gray-900 prose-p:my-4 prose-headings:my-4 prose-ul:my-4 prose-li:my-2">
                       <ReactMarkdown>
                         {outputs.call_prep.callScript}
                       </ReactMarkdown>
@@ -973,7 +960,7 @@ export default function ResultsPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Objection Handling:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <div className="prose prose-sm max-w-none text-gray-900">
+                    <div className="prose prose-sm max-w-none text-gray-900 prose-p:my-4 prose-headings:my-4 prose-ul:my-4 prose-li:my-2">
                       <ReactMarkdown>
                         {outputs.call_prep.objectionHandling}
                       </ReactMarkdown>
@@ -985,8 +972,6 @@ export default function ResultsPage() {
           ) : (
             <ErrorPlaceholder assetType="Call Prep Example" />
           )}
-          
-          <ClaireCTA />
         </section>
 
         {/* Strategic Elements Appendix */}
