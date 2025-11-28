@@ -911,7 +911,7 @@ export default function ResultsPage() {
           {/* Newsletter Content */}
           {outputs.newsletters && outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters] ? (
             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <div className="prose prose-sm max-w-none text-gray-900 prose-p:my-4 prose-headings:my-4 prose-ul:my-4 prose-li:my-2">
+              <div className="prose prose-lg max-w-none text-gray-900 prose-p:my-6 prose-p:leading-relaxed prose-headings:mt-8 prose-headings:mb-4 prose-headings:font-bold prose-ul:my-6 prose-li:my-3 prose-strong:font-bold prose-strong:text-black">
                 <ReactMarkdown remarkPlugins={[remarkBreaks]}>
                   {outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters]}
                 </ReactMarkdown>
@@ -956,7 +956,7 @@ export default function ResultsPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Call Script:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <div className="prose prose-sm max-w-none text-gray-900 prose-p:my-4 prose-headings:my-4 prose-ul:my-4 prose-li:my-2">
+                    <div className="prose prose-lg max-w-none text-gray-900 prose-p:my-6 prose-p:leading-relaxed prose-headings:mt-8 prose-headings:mb-4 prose-headings:font-bold prose-ul:my-6 prose-li:my-3 prose-strong:font-bold prose-strong:text-black">
                       <ReactMarkdown remarkPlugins={[remarkBreaks]}>
                         {outputs.call_prep.callScript}
                       </ReactMarkdown>
@@ -970,7 +970,7 @@ export default function ResultsPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Objection Handling:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <div className="prose prose-sm max-w-none text-gray-900 prose-p:my-4 prose-headings:my-4 prose-ul:my-4 prose-li:my-2">
+                    <div className="prose prose-lg max-w-none text-gray-900 prose-p:my-6 prose-p:leading-relaxed prose-headings:mt-8 prose-headings:mb-4 prose-headings:font-bold prose-ul:my-6 prose-li:my-3 prose-strong:font-bold prose-strong:text-black">
                       <ReactMarkdown remarkPlugins={[remarkBreaks]}>
                         {outputs.call_prep.objectionHandling}
                       </ReactMarkdown>
