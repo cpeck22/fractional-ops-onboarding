@@ -34,19 +34,29 @@ export default function SectionIntro({
         />
       </div>
 
-      {/* Right: How do I use this? */}
-      <div className="bg-gradient-to-br from-fo-light to-white rounded-lg p-6 border-2 border-fo-primary/30">
-        <h3 className="text-lg font-bold text-fo-dark mb-4">
-          💡 How do I use this?
+      {/* Right: How do I use this? + CTA Button */}
+      <div className="bg-white rounded-lg p-6 border border-gray-200">
+        <h3 className="text-lg font-bold text-blue-600 mb-4">
+          How do I use this?
         </h3>
-        <div className="space-y-2">
+        <div className="space-y-2 mb-6">
           {whatIsThisFor.map((item, index) => (
-            <div key={index} className="flex items-start gap-2">
-              <span className="text-fo-primary mt-1 flex-shrink-0">•</span>
-              <p className="text-sm text-fo-secondary leading-relaxed">{item}</p>
+            <div key={index} className="flex items-start gap-3">
+              <span className="text-green-600 mt-0.5 flex-shrink-0 text-lg">✓</span>
+              <p className="text-sm text-gray-900 leading-relaxed">{item}</p>
             </div>
           ))}
         </div>
+        
+        {/* CTA Button - Green with white font */}
+        <a 
+          href="https://meetings.hubspot.com/corey-peck/claire-roi-roadmap-call"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full text-center px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-all shadow-md"
+        >
+          Add to CRM Now
+        </a>
       </div>
     </div>
   );

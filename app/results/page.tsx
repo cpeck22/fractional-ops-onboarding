@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
 import ClaireImage from '../Claire_v2.png';
 import SectionIntro from '@/components/SectionIntro';
 import ClaireCTA from '@/components/ClaireCTA';
@@ -73,14 +74,23 @@ export default function ResultsPage() {
 
   // Table of Contents sections
   const tocSections = [
-    { id: 'campaign-workflows', label: '💡 Campaign Workflows', emoji: '💡' },
-    { id: 'qualified-prospects', label: '👥 Qualified Prospects', emoji: '👥' },
-    { id: 'cold-email-sequences', label: '📧 Cold Email Sequences', emoji: '📧' },
-    { id: 'linkedin-posts', label: '📱 LinkedIn Posts', emoji: '📱' },
-    { id: 'linkedin-dms', label: '💬 LinkedIn DMs', emoji: '💬' },
-    { id: 'newsletter-content', label: '📰 Newsletter Content', emoji: '📰' },
-    { id: 'call-prep', label: '📞 Call Prep', emoji: '📞' },
-    { id: 'library-assets', label: '📋 Library Assets', emoji: '📋' },
+    { id: 'campaign-workflows', label: 'Campaign Workflows', emoji: '' },
+    { id: 'qualified-prospects', label: 'Qualified Prospects', emoji: '' },
+    { id: 'cold-email-sequences', label: 'Cold Email Sequences', emoji: '' },
+    { id: 'linkedin-posts', label: 'LinkedIn Posts', emoji: '' },
+    { id: 'linkedin-dms', label: 'LinkedIn DMs', emoji: '' },
+    { id: 'newsletter-content', label: 'Newsletter Content', emoji: '' },
+    { id: 'call-prep', label: 'Call Prep', emoji: '' },
+  ];
+
+  // Strategic Elements Appendix sections  
+  const appendixSections = [
+    { id: 'service-offering', label: 'Service Offering' },
+    { id: 'personas', label: 'Personas' },
+    { id: 'use-cases', label: 'Use Cases' },
+    { id: 'segments', label: 'Segments' },
+    { id: 'client-references', label: 'Client References' },
+    { id: 'competitors', label: 'Competitors' },
   ];
 
   // Smooth scroll to section
@@ -418,9 +428,9 @@ export default function ResultsPage() {
         {/* Table of Contents - Fixed Left Sidebar */}
         <nav className="hidden lg:block fixed left-4 top-24 w-64 bg-white rounded-lg shadow-lg p-6 max-h-[calc(100vh-8rem)] overflow-y-auto z-40">
           <h3 className="text-sm font-bold text-fo-dark mb-4 uppercase tracking-wider">
-            Table of Contents
+            Initial Assets
           </h3>
-          <ul className="space-y-1">
+          <ul className="space-y-1 mb-6">
             {tocSections.map((section) => (
               <li key={section.id}>
                 <button
@@ -431,8 +441,28 @@ export default function ResultsPage() {
                       : 'text-fo-text-secondary hover:bg-fo-light hover:text-fo-primary'
                   }`}
                 >
-                  <span className="mr-2">{section.emoji}</span>
-                  {section.label.replace(section.emoji + ' ', '')}
+                  {section.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+          
+          {/* Strategic Elements Appendix */}
+          <h3 className="text-sm font-bold text-fo-dark mb-4 uppercase tracking-wider border-t pt-4">
+            Strategic Elements Appendix
+          </h3>
+          <ul className="space-y-1">
+            {appendixSections.map((section) => (
+              <li key={section.id}>
+                <button
+                  onClick={() => scrollToSection(section.id)}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                    activeSection === section.id
+                      ? 'bg-fo-primary text-white font-semibold shadow-md'
+                      : 'text-fo-text-secondary hover:bg-fo-light hover:text-fo-primary'
+                  }`}
+                >
+                  {section.label}
                 </button>
               </li>
             ))}
@@ -474,7 +504,7 @@ export default function ResultsPage() {
             <button
               onClick={handleDownloadPDF}
               disabled={downloadingPDF}
-              className="px-6 py-3 bg-fo-orange text-white rounded-lg hover:bg-opacity-90 font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap shadow-lg"
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap shadow-lg"
             >
               {downloadingPDF ? (
                 <>
@@ -483,7 +513,6 @@ export default function ResultsPage() {
                 </>
               ) : (
                 <>
-                  <span className="text-xl">📄</span>
                   Download Report
                 </>
               )}
@@ -492,9 +521,9 @@ export default function ResultsPage() {
         </div>
 
         {/* Campaign Ideas */}
-        <section id="campaign-workflows" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-primary scroll-mt-8">
-          <h2 className="text-2xl font-bold text-fo-dark mb-6">
-            💡 Campaign Workflows
+        <section id="campaign-workflows" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Campaign Workflows
           </h2>
           
           {/* Section Intro */}
@@ -522,9 +551,9 @@ export default function ResultsPage() {
         </section>
 
         {/* Prospect List */}
-        <section id="qualified-prospects" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-green scroll-mt-8">
-          <h2 className="text-2xl font-bold text-fo-dark mb-6">
-            👥 Qualified Prospects
+        <section id="qualified-prospects" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Qualified Prospects
           </h2>
           
           {/* Section Intro */}
@@ -535,61 +564,50 @@ export default function ResultsPage() {
           
           {outputs.prospect_list && outputs.prospect_list.length > 0 ? (
             <>
-              <p className="text-fo-secondary mb-4">
-                Found <strong>{outputs.prospect_list.length}</strong> qualified prospects matching your ideal customer profile
-              </p>
-              
-              {/* Enrichment Stats */}
-              <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {outputs.prospect_list.filter((p: any) => p.email).length}
-                  </div>
-                  <div className="text-xs text-gray-600">📧 Emails Found</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {outputs.prospect_list.filter((p: any) => p.mobile_number).length}
-                  </div>
-                  <div className="text-xs text-gray-600">📱 Mobile Numbers</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-fo-primary">
-                    {outputs.prospect_list.length > 0 
-                      ? Math.round((outputs.prospect_list.filter((p: any) => p.email).length / outputs.prospect_list.length) * 100)
-                      : 0}%
-                  </div>
-                  <div className="text-xs text-gray-600">✅ Contact Rate</div>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                {/* Sort prospects by contact quality before displaying */}
-                {outputs.prospect_list
-                  .sort((a: any, b: any) => {
-                    // Priority 1: Email + Mobile (both)
-                    const aHasBoth = a.email && a.mobile_number;
-                    const bHasBoth = b.email && b.mobile_number;
-                    if (aHasBoth && !bHasBoth) return -1;
-                    if (!aHasBoth && bHasBoth) return 1;
+              {(() => {
+                // FILTER: Only show prospects with LinkedIn + Email + Mobile (all 3)
+                const fullyQualified = outputs.prospect_list.filter((p: any) => 
+                  p.linkedIn && p.email && p.mobile_number
+                );
+
+                // DEDUPLICATE: By company, keeping most senior person
+                const deduped = Object.values(
+                  fullyQualified.reduce((acc: any, prospect: any) => {
+                    const company = prospect.company || 'Unknown';
                     
-                    // Priority 2: Mobile only
-                    const aHasMobile = a.mobile_number && !a.email;
-                    const bHasMobile = b.mobile_number && !b.email;
-                    if (aHasMobile && !bHasMobile) return -1;
-                    if (!aHasMobile && bHasMobile) return 1;
+                    // If company not seen yet, or this person is more senior
+                    if (!acc[company]) {
+                      acc[company] = prospect;
+                    } else {
+                      // Determine seniority by currentSeniority field or job title keywords
+                      const seniorityRanks: Record<string, number> = {
+                        'C-Level': 1, 'VP': 2, 'Director': 3, 'Manager': 4, 'Individual Contributor': 5
+                      };
+                      
+                      const currentSeniority = seniorityRanks[acc[company].currentSeniority] || 999;
+                      const newSeniority = seniorityRanks[prospect.currentSeniority] || 999;
+                      
+                      // Lower number = more senior
+                      if (newSeniority < currentSeniority) {
+                        acc[company] = prospect;
+                      }
+                    }
                     
-                    // Priority 3: Email only
-                    const aHasEmail = a.email && !a.mobile_number;
-                    const bHasEmail = b.email && !b.mobile_number;
-                    if (aHasEmail && !bHasEmail) return -1;
-                    if (!aHasEmail && bHasEmail) return 1;
+                    return acc;
+                  }, {})
+                );
+
+                // LIMIT: Show max 50 contacts
+                const finalList = deduped.slice(0, 50);
+                
+                return (
+                  <>
+                    <p className="text-gray-600 mb-4">
+                      Found <strong>{finalList.length}</strong> fully qualified prospects (with LinkedIn, Email, and Mobile)
+                    </p>
                     
-                    // Priority 4: No contact info (both equal)
-                    return 0;
-                  })
-                  .slice(0, 10)
-                  .map((prospect: any, index: number) => (
+                    <div className="space-y-3">
+                      {finalList.map((prospect: any, index: number) => (
                   <div key={index} className="bg-fo-light p-4 rounded-lg border border-gray-200 hover:border-fo-primary transition-colors">
                     <div className="grid md:grid-cols-2 gap-4">
                       {/* Left: Basic Info */}
@@ -671,18 +689,24 @@ export default function ResultsPage() {
                           </div>
                         )}
                         
-                        {/* Additional enrichment data */}
+                        {/* Email Provider */}
                         {prospect.enrichment_data?.mx_provider && (
-                          <div className="text-xs text-gray-500 pt-1 border-t border-gray-200">
-                            📮 {prospect.enrichment_data.mx_provider}
+                          <div className="pt-2 border-t border-gray-200">
+                            <div className="text-xs text-gray-500 mb-0.5">Email Provider</div>
+                            <div className="text-sm text-gray-700 capitalize">
+                              {prospect.enrichment_data.mx_provider}
+                            </div>
                           </div>
                         )}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-              {outputs.prospect_list.length > 10 && (
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                );
+              })()}
+              {outputs.prospect_list.length > 50 && (
                 <p className="text-sm text-fo-secondary mt-4 text-center">
                   + {outputs.prospect_list.length - 10} more prospects with contact info available
                 </p>
@@ -696,9 +720,13 @@ export default function ResultsPage() {
         </section>
 
         {/* Cold Email Sequences with Tabs */}
-        <section id="cold-email-sequences" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-orange scroll-mt-8">
-          <h2 className="text-2xl font-bold text-fo-dark mb-6">
-            📧 Cold Email Sequences
+        <section id="cold-email-sequences" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+              {/* Outlook logo */}
+              <path d="M7 2h10c1.1 0 2 .9 2 2v16c0 1.1-.9 2-2 2H7c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2zm5 4c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z" fill="#0078D4"/>
+            </svg>
+            Cold Email Sequences
           </h2>
           
           {/* Section Intro */}
@@ -715,7 +743,7 @@ export default function ResultsPage() {
                 onClick={() => setActiveEmailTab(tab.id)}
                 className={`px-4 py-2 rounded-t-lg font-semibold transition-colors ${
                   activeEmailTab === tab.id
-                    ? 'bg-fo-primary text-white'
+                    ? 'bg-gray-900 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -730,7 +758,7 @@ export default function ResultsPage() {
             <div className="space-y-6">
               {(outputs.cold_emails[activeEmailTab as keyof typeof outputs.cold_emails] as any[]).map((email: any, index: number) => (
                 <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="bg-fo-primary text-white px-6 py-3">
+                  <div className="bg-gray-900 text-white px-6 py-3">
                     <p className="font-semibold">Email {email.emailNumber}</p>
                     <p className="text-sm opacity-90">Subject: {email.subject}</p>
                   </div>
@@ -750,9 +778,13 @@ export default function ResultsPage() {
         </section>
 
         {/* LinkedIn Posts with Tabs */}
-        <section id="linkedin-posts" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-secondary scroll-mt-8">
-          <h2 className="text-2xl font-bold text-fo-dark mb-6">
-            📱 LinkedIn Posts
+        <section id="linkedin-posts" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="#0A66C2">
+              {/* LinkedIn logo */}
+              <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/>
+            </svg>
+            LinkedIn Posts
           </h2>
           
           {/* Section Intro */}
@@ -769,7 +801,7 @@ export default function ResultsPage() {
                 onClick={() => setActivePostTab(tab.id)}
                 className={`px-4 py-2 rounded-t-lg font-semibold transition-colors ${
                   activePostTab === tab.id
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-gray-900 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -780,7 +812,7 @@ export default function ResultsPage() {
 
           {/* Post Content */}
           {outputs.linkedin_posts && outputs.linkedin_posts[activePostTab as keyof typeof outputs.linkedin_posts] ? (
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg border-2 border-blue-200">
+            <div className="bg-white p-6 rounded-lg border border-gray-200">
               <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
                 {outputs.linkedin_posts[activePostTab as keyof typeof outputs.linkedin_posts]}
               </pre>
@@ -793,9 +825,13 @@ export default function ResultsPage() {
         </section>
 
         {/* LinkedIn DMs with Tabs */}
-        <section id="linkedin-dms" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-primary scroll-mt-8">
-          <h2 className="text-2xl font-bold text-fo-dark mb-6">
-            💬 LinkedIn DMs
+        <section id="linkedin-dms" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="#0A66C2">
+              {/* LinkedIn logo */}
+              <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/>
+            </svg>
+            LinkedIn DMs
           </h2>
           
           {/* Section Intro */}
@@ -812,7 +848,7 @@ export default function ResultsPage() {
                 onClick={() => setActiveDMTab(tab.id)}
                 className={`px-4 py-2 rounded-t-lg font-semibold transition-colors ${
                   activeDMTab === tab.id
-                    ? 'bg-indigo-600 text-white'
+                    ? 'bg-gray-900 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -823,7 +859,7 @@ export default function ResultsPage() {
 
           {/* DM Content */}
           {outputs.linkedin_dms && outputs.linkedin_dms[activeDMTab as keyof typeof outputs.linkedin_dms] ? (
-            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-6 rounded-lg border-2 border-indigo-200">
+            <div className="bg-white p-6 rounded-lg border border-gray-200">
               <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
                 {outputs.linkedin_dms[activeDMTab as keyof typeof outputs.linkedin_dms]}
               </pre>
@@ -836,9 +872,12 @@ export default function ResultsPage() {
         </section>
 
         {/* Newsletters with Tabs */}
-        <section id="newsletter-content" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-green scroll-mt-8">
-          <h2 className="text-2xl font-bold text-fo-dark mb-6">
-            📰 Newsletter Content
+        <section id="newsletter-content" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold text-xl">
+              K
+            </div>
+            Newsletter Content
           </h2>
           
           {/* Section Intro */}
@@ -855,7 +894,7 @@ export default function ResultsPage() {
                 onClick={() => setActiveNewsletterTab(tab.id)}
                 className={`px-4 py-2 rounded-t-lg font-semibold transition-colors ${
                   activeNewsletterTab === tab.id
-                    ? 'bg-orange-600 text-white'
+                    ? 'bg-gray-900 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -866,10 +905,12 @@ export default function ResultsPage() {
 
           {/* Newsletter Content */}
           {outputs.newsletters && outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters] ? (
-            <div className="bg-gradient-to-br from-orange-50 to-yellow-50 p-6 rounded-lg border-2 border-orange-200">
-              <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
-                {outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters]}
-              </pre>
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+              <div className="prose prose-sm max-w-none text-gray-900">
+                <ReactMarkdown>
+                  {outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters]}
+                </ReactMarkdown>
+              </div>
             </div>
           ) : (
             <ErrorPlaceholder assetType={`Newsletter ${newsletterTabs.find(t => t.id === activeNewsletterTab)?.label}`} />
@@ -879,9 +920,9 @@ export default function ResultsPage() {
         </section>
 
         {/* Call Prep */}
-        <section id="call-prep" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-orange scroll-mt-8">
-          <h2 className="text-2xl font-bold text-fo-dark mb-6">
-            📞 Call Prep
+        <section id="call-prep" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Call Prep
           </h2>
           
           {/* Section Intro */}
@@ -892,35 +933,44 @@ export default function ResultsPage() {
           
           {outputs.call_prep ? (
             <div className="space-y-6">
+              {/* Discovery Questions - Each in its own dark shade box */}
               {outputs.call_prep.discoveryQuestions && outputs.call_prep.discoveryQuestions.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-fo-primary mb-3">Discovery Questions:</h3>
-                  <ul className="list-disc list-inside space-y-2 text-sm text-gray-700">
+                  <h3 className="font-semibold text-gray-900 mb-3">Questions to Ask:</h3>
+                  <div className="space-y-3">
                     {outputs.call_prep.discoveryQuestions.map((q: string, i: number) => (
-                      <li key={i}>{q}</li>
+                      <div key={i} className="bg-gray-800 text-white p-4 rounded-lg">
+                        <p className="text-sm leading-relaxed">{q}</p>
+                      </div>
                     ))}
-                  </ul>
-                </div>
-              )}
-              
-              {outputs.call_prep.callScript && (
-                <div>
-                  <h3 className="font-semibold text-fo-primary mb-3">Call Script:</h3>
-                  <div className="bg-fo-light p-4 rounded-lg">
-                    <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700">
-                      {outputs.call_prep.callScript}
-                    </pre>
                   </div>
                 </div>
               )}
               
+              {/* Call Script - with markdown rendering */}
+              {outputs.call_prep.callScript && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">Call Script:</h3>
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <div className="prose prose-sm max-w-none text-gray-900">
+                      <ReactMarkdown>
+                        {outputs.call_prep.callScript}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Objection Handling - with markdown rendering */}
               {outputs.call_prep.objectionHandling && (
                 <div>
-                  <h3 className="font-semibold text-fo-primary mb-3">Objection Handling:</h3>
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700">
-                      {outputs.call_prep.objectionHandling}
-                    </pre>
+                  <h3 className="font-semibold text-gray-900 mb-3">Objection Handling:</h3>
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <div className="prose prose-sm max-w-none text-gray-900">
+                      <ReactMarkdown>
+                        {outputs.call_prep.objectionHandling}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 </div>
               )}
@@ -932,21 +982,21 @@ export default function ResultsPage() {
           <ClaireCTA />
         </section>
 
-        {/* Misc. Section (formerly Workspace Library) */}
-        <section id="library-assets" className="bg-white rounded-lg shadow-lg p-8 mb-8 border-l-4 border-fo-accent scroll-mt-8">
-          <h2 className="text-2xl font-bold text-fo-dark mb-6">
-            📋 Library Assets
+        {/* Strategic Elements Appendix */}
+        <section id="strategic-elements" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Strategic Elements Appendix
           </h2>
-          <p className="text-fo-secondary mb-6">
+          <p className="text-gray-600 mb-6">
             Foundational library materials created in your Octave workspace
           </p>
 
           <div className="space-y-8">
             {/* Service Offering - FULL DETAIL */}
             {outputs.service_offering && (
-              <div className="border-2 border-gray-300 rounded-lg p-6 bg-gradient-to-br from-blue-50 to-purple-50">
-                <h3 className="text-xl font-bold text-fo-primary mb-4 flex items-center gap-2">
-                  <span>🎯</span> Service Offering
+              <div id="service-offering" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Service Offering
                 </h3>
                 <div className="space-y-4">
                   <div>
@@ -1056,9 +1106,9 @@ export default function ResultsPage() {
 
             {/* Personas - FULL DETAIL */}
             {outputs.personas && outputs.personas.length > 0 && (
-              <div className="border-2 border-gray-300 rounded-lg p-6 bg-gradient-to-br from-purple-50 to-pink-50">
-                <h3 className="text-xl font-bold text-fo-primary mb-4 flex items-center gap-2">
-                  <span>👥</span> Personas ({outputs.personas.length})
+              <div id="personas" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Personas ({outputs.personas.length})
                 </h3>
                 <div className="space-y-6">
                   {outputs.personas.map((persona: any, index: number) => (
@@ -1182,9 +1232,9 @@ export default function ResultsPage() {
 
             {/* Use Cases - FULL DETAIL */}
             {outputs.use_cases && outputs.use_cases.length > 0 && (
-              <div className="border-2 border-gray-300 rounded-lg p-6 bg-gradient-to-br from-green-50 to-teal-50">
-                <h3 className="text-xl font-bold text-fo-primary mb-4 flex items-center gap-2">
-                  <span>✨</span> Use Cases ({outputs.use_cases.length})
+              <div id="use-cases" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Use Cases ({outputs.use_cases.length})
                 </h3>
                 <div className="space-y-6">
                   {outputs.use_cases.map((useCase: any, index: number) => (
@@ -1250,9 +1300,9 @@ export default function ResultsPage() {
 
             {/* Segments - FULL DETAIL */}
             {outputs.segments && outputs.segments.length > 0 && (
-              <div className="border-2 border-gray-300 rounded-lg p-6 bg-gradient-to-br from-yellow-50 to-orange-50">
-                <h3 className="text-xl font-bold text-fo-primary mb-4 flex items-center gap-2">
-                  <span>🎯</span> Market Segments ({outputs.segments.length})
+              <div id="segments" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Market Segments ({outputs.segments.length})
                 </h3>
                 <div className="space-y-6">
                   {outputs.segments.map((segment: any, index: number) => (
@@ -1339,9 +1389,9 @@ export default function ResultsPage() {
 
             {/* Client References - FULL DETAIL */}
             {outputs.client_references && outputs.client_references.length > 0 && (
-              <div className="border-2 border-gray-300 rounded-lg p-6 bg-gradient-to-br from-red-50 to-pink-50">
-                <h3 className="text-xl font-bold text-fo-primary mb-4 flex items-center gap-2">
-                  <span>🏢</span> Client References ({outputs.client_references.length})
+              <div id="client-references" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Client References ({outputs.client_references.length})
                 </h3>
                 <div className="space-y-6">
                   {outputs.client_references.map((reference: any, index: number) => (
@@ -1423,9 +1473,9 @@ export default function ResultsPage() {
 
             {/* Competitors - FULL DETAIL */}
             {outputs.competitors && outputs.competitors.length > 0 && (
-              <div className="border-2 border-gray-300 rounded-lg p-6 bg-gradient-to-br from-orange-50 to-yellow-50">
-                <h3 className="text-xl font-bold text-fo-primary mb-4 flex items-center gap-2">
-                  <span>⚔️</span> Competitive Analysis ({outputs.competitors.length})
+              <div id="competitors" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Competitive Analysis ({outputs.competitors.length})
                 </h3>
                 <div className="space-y-6">
                   {outputs.competitors.map((competitor: any, index: number) => (
