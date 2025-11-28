@@ -102,9 +102,9 @@ export default function ThankYouPage() {
       setCurrentStep('Complete! Opening results...');
       setProgress(100);
       
-      // Wait a moment then open results
+      // Wait a moment then redirect to results
       setTimeout(() => {
-        window.open('/results', '_blank');
+        router.push('/results');
         setIsGenerating(false);
       }, 1000);
 

@@ -655,11 +655,10 @@ export default function ResultsPage() {
                               </a>
                               {prospect.email_status && (
                                 <span className={`text-xs ml-2 px-1.5 py-0.5 rounded ${
-                                  prospect.email_status === 'valid' ? 'bg-green-100 text-green-700' :
-                                  prospect.email_status === 'valid_catch_all' ? 'bg-yellow-100 text-yellow-700' :
+                                  prospect.email_status === 'valid' || prospect.email_status === 'valid_catch_all' ? 'bg-green-100 text-green-700' :
                                   'bg-gray-100 text-gray-600'
                                 }`}>
-                                  {prospect.email_status.replace('_', ' ')}
+                                  {prospect.email_status === 'valid_catch_all' ? 'valid' : prospect.email_status.replace('_', ' ')}
                                 </span>
                               )}
                             </div>
@@ -681,10 +680,10 @@ export default function ResultsPage() {
                             <div className="flex-1">
                               <div className="text-xs text-gray-500">Mobile</div>
                               <a 
-                                href={`tel:+${prospect.mobile_number}`}
+                                href={`tel:${String(prospect.mobile_number).startsWith('+') ? prospect.mobile_number : `+${prospect.mobile_number}`}`}
                                 className="text-sm text-fo-primary hover:underline"
                               >
-                                +{prospect.mobile_number}
+                                {String(prospect.mobile_number).startsWith('+') ? prospect.mobile_number : `+${prospect.mobile_number}`}
                               </a>
                             </div>
                           </div>
