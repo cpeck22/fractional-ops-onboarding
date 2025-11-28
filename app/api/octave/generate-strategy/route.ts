@@ -42,7 +42,7 @@ async function generateICPCompanies(
     ? `\n7. **CRITICAL**: EXCLUDE these competitor domains from results:\n   ${competitorDomains.map(d => `- ${d}`).join('\n   ')}`
     : '';
 
-  const prompt = `You are a B2B prospecting expert. Generate a list of 5-10 real company domains that match this Ideal Customer Profile (ICP):
+  const prompt = `You are a B2B prospecting expert. Generate a list of 50 real company domains that match this Ideal Customer Profile (ICP):
 
 **Target Company Profile:**
 - Company Size/Revenue: ${companySize}
@@ -72,7 +72,7 @@ Return ONLY a JSON object with this structure:
     console.log('   ICP: Geography:', geographicMarkets);
     
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -85,7 +85,7 @@ Return ONLY a JSON object with this structure:
       ],
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: 1000
+      max_tokens: 2000
     });
 
     const result = JSON.parse(completion.choices[0].message.content || '{"companies":[]}');

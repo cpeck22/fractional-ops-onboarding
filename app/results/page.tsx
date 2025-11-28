@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 import ClaireImage from '../Claire_v2.png';
 import SectionIntro from '@/components/SectionIntro';
 
@@ -564,10 +565,19 @@ export default function ResultsPage() {
           {outputs.prospect_list && outputs.prospect_list.length > 0 ? (
             <>
               {(() => {
-                // FILTER: Only show prospects with LinkedIn + Email + Mobile (all 3)
-                const fullyQualified = outputs.prospect_list.filter((p: any) => 
-                  p.linkedIn && p.email && p.mobile_number
-                );
+                // FILTER: Senior decision-makers with contact info
+                const seniorityKeywords = ['owner', 'ceo', 'chief', 'president', 'vp', 'vice president', 'director', 'head', 'partner', 'operator', 'founder', 'managing', 'executive'];
+                
+                const fullyQualified = outputs.prospect_list.filter((p: any) => {
+                  // Must have at least email OR mobile
+                  const hasContact = p.email || p.mobile_number;
+                  
+                  // Must have senior title (contains any keyword)
+                  const titleLower = (p.title || '').toLowerCase();
+                  const isSenior = seniorityKeywords.some(keyword => titleLower.includes(keyword));
+                  
+                  return hasContact && isSenior;
+                });
 
                 // DEDUPLICATE: By company, keeping most senior person
                 const deduped = Object.values(
@@ -902,7 +912,7 @@ export default function ResultsPage() {
           {outputs.newsletters && outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters] ? (
             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
               <div className="prose prose-sm max-w-none text-gray-900 prose-p:my-4 prose-headings:my-4 prose-ul:my-4 prose-li:my-2">
-                <ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkBreaks]}>
                   {outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters]}
                 </ReactMarkdown>
               </div>
@@ -947,7 +957,7 @@ export default function ResultsPage() {
                   <h3 className="font-semibold text-gray-900 mb-3">Call Script:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                     <div className="prose prose-sm max-w-none text-gray-900 prose-p:my-4 prose-headings:my-4 prose-ul:my-4 prose-li:my-2">
-                      <ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkBreaks]}>
                         {outputs.call_prep.callScript}
                       </ReactMarkdown>
                     </div>
@@ -961,7 +971,7 @@ export default function ResultsPage() {
                   <h3 className="font-semibold text-gray-900 mb-3">Objection Handling:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                     <div className="prose prose-sm max-w-none text-gray-900 prose-p:my-4 prose-headings:my-4 prose-ul:my-4 prose-li:my-2">
-                      <ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkBreaks]}>
                         {outputs.call_prep.objectionHandling}
                       </ReactMarkdown>
                     </div>
