@@ -52,6 +52,27 @@ function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// Timeout wrapper for fetch calls to prevent hanging
+async function fetchWithTimeout(url: string, options: any, timeoutMs: number = 30000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    return response;
+  } catch (error: any) {
+    clearTimeout(timeout);
+    if (error.name === 'AbortError') {
+      throw new Error(`Request timed out after ${timeoutMs}ms`);
+    }
+    throw error;
+  }
+}
+
 export async function findEmail(params: EmailFinderParams): Promise<EmailFinderResponse | null> {
   if (!LEADMAGIC_API_KEY) {
     console.error('❌ LeadMagic API key not configured');
@@ -61,14 +82,18 @@ export async function findEmail(params: EmailFinderParams): Promise<EmailFinderR
   try {
     console.log(`📧 Finding email for: ${params.first_name} ${params.last_name} at ${params.company_name || params.domain}`);
     
-    const response = await fetch(`${LEADMAGIC_BASE_URL}/people/email-finder`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': LEADMAGIC_API_KEY
+    const response = await fetchWithTimeout(
+      `${LEADMAGIC_BASE_URL}/people/email-finder`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': LEADMAGIC_API_KEY
+        },
+        body: JSON.stringify(params)
       },
-      body: JSON.stringify(params)
-    });
+      30000 // 30 second timeout
+    );
 
     if (!response.ok) {
       const error = await response.json();
@@ -98,14 +123,18 @@ export async function findMobile(params: MobileFinderParams): Promise<MobileFind
   try {
     console.log(`📱 Finding mobile for: ${params.work_email || params.profile_url}`);
     
-    const response = await fetch(`${LEADMAGIC_BASE_URL}/people/mobile-finder`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': LEADMAGIC_API_KEY
+    const response = await fetchWithTimeout(
+      `${LEADMAGIC_BASE_URL}/people/mobile-finder`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': LEADMAGIC_API_KEY
+        },
+        body: JSON.stringify(params)
       },
-      body: JSON.stringify(params)
-    });
+      30000 // 30 second timeout
+    );
 
     if (!response.ok) {
       const error = await response.json();

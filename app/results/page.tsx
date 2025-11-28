@@ -74,7 +74,7 @@ export default function ResultsPage() {
 
   // Table of Contents sections
   const tocSections = [
-    { id: 'campaign-workflows', label: 'Campaign Workflows', emoji: '' },
+    { id: 'campaign-workflows', label: 'Campaign Ideas', emoji: '' },
     { id: 'qualified-prospects', label: 'Qualified Prospects', emoji: '' },
     { id: 'cold-email-sequences', label: 'Cold Email Sequences', emoji: '' },
     { id: 'linkedin-posts', label: 'LinkedIn Posts', emoji: '' },
@@ -523,7 +523,7 @@ export default function ResultsPage() {
         {/* Campaign Ideas */}
         <section id="campaign-workflows" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Campaign Workflows
+            Campaign Ideas
           </h2>
           
           {/* Section Intro */}

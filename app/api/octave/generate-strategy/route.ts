@@ -572,6 +572,9 @@ export async function POST(request: NextRequest) {
 
     let enrichedProspects = prospects;
     
+    // CRITICAL: Wrap enrichment in try-catch to ensure Phase 1 always completes
+    // Even if enrichment fails, we still have prospects to pass to Phase 2
+    try {
     if (prospects.length > 0) {
       // ============================================
       // OPTIMIZATION: Enrich up to 99 prospects + Parallelize in batches of 10
@@ -642,9 +645,16 @@ export async function POST(request: NextRequest) {
     } else {
       console.log('⚠️ No prospects to enrich');
     }
+    } catch (enrichmentError: any) {
+      // CRITICAL: If enrichment fails completely, continue with unenriched prospects
+      console.error('❌ ENRICHMENT FAILED - Continuing with unenriched prospects:', enrichmentError.message);
+      console.log('⚠️ Phase 1 will complete with unenriched prospect data');
+      // enrichedProspects already set to prospects at the top, so we're good
+    }
 
     // ============================================
     // END OF PHASE 1: Save prospects + agent IDs for Phase 2
+    // CRITICAL: This MUST execute even if enrichment fails
     // ============================================
     
     updateProgress('Saving Phase 1 data (prospects + agent IDs)...', 7, 15);
@@ -674,7 +684,7 @@ export async function POST(request: NextRequest) {
     console.log('🎯 ===== PHASE 1 COMPLETE =====');
     console.log('   Next: Frontend will call Phase 2 for content generation');
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       phase: 1,
       prospectCount: enrichedProspects.length,
