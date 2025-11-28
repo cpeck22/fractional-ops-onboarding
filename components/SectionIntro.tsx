@@ -18,17 +18,19 @@ export default function SectionIntro({
   const finalVideoUrl = videoUrl || process.env.NEXT_PUBLIC_INTRO_VIDEO_URL || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
   
   return (
-    <div className="mb-8 grid md:grid-cols-2 gap-6">
-      {/* Left: Video Embed */}
-      <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-xl" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
-        <iframe 
-          src={finalVideoUrl}
-          className="absolute top-0 left-0 w-full h-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen 
-          title="Section Introduction Video"
-          style={{ border: 'none' }}
-        />
+    <div className="mb-8 grid md:grid-cols-2 gap-6 items-start">
+      {/* Left: Video Embed - Wrapper for vertical centering */}
+      <div className="flex items-center justify-center min-h-full">
+        <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-xl" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
+          <iframe 
+            src={finalVideoUrl}
+            className="absolute top-0 left-0 w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen 
+            title="Section Introduction Video"
+            style={{ border: 'none' }}
+          />
+        </div>
       </div>
 
       {/* Right: How do I use this? + CTA Button */}
