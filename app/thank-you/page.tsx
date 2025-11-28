@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
@@ -14,22 +14,6 @@ export default function ThankYouPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState('');
   const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    // Load HubSpot Meetings Embed Script
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = 'https://static.hsappstatic.net/MeetingsEmbed/ex/MeetingsEmbedCode.js';
-    script.async = true;
-    document.head.appendChild(script);
-
-    return () => {
-      // Cleanup script on unmount
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
-    };
-  }, []);
 
   const handleGenerateStrategy = async () => {
     setIsGenerating(true);
@@ -108,8 +92,8 @@ export default function ThankYouPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-fo-light to-white">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-fo-light to-white flex items-center justify-center px-4 py-8">
+      <div className="max-w-3xl w-full">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="mx-auto h-20 w-20 bg-gradient-to-r from-fo-primary to-fo-accent rounded-full flex items-center justify-center mb-6">
@@ -130,7 +114,7 @@ export default function ThankYouPage() {
           <h2 className="text-2xl font-bold text-fo-primary mb-6 text-center">
             A Message from Claire
           </h2>
-          <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md">
+          <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md mb-6">
             <iframe
               src="https://drive.google.com/file/d/1dwl4jfsXEZdujPDJwBUOGEVFmdadHdxC/preview"
               className="w-full h-full"
@@ -139,37 +123,24 @@ export default function ThankYouPage() {
               style={{ border: 'none' }}
             />
           </div>
-        </div>
-
-        {/* View Strategy Button - Above HubSpot */}
-        <div className="bg-gradient-to-r from-fo-primary to-fo-secondary rounded-lg shadow-fo-shadow p-8 mb-8 text-center">
-          <div className="mb-4">
-            <span className="text-5xl">🎯</span>
+          
+          {/* Build My Plan Now Button */}
+          <div className="text-center">
+            <button
+              onClick={handleGenerateStrategy}
+              disabled={isGenerating}
+              className="bg-purple-600 text-white px-10 py-4 rounded-lg font-bold text-lg hover:bg-purple-700 transition-all transform hover:scale-105 shadow-lg inline-flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {isGenerating ? (
+                <>
+                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                  Generating...
+                </>
+              ) : (
+                'Build My Plan Now'
+              )}
+            </button>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">
-            Generate Your CRO Strategy
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Click below to have Claire build your personalized strategy with campaign ideas, prospect lists, email sequences, and more.
-          </p>
-          <button
-            onClick={handleGenerateStrategy}
-            disabled={isGenerating}
-            className="bg-white text-fo-primary px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg inline-flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            {isGenerating ? (
-              <>
-                <div className="animate-spin h-5 w-5 border-2 border-fo-primary border-t-transparent rounded-full"></div>
-                Generating...
-              </>
-            ) : (
-              <>
-                <span>🎯</span>
-                CRO Strategy Built By Claire - Click to Generate
-                <span>→</span>
-              </>
-            )}
-          </button>
         </div>
 
         {/* Progress Modal */}
@@ -258,53 +229,6 @@ export default function ThankYouPage() {
             </div>
           </div>
         )}
-
-        {/* HubSpot Booking Section */}
-        <div className="bg-white rounded-lg shadow-fo-shadow p-8">
-          <h2 className="text-2xl font-bold text-fo-primary mb-6 text-center">
-            Schedule Your GTM Kickoff Call
-          </h2>
-          <p className="text-fo-secondary text-center mb-8">
-            Book a call with Corey to discuss your new Octave workspace and next steps.
-          </p>
-          
-          {/* HubSpot Meetings Embed */}
-          <div className="meetings-iframe-container" data-src="https://meetings.hubspot.com/corey-peck/gtm-kickoff-corey-ali?embed=true"></div>
-        </div>
-
-        {/* Additional Information */}
-        <div className="mt-12 text-center">
-          <div className="bg-fo-primary text-white rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-3">What Happens Next?</h3>
-            <div className="grid md:grid-cols-3 gap-6 text-sm">
-              <div>
-                <div className="font-semibold mb-2">1. Workspace Setup</div>
-                <p>Our team is configuring your personalized Octave workspace with your specific requirements.</p>
-              </div>
-              <div>
-                <div className="font-semibold mb-2">2. GTM Strategy</div>
-                <p>{"We'll"} develop a customized go-to-market strategy based on your questionnaire responses.</p>
-              </div>
-              <div>
-                <div className="font-semibold mb-2">3. Implementation</div>
-                <p>Your fractional revenue officer will begin implementing the strategy within 48 hours.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Contact Information */}
-        <div className="mt-8 text-center text-fo-secondary">
-          <p className="mb-2">
-            Questions? Contact your Fractional Ops representative or email{' '}
-            <a href="mailto:support@fractionalops.com" className="text-fo-accent hover:underline">
-              support@fractionalops.com
-            </a>
-          </p>
-          <p className="text-sm">
-            This onboarding process is powered by Fractional Ops and Octave.
-          </p>
-        </div>
       </div>
     </div>
   );
