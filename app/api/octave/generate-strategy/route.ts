@@ -443,7 +443,7 @@ export async function POST(request: NextRequest) {
     // Fallback 1: Use reference domains if AI fails or returns nothing
     if (icpCompanyDomains.length === 0) {
       console.log('⚠️ No AI-generated companies, falling back to reference domains...');
-      if (clientReferences && Array.isArray(clientReferences) && clientReferences.length > 0) {
+    if (clientReferences && Array.isArray(clientReferences) && clientReferences.length > 0) {
         icpCompanyDomains = clientReferences
           .filter((ref: any) => ref.companyDomain)
           .map((ref: any) => {
@@ -482,21 +482,21 @@ export async function POST(request: NextRequest) {
             console.log(`   🔍 Prospecting: ${domain}`);
             
             const response = await axios.post(
-              `${OCTAVE_BASE_URL}/prospector/run`,
-              {
+          `${OCTAVE_BASE_URL}/prospector/run`,
+          {
                 companyDomain: domain.startsWith('http') ? domain : `https://${domain}`,
-                agentOId: newAgentIds.prospector,
+            agentOId: newAgentIds.prospector,
                 limit: 20, // Limit per company to get variety
-                minimal: true,
-                searchContext: {
-                  personaOIds: personas.map((p: any) => p.oId),
-                  fuzzyTitles: fuzzyTitles
-                }
-              },
-              {
-                headers: {
-                  'api_key': workspaceApiKey,
-                  'Content-Type': 'application/json'
+            minimal: true,
+            searchContext: {
+              personaOIds: personas.map((p: any) => p.oId),
+              fuzzyTitles: fuzzyTitles
+            }
+          },
+          {
+            headers: {
+              'api_key': workspaceApiKey,
+              'Content-Type': 'application/json'
                 },
                 timeout: 30000 // 30 second timeout per domain
               }
@@ -523,20 +523,20 @@ export async function POST(request: NextRequest) {
         prospects = allProspectsArrays
           .flat()
           .map((p: any) => ({
-            name: `${p.contact?.firstName || ''} ${p.contact?.lastName || ''}`.trim(),
-            firstName: p.contact?.firstName,
-            lastName: p.contact?.lastName,
-            title: p.contact?.title,
-            company: p.contact?.companyName,
-            companyDomain: p.contact?.companyDomain,
-            linkedIn: p.contact?.profileUrl,
-            location: p.contact?.location,
-            headline: p.contact?.headline,
-            // Keep original nested structure for agent use
-            contact: p.contact,
-            personas: p.personas
-          }));
-
+          name: `${p.contact?.firstName || ''} ${p.contact?.lastName || ''}`.trim(),
+          firstName: p.contact?.firstName,
+          lastName: p.contact?.lastName,
+          title: p.contact?.title,
+          company: p.contact?.companyName,
+          companyDomain: p.contact?.companyDomain,
+          linkedIn: p.contact?.profileUrl,
+          location: p.contact?.location,
+          headline: p.contact?.headline,
+          // Keep original nested structure for agent use
+          contact: p.contact,
+          personas: p.personas
+        }));
+        
         // Deduplicate by name+company (in case of duplicates across domains)
         const uniqueProspects = new Map();
         prospects.forEach(p => {
@@ -555,8 +555,13 @@ export async function POST(request: NextRequest) {
     } else {
       console.warn('⚠️ Skipping Prospector - missing agent ID or ICP companies');
     }
-    
+
     console.log(`🎯 Using ${prospects.length} prospects for agent outputs`);
+
+    // ============================================
+    // PHASE 1 NOTE: This endpoint now only handles prospecting + enrichment
+    // Content generation (emails, posts, etc.) moved to /generate-strategy-content
+    // ============================================
 
     // ============================================
     // STEP 6: ENRICH PROSPECTS WITH LEADMAGIC
@@ -601,11 +606,11 @@ export async function POST(request: NextRequest) {
               try {
                 const globalIndex = i + batchIndex + 1;
                 console.log(`📧 [${globalIndex}/${prospectsToEnrich.length}] Enriching: ${prospect.name || 'Unnamed'}`);
-                const enriched = await enrichProspect(prospect);
-                
-                if (enriched.email) emailsFound++;
-                if (enriched.mobile_number) mobilesFound++;
-                
+          const enriched = await enrichProspect(prospect);
+          
+          if (enriched.email) emailsFound++;
+          if (enriched.mobile_number) mobilesFound++;
+          
                 return enriched;
               } catch (error) {
                 console.error(`❌ Failed to enrich ${prospect.name}:`, error);
@@ -638,250 +643,51 @@ export async function POST(request: NextRequest) {
       console.log('⚠️ No prospects to enrich');
     }
 
-    // Initialize agent results
-    const agentResults = {
-      campaignIdeas: [] as any[],
-      prospectList: enrichedProspects,
-      coldEmails: {
-        personalizedSolutions: [] as any[],
-        leadMagnetShort: [] as any[],
-        localCity: [] as any[],
-        problemSolution: [] as any[],
-        leadMagnetLong: [] as any[]
-      },
-      linkedinPosts: {
-        inspiring: '',
-        promotional: '',
-        actionable: ''
-      },
-      linkedinDMs: {
-        newsletter: '',
-        leadMagnet: ''
-      },
-      newsletters: {
-        tactical: '',
-        leadership: ''
-      },
-      callPrep: null as any
-    };
-
     // ============================================
-    // STEP 4-13: RUN ALL EMAIL, CONTENT, AND CALL PREP AGENTS
+    // END OF PHASE 1: Save prospects + agent IDs for Phase 2
     // ============================================
     
-    const runAgent = async (
-      agentType: string,
-      agentOId: string,
-      agentName: string,
-      prospectIndex: number = 0,
-      stepNumber: number = 4
-    ) => {
-      if (!agentOId) {
-        console.log(`⏭️ Skipping ${agentName} - no agent ID mapped`);
-        return null;
-      }
-
-      updateProgress(`Running ${agentName}...`, stepNumber, 15);
-
-      try {
-        const prospect = prospects[prospectIndex % prospects.length];
-        
-        let endpoint = '';
-        let requestBody: any = {
-          agentOId: agentOId
-        };
-
-        // Build request based on agent type
-        if (agentType === 'sequence') {
-          endpoint = `${OCTAVE_BASE_URL}/sequence/run`;
-          requestBody = {
-            ...requestBody,
-            email: prospect?.contact?.companyDomain || companyDomain || null,
-            companyDomain: prospect?.contact?.companyDomain || companyDomain || null,
-            companyName: prospect?.contact?.company || companyName || null,
-            firstName: prospect?.contact?.firstName || null,
-            jobTitle: prospect?.contact?.title || null,
-            linkedInProfile: prospect?.contact?.profileUrl || null,
-            outputFormat: 'text'
-          };
-        } else if (agentType === 'callPrep') {
-          endpoint = `${OCTAVE_BASE_URL}/call-prep/run`;
-          requestBody = {
-            ...requestBody,
-            email: prospect?.contact?.companyDomain || companyDomain || null,
-            companyDomain: prospect?.contact?.companyDomain || companyDomain || null,
-            companyName: prospect?.contact?.company || companyName || null,
-            firstName: prospect?.contact?.firstName || null,
-            jobTitle: prospect?.contact?.title || null,
-            linkedInProfile: prospect?.contact?.profileUrl || null
-          };
-        } else if (agentType === 'content') {
-          endpoint = `${OCTAVE_BASE_URL}/generate-content/run`;
-          // Content agents need prospect context for personalization
-          requestBody = {
-            ...requestBody,
-            email: prospect?.contact?.companyDomain || companyDomain || null,
-            companyDomain: prospect?.contact?.companyDomain || companyDomain || null,
-            companyName: prospect?.contact?.company || companyName || null,
-            firstName: prospect?.contact?.firstName || null,
-            jobTitle: prospect?.contact?.title || null,
-            linkedInProfile: prospect?.contact?.profileUrl || null
-          };
-        }
-
-        console.log(`🔄 Running ${agentName}...`);
-        
-        const response = await axios.post(
-          endpoint,
-          requestBody,
-          {
-            headers: {
-              'api_key': workspaceApiKey,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-
-        console.log(`📊 ${agentName} response:`, JSON.stringify(response.data, null, 2));
-
-        // Check for both "success" and "found" fields (Octave API inconsistency)
-        if (response.data?.success || response.data?.found) {
-          console.log(`✅ ${agentName} completed successfully`);
-          return response.data;
-        } else {
-          console.warn(`⚠️ ${agentName} failed:`, response.data?.message);
-          return null;
-        }
-      } catch (error: any) {
-        console.error(`❌ ${agentName} error:`, error.response?.data || error.message);
-        return null;
-      }
-    };
-
-    // Run all Cold Email agents (4-8)
-    if (newAgentIds.coldEmails.personalizedSolutions) {
-      const result = await runAgent('sequence', newAgentIds.coldEmails.personalizedSolutions, 'Cold Email: Personalized Solutions', 0, 4);
-      if (result?.data?.emails) agentResults.coldEmails.personalizedSolutions = result.data.emails;
-    }
-
-    if (newAgentIds.coldEmails.leadMagnetShort) {
-      const result = await runAgent('sequence', newAgentIds.coldEmails.leadMagnetShort, 'Cold Email: Lead Magnet Short', 1, 5);
-      if (result?.data?.emails) agentResults.coldEmails.leadMagnetShort = result.data.emails;
-    }
-
-    if (newAgentIds.coldEmails.localCity) {
-      const result = await runAgent('sequence', newAgentIds.coldEmails.localCity, 'Cold Email: Local/Same City', 2, 6);
-      if (result?.data?.emails) agentResults.coldEmails.localCity = result.data.emails;
-    }
-
-    if (newAgentIds.coldEmails.problemSolution) {
-      const result = await runAgent('sequence', newAgentIds.coldEmails.problemSolution, 'Cold Email: Problem/Solution', 3, 7);
-      if (result?.data?.emails) agentResults.coldEmails.problemSolution = result.data.emails;
-    }
-
-    if (newAgentIds.coldEmails.leadMagnetLong) {
-      const result = await runAgent('sequence', newAgentIds.coldEmails.leadMagnetLong, 'Cold Email: Lead Magnet Long', 4, 8);
-      if (result?.data?.emails) agentResults.coldEmails.leadMagnetLong = result.data.emails;
-    }
-
-    // Run LinkedIn Post agents (9-11)
-    if (newAgentIds.linkedinPosts.inspiring) {
-      const result = await runAgent('content', newAgentIds.linkedinPosts.inspiring, 'LinkedIn Post: Inspiring', 0, 9);
-      if (result?.data?.content) agentResults.linkedinPosts.inspiring = result.data.content;
-    }
-
-    if (newAgentIds.linkedinPosts.promotional) {
-      const result = await runAgent('content', newAgentIds.linkedinPosts.promotional, 'LinkedIn Post: Promotional', 1, 10);
-      if (result?.data?.content) agentResults.linkedinPosts.promotional = result.data.content;
-    }
-
-    if (newAgentIds.linkedinPosts.actionable) {
-      const result = await runAgent('content', newAgentIds.linkedinPosts.actionable, 'LinkedIn Post: Actionable', 2, 11);
-      if (result?.data?.content) agentResults.linkedinPosts.actionable = result.data.content;
-    }
-
-    // Run LinkedIn DM agents (12-13)
-    if (newAgentIds.linkedinDMs.newsletter) {
-      const result = await runAgent('content', newAgentIds.linkedinDMs.newsletter, 'LinkedIn DM: Newsletter CTA', 0, 12);
-      if (result?.data?.content) agentResults.linkedinDMs.newsletter = result.data.content;
-    }
-
-    if (newAgentIds.linkedinDMs.leadMagnet) {
-      const result = await runAgent('content', newAgentIds.linkedinDMs.leadMagnet, 'LinkedIn DM: Lead Magnet CTA', 1, 13);
-      if (result?.data?.content) agentResults.linkedinDMs.leadMagnet = result.data.content;
-    }
-
-    // Run Newsletter agents (14-15... will be 14)
-    if (newAgentIds.newsletters.tactical) {
-      const result = await runAgent('content', newAgentIds.newsletters.tactical, 'Newsletter: Tactical', 0, 14);
-      if (result?.data?.content) agentResults.newsletters.tactical = result.data.content;
-    }
-
-    if (newAgentIds.newsletters.leadership) {
-      const result = await runAgent('content', newAgentIds.newsletters.leadership, 'Newsletter: Leadership', 1, 14);
-      if (result?.data?.content) agentResults.newsletters.leadership = result.data.content;
-    }
-
-    // Run Call Prep agent (will be 15)
-    if (newAgentIds.callPrep) {
-      const result = await runAgent('callPrep', newAgentIds.callPrep, 'Call Prep Agent', 0, 15);
-      if (result?.data) agentResults.callPrep = result.data;
-    }
-
-    updateProgress('Saving results to database...', 15, 15);
-
-    // ============================================
-    // STEP 14: SAVE RESULTS TO DATABASE
-    // ============================================
+    updateProgress('Saving Phase 1 data (prospects + agent IDs)...', 7, 15);
     
-    console.log('💾 Updating agent outputs in database...');
-    console.log('🔍🔍🔍 GENERATE STRATEGY - UPDATING ONLY AGENT OUTPUTS (NOT LIBRARY MATERIALS)');
-    console.log('🔍🔍🔍 service_offering, segments, client_references should NOT be modified');
+    console.log('💾 ===== PHASE 1 COMPLETE - SAVING DATA =====');
+    console.log(`   Prospects found: ${enrichedProspects.length}`);
+    console.log(`   Agent IDs mapped: ${Object.keys(newAgentIds).length}`);
     
     const { error: updateError } = await supabase
       .from('octave_outputs')
       .update({
-        prospect_list: agentResults.prospectList,
-        cold_emails: agentResults.coldEmails,
-        linkedin_posts: agentResults.linkedinPosts,
-        linkedin_dms: agentResults.linkedinDMs,
-        newsletters: agentResults.newsletters,
-        call_prep: agentResults.callPrep,
-        agents_generated_at: new Date().toISOString()
+        prospect_list: enrichedProspects,
+        // Store agent IDs for Phase 2
+        _agent_ids: JSON.stringify(newAgentIds),
+        updated_at: new Date().toISOString()
       })
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1);
 
     if (updateError) {
-      console.error('❌ Failed to update database:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to save agent outputs', details: updateError },
-        { status: 500 }
-      );
+      console.error('❌ Failed to save Phase 1 data:', updateError);
+      return NextResponse.json({ error: 'Failed to save prospects' }, { status: 500 });
     }
 
-    console.log('✅ Agent outputs saved to database successfully');
-    console.log('🎯 ===== AGENT STRATEGY GENERATION COMPLETE =====');
+    console.log('✅ Phase 1 data saved to database');
+    console.log('🎯 ===== PHASE 1 COMPLETE =====');
+    console.log('   Next: Frontend will call Phase 2 for content generation');
 
-    return NextResponse.json({
+    return NextResponse.json({ 
       success: true,
-      message: 'Strategy generated successfully',
-      results: {
-        prospects: agentResults.prospectList.length,
-        coldEmails: Object.values(agentResults.coldEmails).reduce((sum: number, arr: any) => sum + (Array.isArray(arr) ? arr.length : 0), 0),
-        linkedinPosts: Object.values(agentResults.linkedinPosts).filter(v => v).length,
-        linkedinDMs: Object.values(agentResults.linkedinDMs).filter(v => v).length,
-        newsletters: Object.values(agentResults.newsletters).filter(v => v).length,
-        callPrep: agentResults.callPrep ? 1 : 0
-      }
+      phase: 1,
+      prospectCount: enrichedProspects.length,
+      agentCount: Object.keys(newAgentIds).length,
+      message: 'Phase 1 complete - prospects ready for content generation'
     });
 
   } catch (error: any) {
-    console.error('❌ Strategy generation error:', error);
+    console.error('❌ Phase 1 strategy generation error:', error);
     return NextResponse.json(
-      { error: 'Failed to generate strategy', details: error.message },
+      { error: 'Failed to generate strategy Phase 1', details: error.message },
       { status: 500 }
     );
   }
 }
-
 

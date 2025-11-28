@@ -30,38 +30,58 @@ export default function ThankYouPage() {
         return;
       }
 
-      // Simulate progress updates (since we do not have SSE yet)
-      const progressSteps = [
-        { step: 'Listing agents in workspace...', progress: 7 },
-        { step: 'Extracting persona job titles...', progress: 13 },
-        { step: 'Running Prospector Agent...', progress: 20 },
-        { step: 'Generating Cold Email: Personalized Solutions...', progress: 27 },
-        { step: 'Generating Cold Email: Lead Magnet Short...', progress: 33 },
-        { step: 'Generating Cold Email: Local/Same City...', progress: 40 },
-        { step: 'Generating Cold Email: Problem/Solution...', progress: 47 },
-        { step: 'Generating Cold Email: Lead Magnet Long...', progress: 53 },
-        { step: 'Generating LinkedIn Post: Inspiring...', progress: 60 },
-        { step: 'Generating LinkedIn Post: Promotional...', progress: 67 },
-        { step: 'Generating LinkedIn Post: Actionable...', progress: 73 },
-        { step: 'Generating LinkedIn DM: Newsletter CTA...', progress: 80 },
-        { step: 'Generating LinkedIn DM: Lead Magnet CTA...', progress: 87 },
-        { step: 'Generating Newsletter: Tactical...', progress: 93 },
-        { step: 'Generating Newsletter: Leadership...', progress: 97 },
-        { step: 'Generating Call Prep...', progress: 99 },
-        { step: 'Saving results...', progress: 100 },
+      // ===== PHASE 1: Data Generation (Prospecting + Enrichment) =====
+      setCurrentStep('Phase 1: Finding prospects and enriching contacts...');
+      setProgress(10);
+
+      console.log('🎯 Starting Phase 1: Data Generation');
+
+      const phase1Response = await fetch('/api/octave/generate-strategy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      });
+
+      if (!phase1Response.ok) {
+        const error = await phase1Response.json();
+        console.error('Phase 1 failed:', error);
+        alert(`Phase 1 failed: ${error.error || 'Unknown error'}`);
+        setIsGenerating(false);
+        return;
+      }
+
+      const phase1Result = await phase1Response.json();
+      console.log('✅ Phase 1 complete:', phase1Result);
+      
+      setProgress(50);
+      setCurrentStep('Phase 2: Generating personalized content...');
+
+      // ===== PHASE 2: Content Generation (All Agents) =====
+      console.log('🎯 Starting Phase 2: Content Generation');
+      
+      // Simulate progress updates for Phase 2
+      const phase2Steps = [
+        { step: 'Generating Cold Email: Personalized Solutions...', progress: 55 },
+        { step: 'Generating Cold Email: Lead Magnet Short...', progress: 60 },
+        { step: 'Generating Cold Email: Local/Same City...', progress: 65 },
+        { step: 'Generating Cold Email: Problem/Solution...', progress: 70 },
+        { step: 'Generating Cold Email: Lead Magnet Long...', progress: 75 },
+        { step: 'Generating LinkedIn Posts...', progress: 80 },
+        { step: 'Generating LinkedIn DMs...', progress: 85 },
+        { step: 'Generating Newsletters...', progress: 90 },
+        { step: 'Generating Call Prep...', progress: 95 },
       ];
 
       let currentStepIndex = 0;
       const progressInterval = setInterval(() => {
-        if (currentStepIndex < progressSteps.length) {
-          setCurrentStep(progressSteps[currentStepIndex].step);
-          setProgress(progressSteps[currentStepIndex].progress);
+        if (currentStepIndex < phase2Steps.length) {
+          setCurrentStep(phase2Steps[currentStepIndex].step);
+          setProgress(phase2Steps[currentStepIndex].progress);
           currentStepIndex++;
         }
-      }, 8000); // Update every 8 seconds (approx 2 min total)
+      }, 12000); // Update every 12 seconds for Phase 2
 
-      // Call the generate-strategy API
-      const response = await fetch('/api/octave/generate-strategy', {
+      const phase2Response = await fetch('/api/octave/generate-strategy-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id })
@@ -69,21 +89,25 @@ export default function ThankYouPage() {
 
       clearInterval(progressInterval);
 
-      if (response.ok) {
-        setCurrentStep('Complete! Opening results...');
-        setProgress(100);
-        
-        // Wait a moment then open results
-        setTimeout(() => {
-          window.open('/results', '_blank');
-          setIsGenerating(false);
-        }, 1000);
-      } else {
-        const error = await response.json();
-        console.error('Strategy generation failed:', error);
-        alert(`Failed to generate strategy: ${error.error || 'Unknown error'}`);
-        setIsGenerating(false);
+      if (!phase2Response.ok) {
+        const error = await phase2Response.json();
+        console.error('Phase 2 failed (non-critical):', error);
+        // Don't fail completely - prospects are already saved
+        alert(`Phase 2 warning: Some content may not have generated. Check results page.`);
       }
+
+      const phase2Result = await phase2Response.json();
+      console.log('✅ Phase 2 complete:', phase2Result);
+
+      setCurrentStep('Complete! Opening results...');
+      setProgress(100);
+      
+      // Wait a moment then open results
+      setTimeout(() => {
+        window.open('/results', '_blank');
+        setIsGenerating(false);
+      }, 1000);
+
     } catch (error) {
       console.error('Error generating strategy:', error);
       alert('An error occurred while generating your strategy. Please try again.');
@@ -155,7 +179,10 @@ export default function ThankYouPage() {
                   I&apos;m <span className="bg-gradient-to-r from-fo-primary to-fo-secondary bg-clip-text text-transparent">Generating Your Strategy</span>
                 </h3>
                 <p className="text-fo-secondary mb-2">
-                  This usually takes me 2 minutes
+                  This usually takes me 5-10 minutes
+                </p>
+                <p className="text-gray-600 text-sm mb-2">
+                  (It will update automatically once I&apos;m done)
                 </p>
                 <p className="text-red-600 font-semibold text-lg">
                   Please don&apos;t close this window.
