@@ -94,25 +94,10 @@ export default function ThankYouPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-fo-light to-white flex items-center justify-center px-4 py-8">
       <div className="max-w-3xl w-full">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="mx-auto h-20 w-20 bg-gradient-to-r from-fo-primary to-fo-accent rounded-full flex items-center justify-center mb-6">
-            <svg className="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h1 className="text-4xl font-bold text-fo-primary mb-4">
-            Thank You for Completing Your Onboarding!
-          </h1>
-          <p className="text-xl text-fo-secondary max-w-2xl mx-auto">
-            Thank you for filling out the onboarding form. Our GTM engineers are now setting up your Octave workspace.
-          </p>
-        </div>
-
         {/* Video Section */}
-        <div className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
+        <div className="bg-white rounded-lg shadow-fo-shadow p-8">
           <h2 className="text-2xl font-bold text-fo-primary mb-6 text-center">
-            A Message from Claire
+            Build My Plan Now
           </h2>
           <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md mb-6">
             <iframe
