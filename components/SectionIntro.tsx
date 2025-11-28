@@ -14,18 +14,15 @@ export default function SectionIntro({
   videoUrl,
   sectionId
 }: SectionIntroProps) {
-  // Use environment variable for public video URL
-  // Set NEXT_PUBLIC_INTRO_VIDEO_URL in .env.local and Vercel
-  // For YouTube: https://www.youtube.com/embed/YOUR_VIDEO_ID
-  // For Vimeo: https://player.vimeo.com/video/YOUR_VIDEO_ID
-  const publicVideoUrl = process.env.NEXT_PUBLIC_INTRO_VIDEO_URL || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+  // Use provided videoUrl prop, fallback to environment variable, then placeholder
+  const finalVideoUrl = videoUrl || process.env.NEXT_PUBLIC_INTRO_VIDEO_URL || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
   
   return (
     <div className="mb-8 grid md:grid-cols-2 gap-6">
       {/* Left: Video Embed */}
       <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-xl" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
         <iframe 
-          src={publicVideoUrl}
+          src={finalVideoUrl}
           className="absolute top-0 left-0 w-full h-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen 
