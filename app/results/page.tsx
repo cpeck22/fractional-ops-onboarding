@@ -714,11 +714,6 @@ export default function ResultsPage() {
                   </>
                 );
               })()}
-              {outputs.prospect_list.length > 50 && (
-                <p className="text-sm text-fo-secondary mt-4 text-center">
-                  + {outputs.prospect_list.length - 10} more prospects with contact info available
-                </p>
-              )}
             </>
           ) : (
             <ErrorPlaceholder assetType="Prospect List" />
