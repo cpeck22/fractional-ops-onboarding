@@ -974,11 +974,9 @@ export default function ResultsPage() {
                     <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {outputs.call_prep.callScript
-                          .replace(/\\n/g, '\n')           // Convert escaped newlines to real newlines
-                          .replace(/\r\n/g, '\n')          // Normalize Windows line breaks
-                          .replace(/\r/g, '\n')            // Normalize old Mac line breaks
-                          .replace(/\n{3,}/g, '\n\n')      // Collapse multiple newlines to double
-                          .trim()                           // Remove leading/trailing whitespace
+                          .replace(/\\n/g, '\n')                  // Convert escaped newlines
+                          .replace(/(\r\n|\r|\n)/g, '\n\n')       // Convert every newline to paragraph break
+                          .trim()
                         }
                       </ReactMarkdown>
                     </div>
@@ -994,11 +992,9 @@ export default function ResultsPage() {
                     <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {outputs.call_prep.objectionHandling
-                          .replace(/\\n/g, '\n')           // Convert escaped newlines to real newlines
-                          .replace(/\r\n/g, '\n')          // Normalize Windows line breaks
-                          .replace(/\r/g, '\n')            // Normalize old Mac line breaks
-                          .replace(/\n{3,}/g, '\n\n')      // Collapse multiple newlines to double
-                          .trim()                           // Remove leading/trailing whitespace
+                          .replace(/\\n/g, '\n')                  // Convert escaped newlines
+                          .replace(/(\r\n|\r|\n)/g, '\n\n')       // Convert every newline to paragraph break
+                          .trim()
                         }
                       </ReactMarkdown>
                     </div>
