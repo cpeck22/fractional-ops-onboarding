@@ -771,33 +771,8 @@ export default function ResultsPage() {
                 // LIMIT: Show max 100 contacts (increased from 50 to show more prospects)
                 const finalList = deduped.slice(0, 100);
                 
-                // Count by priority
-                const priority1Count = finalList.filter((p: any) => p.email && p.mobile_number).length;
-                const priority2Count = finalList.filter((p: any) => p.email && !p.mobile_number).length;
-                const priority3Count = finalList.filter((p: any) => !p.email && p.mobile_number).length;
-                
                 return (
                   <>
-                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-gray-800 font-semibold mb-2">
-                        Found <strong>{finalList.length}</strong> qualified prospects with contact information:
-                      </p>
-                      <div className="grid grid-cols-3 gap-3 text-sm">
-                        <div className="bg-white p-2 rounded border border-green-200">
-                          <div className="text-green-700 font-bold">{priority1Count}</div>
-                          <div className="text-gray-600 text-xs">Priority 1 (Email + Phone)</div>
-                        </div>
-                        <div className="bg-white p-2 rounded border border-blue-200">
-                          <div className="text-blue-700 font-bold">{priority2Count}</div>
-                          <div className="text-gray-600 text-xs">Priority 2 (Email Only)</div>
-                        </div>
-                        <div className="bg-white p-2 rounded border border-purple-200">
-                          <div className="text-purple-700 font-bold">{priority3Count}</div>
-                          <div className="text-gray-600 text-xs">Priority 3 (Phone Only)</div>
-                        </div>
-                      </div>
-                    </div>
-                    
                     <div className="space-y-3">
                       {finalList.map((prospect: any, index: number) => {
                         const hasEmailAndPhone = prospect.email && prospect.mobile_number;
