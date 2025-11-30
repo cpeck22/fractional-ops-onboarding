@@ -156,6 +156,7 @@ export default function ReviewPage() {
       // PHASE 1: Core Workspace Creation
       // ============================================
       console.log('⚙️ Phase 1: Creating core workspace (workspace, offering, personas, use cases)...');
+      console.log('📊 Using fresh data from database:', dataToDisplay);
       const phase1Response = await fetch('/api/octave/workspace', {
         method: 'POST',
         headers: {
@@ -164,7 +165,7 @@ export default function ReviewPage() {
         body: JSON.stringify({
           email: userEmail,
           userId: userId,
-          questionnaireData
+          questionnaireData: dataToDisplay  // Use fresh data from database
         }),
       });
 
@@ -200,7 +201,7 @@ export default function ReviewPage() {
             personas: phase1Result.personas,
             useCases: phase1Result.useCases,
             clientReferences: phase1Result.clientReferences,
-            competitors: phase1Result.competitors || questionnaireData.positioning?.competitors || []
+            competitors: phase1Result.competitors || dataToDisplay.positioning?.competitors || []
           }),
         });
 
@@ -245,7 +246,7 @@ export default function ReviewPage() {
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `RevOps_Onboarding_${questionnaireData.companyInfo?.companyName || 'Client'}.pdf`;
+          a.download = `RevOps_Onboarding_${dataToDisplay.companyInfo?.companyName || 'Client'}.pdf`;
           document.body.appendChild(a);
           a.click();
           window.URL.revokeObjectURL(url);
