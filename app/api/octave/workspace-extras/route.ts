@@ -212,11 +212,20 @@ export async function POST(request: NextRequest) {
     // ============================================
     const campaignIdeas = createdPlaybooks.map((playbook: any) => ({
       title: playbook.playbookName || `${playbook.segmentName} Campaign`,
-      description: `Targeted outreach campaign for ${playbook.segmentName} companies`
+      description: `Targeted outreach campaign for ${playbook.segmentName} companies`,
+      // Include full playbook details for appendix display
+      segmentName: playbook.segmentName,
+      oId: playbook.oId,
+      referencesIncluded: playbook.referencesIncluded || 0,
+      referenceNames: playbook.referenceNames || [],
+      keyInsight: playbook.data?.playbook?.keyInsight || playbook.data?.keyInsight,
+      type: playbook.data?.playbook?.type || 'SECTOR',
+      status: playbook.data?.playbook?.status || 'active',
+      fullData: playbook.data // Store complete Octave response for potential future use
     }));
 
     if (campaignIdeas.length > 0) {
-      console.log(`💡 Generated ${campaignIdeas.length} campaign ideas from playbooks`);
+      console.log(`💡 Generated ${campaignIdeas.length} campaign ideas from playbooks with full details`);
     }
 
     // ============================================

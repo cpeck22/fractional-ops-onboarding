@@ -100,6 +100,7 @@ export default function ResultsPage() {
     { id: 'segments', label: 'Segments' },
     { id: 'client-references', label: 'Client References' },
     { id: 'competitors', label: 'Competitors' },
+    { id: 'playbooks', label: 'Playbooks' },
   ];
 
   // Smooth scroll to section
@@ -1929,6 +1930,78 @@ export default function ResultsPage() {
                 </div>
               </div>
             )}
+            
+            {/* Playbooks - FULL DETAIL */}
+            {outputs.campaign_ideas && outputs.campaign_ideas.length > 0 && (
+              <div id="playbooks" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Playbooks ({outputs.campaign_ideas.length})
+                </h3>
+                <p className="text-sm text-gray-600 mb-6">
+                  Sales playbooks created from your segments, personas, and use cases
+                </p>
+                <div className="space-y-6">
+                  {outputs.campaign_ideas.map((playbook: any, index: number) => (
+                    <div key={index} className="bg-white p-5 rounded-lg border border-blue-200 shadow-sm">
+                      <div className="flex items-start justify-between mb-3">
+                        <h4 className="font-bold text-lg text-fo-primary">{playbook.title}</h4>
+                        {playbook.status && (
+                          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">
+                            {playbook.status}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {playbook.description && (
+                        <p className="text-sm text-gray-700 mb-3">{playbook.description}</p>
+                      )}
+                      
+                      {playbook.segmentName && (
+                        <div className="mb-3">
+                          <p className="text-xs font-semibold text-gray-500 uppercase">Target Segment</p>
+                          <p className="text-sm text-gray-900">{playbook.segmentName}</p>
+                        </div>
+                      )}
+                      
+                      {playbook.keyInsight && (
+                        <div className="mb-3 bg-blue-50 p-3 rounded border border-blue-200">
+                          <p className="font-semibold text-gray-700 text-sm mb-1">💡 Key Insight:</p>
+                          <p className="text-sm text-gray-700">{playbook.keyInsight}</p>
+                        </div>
+                      )}
+                      
+                      {playbook.type && (
+                        <div className="mb-3">
+                          <p className="text-xs font-semibold text-gray-500 uppercase">Playbook Type</p>
+                          <p className="text-sm text-gray-900">{playbook.type}</p>
+                        </div>
+                      )}
+                      
+                      {playbook.referenceNames && playbook.referenceNames.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <p className="font-semibold text-gray-700 text-sm mb-2">
+                            Client References Included ({playbook.referencesIncluded || playbook.referenceNames.length}):
+                          </p>
+                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            {playbook.referenceNames.map((refName: string, idx: number) => (
+                              <li key={idx}>{refName}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {playbook.oId && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <p className="text-xs text-gray-500">
+                            <span className="font-semibold">Octave ID:</span> {playbook.oId}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -1936,7 +2009,7 @@ export default function ResultsPage() {
         <div className="bg-fo-accent text-white rounded-lg shadow-lg p-8 text-center">
           <h2 className="text-2xl font-bold mb-4">Ready to grow your sales?</h2>
           <p className="mb-6 text-white/90">
-            Book your GTM Kickoff Call with Corey to activate these workflows in your CRM
+            Book a call with Corey to activate these workflows in your CRM
           </p>
           <a
             href="https://meetings.hubspot.com/corey-peck/claire-roi-roadmap-call"
