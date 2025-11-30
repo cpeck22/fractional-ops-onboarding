@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
-import remarkBreaks from 'remark-breaks';
+import remarkGfm from 'remark-gfm';
 import ClaireImage from '../Claire_v2.png';
 import SectionIntro from '@/components/SectionIntro';
 
@@ -920,9 +920,9 @@ export default function ResultsPage() {
           {/* Newsletter Content */}
           {outputs.newsletters && outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters] ? (
             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <div className="prose prose-lg max-w-none text-gray-900">
-                <ReactMarkdown remarkPlugins={[remarkBreaks]}>
-                  {outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters].replace(/\n/g, '\n\n')}
+              <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {outputs.newsletters[activeNewsletterTab as keyof typeof outputs.newsletters]}
                 </ReactMarkdown>
               </div>
             </div>
@@ -951,9 +951,9 @@ export default function ResultsPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Call Script:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <div className="prose prose-lg max-w-none text-gray-900">
+                    <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed">
                       <ReactMarkdown 
-                        remarkPlugins={[remarkBreaks]}
+                        remarkPlugins={[remarkGfm]}
                         components={{
                           // Custom renderer for paragraphs to detect "Questions:" lines
                           p: ({node, children, ...props}) => {
@@ -978,7 +978,7 @@ export default function ResultsPage() {
                           }
                         }}
                       >
-                        {outputs.call_prep.callScript.replace(/\n/g, '\n\n')}
+                        {outputs.call_prep.callScript}
                       </ReactMarkdown>
                     </div>
                   </div>
@@ -990,9 +990,9 @@ export default function ResultsPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Objection Handling:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <div className="prose prose-lg max-w-none text-gray-900">
-                      <ReactMarkdown remarkPlugins={[remarkBreaks]}>
-                        {outputs.call_prep.objectionHandling.replace(/\n/g, '\n\n')}
+                    <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {outputs.call_prep.objectionHandling}
                       </ReactMarkdown>
                     </div>
                   </div>
