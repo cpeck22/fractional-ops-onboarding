@@ -210,19 +210,34 @@ export async function POST(request: NextRequest) {
     // ============================================
     // STEP 5: GENERATE CAMPAIGN IDEAS FROM PLAYBOOKS
     // ============================================
-    const campaignIdeas = createdPlaybooks.map((playbook: any) => ({
-      title: playbook.playbookName || `${playbook.segmentName} Campaign`,
-      description: playbook.data?.playbook?.description || playbook.data?.description || `Targeted outreach campaign for ${playbook.segmentName} companies`,
-      // Include full playbook details for appendix display
-      segmentName: playbook.segmentName,
-      oId: playbook.oId,
-      referencesIncluded: playbook.referencesIncluded || 0,
-      referenceNames: playbook.referenceNames || [],
-      keyInsight: playbook.data?.playbook?.keyInsight || playbook.data?.keyInsight,
-      type: playbook.data?.playbook?.type || 'SECTOR',
-      status: playbook.data?.playbook?.status || 'active',
-      fullData: playbook.data // Store complete Octave response for potential future use
-    }));
+    const campaignIdeas = createdPlaybooks.map((playbook: any) => {
+      const playbookData = playbook.data?.playbook || playbook.data || {};
+      const playbookInnerData = playbookData.data || {};
+      
+      return {
+        title: playbook.playbookName || `${playbook.segmentName} Campaign`,
+        description: playbookData.description || `Targeted outreach campaign for ${playbook.segmentName} companies`,
+        // Include full playbook details for appendix display
+        segmentName: playbook.segmentName,
+        oId: playbook.oId,
+        name: playbookData.name,
+        internalName: playbookData.internalName,
+        referencesIncluded: playbook.referencesIncluded || 0,
+        referenceNames: playbook.referenceNames || [],
+        keyInsight: playbookData.keyInsight || playbookInnerData.keyInsight,
+        executiveSummary: playbookInnerData.executiveSummary,
+        approachAngle: playbookInnerData.approachAngle,
+        valueProps: playbookInnerData.valueProps, // Array of value props per persona
+        type: playbookData.type || 'SECTOR',
+        status: playbookData.status || 'active',
+        qualifyingQuestions: playbookData.qualifyingQuestions || [],
+        disqualifyingQuestions: playbookData.disqualifyingQuestions || [],
+        personaOIds: playbookData.personaOIds || [],
+        useCaseOIds: playbookData.useCaseOIds || [],
+        referenceOIds: playbookData.referenceOIds || [],
+        fullData: playbook.data // Store complete Octave response for debugging
+      };
+    });
 
     if (campaignIdeas.length > 0) {
       console.log(`💡 Generated ${campaignIdeas.length} campaign ideas from playbooks with full details`);

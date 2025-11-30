@@ -1963,10 +1963,40 @@ export default function ResultsPage() {
                         </div>
                       )}
                       
+                      {playbook.executiveSummary && (
+                        <div className="mb-3 bg-purple-50 p-4 rounded border border-purple-200">
+                          <p className="font-semibold text-gray-700 text-sm mb-2">📋 Executive Summary:</p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{playbook.executiveSummary}</p>
+                        </div>
+                      )}
+                      
                       {playbook.keyInsight && (
                         <div className="mb-3 bg-blue-50 p-3 rounded border border-blue-200">
-                          <p className="font-semibold text-gray-700 text-sm mb-1">💡 Key Insight:</p>
+                          <p className="font-semibold text-gray-700 text-sm mb-1">💡 Key Insights:</p>
                           <p className="text-sm text-gray-700">{playbook.keyInsight}</p>
+                        </div>
+                      )}
+                      
+                      {playbook.approachAngle && (
+                        <div className="mb-3 bg-yellow-50 p-3 rounded border border-yellow-200">
+                          <p className="font-semibold text-gray-700 text-sm mb-1">🎯 Approach Angle:</p>
+                          <p className="text-sm text-gray-700">{playbook.approachAngle}</p>
+                        </div>
+                      )}
+                      
+                      {playbook.valueProps && playbook.valueProps.length > 0 && (
+                        <div className="mb-3">
+                          <p className="font-semibold text-gray-700 text-sm mb-2">✨ Value Propositions (By Persona):</p>
+                          <div className="space-y-2">
+                            {playbook.valueProps.map((valueProp: any, idx: number) => (
+                              <div key={idx} className="bg-green-50 p-3 rounded border border-green-200">
+                                {valueProp.personaName && (
+                                  <p className="font-semibold text-green-800 text-xs mb-1">{valueProp.personaName}</p>
+                                )}
+                                <p className="text-sm text-gray-700">{valueProp.value || valueProp}</p>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                       
@@ -1988,6 +2018,48 @@ export default function ResultsPage() {
                             ))}
                           </ul>
                         </div>
+                      )}
+                      
+                      {playbook.qualifyingQuestions && playbook.qualifyingQuestions.length > 0 && (
+                        <details className="mt-4">
+                          <summary className="cursor-pointer text-fo-primary font-semibold text-sm hover:underline">
+                            View Qualifying Questions ({playbook.qualifyingQuestions.length})
+                          </summary>
+                          <div className="mt-3 space-y-2 pl-4 border-l-2 border-blue-300">
+                            {playbook.qualifyingQuestions.map((q: any, i: number) => (
+                              <div key={i} className="text-xs">
+                                <p className="font-medium text-gray-900">{q.question}</p>
+                                <p className="text-gray-600 mt-1">{q.rationale}</p>
+                                <p className="text-gray-500 mt-1">
+                                  <span className={`font-semibold ${q.fitType === 'GOOD' ? 'text-green-600' : 'text-red-600'}`}>
+                                    {q.fitType}
+                                  </span> • {q.weight}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      )}
+                      
+                      {playbook.disqualifyingQuestions && playbook.disqualifyingQuestions.length > 0 && (
+                        <details className="mt-4">
+                          <summary className="cursor-pointer text-red-600 font-semibold text-sm hover:underline">
+                            View Disqualifying Questions ({playbook.disqualifyingQuestions.length})
+                          </summary>
+                          <div className="mt-3 space-y-2 pl-4 border-l-2 border-red-300">
+                            {playbook.disqualifyingQuestions.map((q: any, i: number) => (
+                              <div key={i} className="text-xs">
+                                <p className="font-medium text-gray-900">{q.question}</p>
+                                <p className="text-gray-600 mt-1">{q.rationale}</p>
+                                <p className="text-gray-500 mt-1">
+                                  <span className={`font-semibold ${q.fitType === 'GOOD' ? 'text-green-600' : 'text-red-600'}`}>
+                                    {q.fitType}
+                                  </span> • {q.weight}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
                       )}
                       
                       {playbook.oId && (

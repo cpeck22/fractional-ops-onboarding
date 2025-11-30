@@ -115,18 +115,35 @@ export async function POST(request: NextRequest) {
         
         console.log(`✅ Created playbook ${i + 1}: ${segment.name} Sales Playbook (${playbookOId})`);
         
-        // Extract description from Octave response
-        const playbookDescription = response.data?.playbook?.description || response.data?.description || playbookRequest.description;
+        // Fetch full playbook details to get all fields (executive summary, approach angle, etc.)
+        let fullPlaybookData = response.data;
+        if (playbookOId) {
+          try {
+            console.log(`📖 Fetching full playbook details for ${playbookOId}...`);
+            const getResponse = await axios.get(
+              `https://app.octavehq.com/api/v2/playbook/get?oId=${playbookOId}`,
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'api_key': workspaceApiKey
+                }
+              }
+            );
+            fullPlaybookData = getResponse.data;
+            console.log(`✅ Fetched full playbook data with all fields`);
+          } catch (fetchError: any) {
+            console.warn(`⚠️ Could not fetch full playbook details, using creation response:`, fetchError.message);
+          }
+        }
         
         createdPlaybooks.push({
           index: i,
           segmentName: segment.name,
           playbookName: `${segment.name} Sales Playbook`,
-          description: playbookDescription,
           oId: playbookOId,
           referencesIncluded: matchingReferences.length,
           referenceNames: referenceNames,
-          data: response.data
+          data: fullPlaybookData
         });
 
       } catch (error: any) {
