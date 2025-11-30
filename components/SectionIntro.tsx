@@ -39,10 +39,10 @@ export default function SectionIntro({
         </div>
       </div>
 
-      {/* Right: How do I use this? + CTA Button */}
+      {/* Right: How do I use this in real life? + CTA Button */}
       <div className="bg-white rounded-lg p-6 border border-gray-200">
         <h3 className="text-lg font-bold text-blue-600 mb-4">
-          How do I use this?
+          How do I use this in real life?
         </h3>
         <div className="space-y-2 mb-6">
           {whatIsThisFor.map((item, index) => (

@@ -971,7 +971,7 @@ export default function ResultsPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Call Script:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed [&_p:has(strong:first-child)]:bg-gray-800 [&_p:has(strong:first-child)]:text-white [&_p:has(strong:first-child)]:p-4 [&_p:has(strong:first-child)]:rounded-lg [&_p:has(strong:first-child)]:not-prose">
+                    <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {outputs.call_prep.callScript}
                       </ReactMarkdown>
