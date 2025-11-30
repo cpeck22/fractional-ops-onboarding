@@ -216,38 +216,87 @@ export default function SharedStrategyPage() {
   }
 
   const sectionIntros = {
-    campaignIdeas: {
-      videoUrl: 'https://drive.google.com/file/d/1T-OLSmPvCVIGAv2-mR4x1Gx_I0J3S-Wg/preview',
-      description: 'Strategic campaign concepts designed to engage your target audience'
-    },
-    prospectList: {
-      videoUrl: 'https://drive.google.com/file/d/1-47wDbMLnDsLqAC5-hZxFI4xMJT45ks3/preview',
-      description: 'Your ideal customer profile leads, ready for outreach'
-    },
-    coldEmails: {
-      videoUrl: 'https://drive.google.com/file/d/1Jlq-c6HxJrn_XCm4jUCrDjvhv6NWUbwY/preview',
-      description: 'Proven email templates to start meaningful conversations'
-    },
-    linkedinPosts: {
-      videoUrl: 'https://drive.google.com/file/d/1pAYa3ZFMCJdM5o11LVJ9LS5YcFy4BkpO/preview',
-      description: 'Content that builds your thought leadership and drives engagement'
-    },
-    linkedinDMs: {
-      videoUrl: 'https://drive.google.com/file/d/1vhVU7AljcPdxkX-FnxGj6B4Fq4DgmI6y/preview',
-      description: 'Personalized messages for direct LinkedIn outreach'
-    },
-    newsletters: {
-      videoUrl: 'https://drive.google.com/file/d/1EKNs_Z-M6JxpULR4rB5-ZPHYjvgjx_M8/preview',
-      description: 'Educational content to nurture and engage your email list'
-    },
-    youtubeScripts: {
-      videoUrl: '',
-      description: 'Video scripts designed to educate and convert your audience'
-    },
-    callPrep: {
-      videoUrl: 'https://drive.google.com/file/d/1oH6-9j3DKGv8yWJb6Q_YGh0sTH8t3SrE/preview',
-      description: 'Scripts and strategies to close more deals on your calls'
-    }
+    campaignIdeas: [
+      "Launching Marketing Campaigns",
+      "Creating Sales Playbooks for the sales team",
+      "Informing automatic follow-up email drafts",
+      "Informing automatic CRM Call Prep notes",
+      "Setting Parameters for automatic List Building and Prospecting",
+      "Setting Parameters for automatic lead qualification",
+      "Briefing marketers for creative assets, website changes, and content"
+    ],
+    prospectList: [
+      "Building Targeted Lead Lists for Each Campaign",
+      "Identifying Best-Fit Companies and Decision-Makers",
+      "Automatically Researching Leads and Update CRM Records",
+      "Validating Contact Information (email, mobile phone)",
+      "Sending Personalized Outbound Emails",
+      "Calling Verified Contacts",
+      "Assigning Leads to Sales Reps",
+      "Triggering CRM Workflows and Sequences"
+    ],
+    coldEmails: [
+      "Automatically writing Email Sequences for Each Campaign",
+      "Automatically Personalizing Emails (Role, Industry, Pain, Use Case, etc)",
+      "Referencing The Most Relevant Case Studies for each prospect",
+      "Adjusting Tone and Style automatically",
+      "A/B Testing Different Messaging Variants",
+      "Loading Email Sequences into email Sequencers or CRM",
+      "Triggering Automated Follow-Up Based on Engagement",
+      "Triggering Automated Lead or Deal creation on Engagement",
+      "Providing Sales Reps with Pre-Written personalized Messaging to speed up Manual Outreach"
+    ],
+    linkedinPosts: [
+      "Writing LinkedIn Posts That Match Campaign Messaging",
+      "Publishing Thought Leadership While Campaigns Are Live",
+      "Reinforcing Cold Email Messaging with Social Content",
+      "Aligning Website, LinkedIn, and Sales Language",
+      "Increasing Trust and Awareness with Asynchronous Buyers",
+      "Scheduling Campaign-Aligned Posts on Personal and Company Pages",
+      "Driving Inbound Interest from Prospects Who Don't Respond Directly",
+      "Giving Reps Social Content to Repost or Reference in DMs"
+    ],
+    linkedinDMs: [
+      "Connecting with Target Prospects via LinkedIn",
+      "Sending Connection Requests to Website Visitors",
+      "Liking Recent Posts to Warm Up New Connections",
+      "Sending First-Response DMs After Connection is Accepted",
+      "Aligning LinkedIn Messaging with Active Campaigns",
+      "Personalizing Outreach Based on Role, Company, or Behavior",
+      "Handing Off Engaged Prospects to Sales Reps for Follow-Up",
+      "Updating Future DMs Based on real-world Feedback and Results"
+    ],
+    newsletters: [
+      "Automatically Writing Newsletters That Align with Active Campaigns",
+      "Sending Value-Add Content to New Connections and Website Visitors",
+      "Educating Prospects During the Buyer Journey",
+      "Move prospect attention from a \"rented\" to \"owned\" audience",
+      "Giving a value-first reason to reach out to stalled Deals",
+      "Building Trust and Familiarity Before Direct Outreach",
+      "Nurturing Cold or Passive Leads Over Time",
+      "Giving Reps Content to Reference in Follow-Up Messages"
+    ],
+    youtubeScripts: [
+      "Creating Long-Form Video Scripts for YouTube",
+      "Aligning Video Content with Active Campaigns",
+      "Educating Prospects Through Video Content",
+      "Building Trust and Authority Through Thought Leadership",
+      "Repurposing Sales Messaging into Video Format",
+      "Driving Traffic to Landing Pages or Lead Magnets",
+      "Creating Evergreen Content for SEO and Discovery",
+      "Giving Prospects a Different Way to Engage with Your Message"
+    ],
+    callPrep: [
+      "Auto-Generating Call Prep Notes for Booked Meetings",
+      "Researching Companies and Contacts Before Sales Calls",
+      "Inserting Prep Notes Directly into CRM Records",
+      "Tailoring Prep Notes to match your notetakers Sales Methodology - Create personalized Discovery Questions",
+      "Proposing most likely Pain Points, Solutions, and Use Cases",
+      "Giving links to the most relevant Case Studies (to quickly screen share or drop in the chat during meetings)",
+      "Suggesting Talking Points Based on Campaign Context",
+      "Standardizing Pre-Call Research Across the Team",
+      "Personalized sales battlecard for each meeting (the likely objections with a script on how to handle each one)"
+    ]
   };
 
   const tocSections = [
@@ -377,8 +426,9 @@ export default function SharedStrategyPage() {
             {/* Campaign Ideas Section */}
             <section id="campaign-workflows" className="scroll-mt-8">
               <SectionIntro
-                videoUrl={sectionIntros.campaignIdeas.videoUrl}
-                description={sectionIntros.campaignIdeas.description}
+                whatIsThisFor={sectionIntros.campaignIdeas}
+                sectionId="campaign-workflows"
+                videoUrl="https://drive.google.com/file/d/13W9LlvCvqBzOl_5R81yeZCLJ9tusC2RW/preview"
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
@@ -409,8 +459,9 @@ export default function SharedStrategyPage() {
             {/* Prospect List Section */}
             <section id="prospect-list" className="scroll-mt-8">
               <SectionIntro
-                videoUrl={sectionIntros.prospectList.videoUrl}
-                description={sectionIntros.prospectList.description}
+                whatIsThisFor={sectionIntros.prospectList}
+                sectionId="prospect-list"
+                videoUrl="https://drive.google.com/file/d/1t6tnBLxzvTkQXoW6ErnmDKMPwGyTq4sp/preview"
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
@@ -455,8 +506,9 @@ export default function SharedStrategyPage() {
             {/* Cold Emails Section */}
             <section id="cold-emails" className="scroll-mt-8">
               <SectionIntro
-                videoUrl={sectionIntros.coldEmails.videoUrl}
-                description={sectionIntros.coldEmails.description}
+                whatIsThisFor={sectionIntros.coldEmails}
+                sectionId="cold-emails"
+                videoUrl="https://drive.google.com/file/d/1V3T8gd6-y5OVB8nW0L9_9pjpqEAKzEda/preview"
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
@@ -530,8 +582,9 @@ export default function SharedStrategyPage() {
             {/* LinkedIn Posts Section */}
             <section id="linkedin-posts" className="scroll-mt-8">
               <SectionIntro
-                videoUrl={sectionIntros.linkedinPosts.videoUrl}
-                description={sectionIntros.linkedinPosts.description}
+                whatIsThisFor={sectionIntros.linkedinPosts}
+                sectionId="linkedin-posts"
+                videoUrl="https://drive.google.com/file/d/1q0SdjYjxpjfipFiYSGoL5QAPzqWZS-o0/preview"
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
@@ -577,8 +630,9 @@ export default function SharedStrategyPage() {
             {/* LinkedIn DMs Section */}
             <section id="linkedin-dms" className="scroll-mt-8">
               <SectionIntro
-                videoUrl={sectionIntros.linkedinDMs.videoUrl}
-                description={sectionIntros.linkedinDMs.description}
+                whatIsThisFor={sectionIntros.linkedinDMs}
+                sectionId="linkedin-dms"
+                videoUrl="https://drive.google.com/file/d/108EHJ-Edh_YiXPw0AgkoTg5W5jkyyvQs/preview"
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
@@ -629,8 +683,9 @@ export default function SharedStrategyPage() {
             {/* Newsletter Section */}
             <section id="newsletters" className="scroll-mt-8">
               <SectionIntro
-                videoUrl={sectionIntros.newsletters.videoUrl}
-                description={sectionIntros.newsletters.description}
+                whatIsThisFor={sectionIntros.newsletters}
+                sectionId="newsletters"
+                videoUrl="https://drive.google.com/file/d/1vtxH3UXdzaS8R99dRaPcy3Op1d1SxQWJ/preview"
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
@@ -702,8 +757,8 @@ export default function SharedStrategyPage() {
             {/* YouTube Scripts Section */}
             <section id="youtube-scripts" className="scroll-mt-8">
               <SectionIntro
-                videoUrl={sectionIntros.youtubeScripts.videoUrl}
-                description={sectionIntros.youtubeScripts.description}
+                whatIsThisFor={sectionIntros.youtubeScripts}
+                sectionId="youtube-scripts"
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
@@ -741,8 +796,9 @@ export default function SharedStrategyPage() {
             {/* Call Prep Section */}
             <section id="call-prep" className="scroll-mt-8">
               <SectionIntro
-                videoUrl={sectionIntros.callPrep.videoUrl}
-                description={sectionIntros.callPrep.description}
+                whatIsThisFor={sectionIntros.callPrep}
+                sectionId="call-prep"
+                videoUrl="https://drive.google.com/file/d/1XYNwjRicEUyPlO3Jp9KuzQjLuOhSOQ2W/preview"
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">

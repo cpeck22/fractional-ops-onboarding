@@ -143,11 +143,13 @@ export default function ResultsPage() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     loadResults();
     checkExistingShare();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkExistingShare = async () => {
