@@ -566,7 +566,7 @@ export default function ResultsPage() {
           <SectionIntro 
             whatIsThisFor={sectionIntros.qualifiedProspects}
             sectionId="qualified-prospects"
-            videoUrl="https://drive.google.com/file/d/1V3T8gd6-y5OVB8nW0L9_9pjpqEAKzEda/preview"
+            videoUrl="https://drive.google.com/file/d/1t6tnBLxzvTkQXoW6ErnmDKMPwGyTq4sp/preview"
           />
           
           {outputs.prospect_list && outputs.prospect_list.length > 0 ? (
@@ -753,7 +753,7 @@ export default function ResultsPage() {
           <SectionIntro 
             whatIsThisFor={sectionIntros.coldEmails}
             sectionId="cold-emails"
-            videoUrl="https://drive.google.com/file/d/1t6tnBLxzvTkQXoW6ErnmDKMPwGyTq4sp/preview"
+            videoUrl="https://drive.google.com/file/d/1V3T8gd6-y5OVB8nW0L9_9pjpqEAKzEda/preview"
           />
           
           {/* Tabs */}
@@ -810,7 +810,7 @@ export default function ResultsPage() {
           <SectionIntro 
             whatIsThisFor={sectionIntros.linkedinPosts}
             sectionId="linkedin-posts"
-            videoUrl="https://drive.google.com/file/d/108EHJ-Edh_YiXPw0AgkoTg5W5jkyyvQs/preview"
+            videoUrl="https://drive.google.com/file/d/1q0SdjYjxpjfipFiYSGoL5QAPzqWZS-o0/preview"
           />
           
           {/* Tabs */}
@@ -856,7 +856,7 @@ export default function ResultsPage() {
           <SectionIntro 
             whatIsThisFor={sectionIntros.linkedinDMs}
             sectionId="linkedin-dms"
-            videoUrl="https://drive.google.com/file/d/1vtxH3UXdzaS8R99dRaPcy3Op1d1SxQWJ/preview"
+            videoUrl="https://drive.google.com/file/d/108EHJ-Edh_YiXPw0AgkoTg5W5jkyyvQs/preview"
           />
           
           {/* Tabs */}
@@ -917,7 +917,7 @@ export default function ResultsPage() {
           <SectionIntro 
             whatIsThisFor={sectionIntros.newsletters}
             sectionId="newsletters"
-            videoUrl="https://drive.google.com/file/d/1XYNwjRicEUyPlO3Jp9KuzQjLuOhSOQ2W/preview"
+            videoUrl="https://drive.google.com/file/d/1vtxH3UXdzaS8R99dRaPcy3Op1d1SxQWJ/preview"
           />
           
           {/* Tabs */}
@@ -961,7 +961,7 @@ export default function ResultsPage() {
           <SectionIntro 
             whatIsThisFor={sectionIntros.callPrep}
             sectionId="call-prep"
-            videoUrl="https://drive.google.com/file/d/1q0SdjYjxpjfipFiYSGoL5QAPzqWZS-o0/preview"
+            videoUrl="https://drive.google.com/file/d/1XYNwjRicEUyPlO3Jp9KuzQjLuOhSOQ2W/preview"
           />
           
           {outputs.call_prep ? (
