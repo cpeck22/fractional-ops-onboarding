@@ -4,6 +4,24 @@ import axios from 'axios';
 export const maxDuration = 60; // Set timeout to 60 seconds (allow time for multiple requests)
 export const dynamic = 'force-dynamic';
 
+interface PlaybookData {
+  oId: string;
+  name: string;
+  description: string;
+  executiveSummary?: string;
+  keyInsight: string;
+  approachAngle?: string;
+  valueProps?: any;
+  qualifyingQuestions: any[];
+  disqualifyingQuestions: any[];
+  type: string;
+  status: string;
+  segmentOId: string;
+  personaOIds: string[];
+  useCaseOIds: string[];
+  referenceOIds: string[];
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { playbookOIds, workspaceApiKey } = await request.json();
@@ -17,11 +35,9 @@ export async function POST(request: NextRequest) {
 
     console.log(`📖 Fetching ${playbookOIds.length} playbooks from Octave...`);
 
-    const playbooks: any[] = [];
-    
     // Fetch playbooks in parallel for better performance
     // Limit concurrency if needed, but for small batches (e.g. < 10), Promise.all is fine
-    const fetchPromises = playbookOIds.map(async (oId) => {
+    const fetchPromises = playbookOIds.map(async (oId: string) => {
       try {
         const response = await axios.get(
           `https://app.octavehq.com/api/v2/playbook/get?oId=${oId}`,
@@ -36,7 +52,7 @@ export async function POST(request: NextRequest) {
         const playbookData = response.data;
         const playbookInnerData = playbookData.data || {};
         
-        return {
+        const result: PlaybookData = {
           oId: playbookData.oId,
           name: playbookData.name,
           description: playbookData.description,
@@ -53,6 +69,7 @@ export async function POST(request: NextRequest) {
           useCaseOIds: playbookData.useCaseOIds || [],
           referenceOIds: playbookData.referenceOIds || []
         };
+        return result;
       } catch (error: any) {
         console.error(`⚠️ Failed to fetch playbook ${oId}:`, error.message);
         return null;
@@ -62,11 +79,7 @@ export async function POST(request: NextRequest) {
     const results = await Promise.all(fetchPromises);
     
     // Filter out failed requests
-    results.forEach(result => {
-      if (result) {
-        playbooks.push(result);
-      }
-    });
+    const playbooks = results.filter((result): result is PlaybookData => result !== null);
 
     console.log(`✅ Successfully fetched ${playbooks.length}/${playbookOIds.length} playbooks`);
 
