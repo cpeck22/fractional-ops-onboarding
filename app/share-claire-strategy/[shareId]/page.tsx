@@ -488,10 +488,10 @@ export default function SharedStrategyPage() {
                       <tbody className="bg-white divide-y divide-gray-200">
                         {outputs.prospect_list.map((prospect: any, index: number) => (
                           <tr key={index}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{prospect.company}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{prospect.contact}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{prospect.title}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{prospect.location}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{prospect.company || 'N/A'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{prospect.name || 'N/A'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{prospect.title || 'N/A'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{prospect.location || 'N/A'}</td>
                           </tr>
                         ))}
                       </tbody>
