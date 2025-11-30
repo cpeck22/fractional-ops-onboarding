@@ -600,11 +600,9 @@ export default function ResultsPage() {
               </p>
             </div>
             
-            {/* Conditional: Show Timer if shared, otherwise Show Share Button */}
+            {/* Conditional: Show Shareable Link or Share Button */}
             {shareLink ? (
               <div className="flex flex-col items-end gap-3">
-                <StrategyTimer expiresAt={shareLink.expiresAt} showCTA={true} />
-                
                 {/* Shareable Link with Copy Button */}
                 <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200 shadow-sm">
                   <input
@@ -651,6 +649,13 @@ export default function ResultsPage() {
             )}
           </div>
         </div>
+        
+        {/* Timer Section - Positioned below header (only shown if shared) */}
+        {shareLink && (
+          <div className="mb-8">
+            <StrategyTimer expiresAt={shareLink.expiresAt} showCTA={true} />
+          </div>
+        )}
 
         {/* Campaign Ideas */}
         <section id="campaign-workflows" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">

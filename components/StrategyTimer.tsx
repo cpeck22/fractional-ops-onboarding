@@ -54,28 +54,23 @@ export default function StrategyTimer({ expiresAt, showCTA = true }: StrategyTim
 
   const { days, hours, minutes } = timeLeft;
 
-  // Color logic based on days remaining (from CEO's vision)
-  let bgColor = 'bg-gray-900'; // Default: 14-11 days
+  // Color logic based on days remaining (CEO's vision: green/orange/red text colors)
+  let daysTextColor = 'text-green-600'; // Default: 14-11 days (Green)
+  let bgColor = 'bg-gray-900'; // Dark background
   let textColor = 'text-white';
-  let diamondColor = '#10b981'; // Green
 
   if (days <= 5) {
-    bgColor = 'bg-red-600';
-    diamondColor = '#ef4444'; // Red
+    daysTextColor = 'text-red-600'; // Red for urgency
   } else if (days <= 10) {
-    bgColor = 'bg-orange-500';
-    diamondColor = '#f97316'; // Orange
+    daysTextColor = 'text-orange-500'; // Orange for warning
   }
 
   return (
     <div className={`${bgColor} ${textColor} px-6 py-3 rounded-lg font-bold flex items-center gap-3 shadow-lg`}>
-      {/* Diamond Icon */}
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill={diamondColor}>
-        <path d="M12 2L2 7l10 15 10-15-10-5z"/>
-      </svg>
+      {/* Diamond Icon - removed per CEO feedback */}
       
-      {/* Timer Text */}
-      <span className="text-lg">
+      {/* Timer Text - colored based on urgency */}
+      <span className={`text-lg font-bold ${daysTextColor}`}>
         {days} day{days !== 1 ? 's' : ''} left
       </span>
 
@@ -86,7 +81,7 @@ export default function StrategyTimer({ expiresAt, showCTA = true }: StrategyTim
             href="https://meetings.hubspot.com/corey-peck/gtm-kickoff-call"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:underline whitespace-nowrap"
+            className="hover:underline whitespace-nowrap text-white"
           >
             Upgrade now and add to your CRM
           </a>
