@@ -178,16 +178,16 @@ export default function ThankYouPage() {
                 </div>
                 
                 <h3 className="text-2xl font-bold text-fo-primary mb-2">
-                  I&apos;m <span className="bg-gradient-to-r from-fo-primary to-fo-secondary bg-clip-text text-transparent">Generating Your Strategy</span>
+                  I&apos;m <span className="bg-gradient-to-r from-fo-primary to-fo-secondary bg-clip-text text-transparent">Making Your Sales Plan</span>
                 </h3>
                 <p className="text-fo-secondary mb-2">
                   This usually takes me 5-10 minutes
                 </p>
-                <p className="text-gray-600 text-sm mb-2">
-                  (It will update automatically once I&apos;m done)
+                <p className="text-red-600 font-semibold text-lg mb-2">
+                  Don&apos;t close this window.
                 </p>
-                <p className="text-red-600 font-semibold text-lg">
-                  Please don&apos;t close this window.
+                <p className="text-gray-600 text-sm">
+                  (It will update automatically once I&apos;m done)
                 </p>
               </div>
 
