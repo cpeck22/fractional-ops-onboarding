@@ -795,9 +795,14 @@ export default function QuestionnaireForm({
                         type="text"
                         value={ref.companyName || ''}
                         onChange={(e) => {
-                          const currentRefs = Array.isArray(formData[field.key]) ? [...formData[field.key]] : [];
-                          currentRefs[refIndex] = { ...currentRefs[refIndex], companyName: e.target.value };
-                          handleFieldChange(field.key, currentRefs);
+                          const newValue = e.target.value;
+                          setFormData((prevFormData: any) => {
+                            const currentRefs = Array.isArray(prevFormData[field.key]) ? [...prevFormData[field.key]] : [];
+                            currentRefs[refIndex] = { ...currentRefs[refIndex], companyName: newValue };
+                            const newData = { ...prevFormData, [field.key]: currentRefs };
+                            onDataChange(newData);
+                            return newData;
+                          });
                         }}
                         placeholder="e.g., FedEx or Global Financial Firm"
                         className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary text-sm text-gray-900"
@@ -813,9 +818,14 @@ export default function QuestionnaireForm({
                         type="text"
                         value={ref.companyDomain || ''}
                         onChange={(e) => {
-                          const currentRefs = Array.isArray(formData[field.key]) ? [...formData[field.key]] : [];
-                          currentRefs[refIndex] = { ...currentRefs[refIndex], companyDomain: e.target.value };
-                          handleFieldChange(field.key, currentRefs);
+                          const newValue = e.target.value;
+                          setFormData((prevFormData: any) => {
+                            const currentRefs = Array.isArray(prevFormData[field.key]) ? [...prevFormData[field.key]] : [];
+                            currentRefs[refIndex] = { ...currentRefs[refIndex], companyDomain: newValue };
+                            const newData = { ...prevFormData, [field.key]: currentRefs };
+                            onDataChange(newData);
+                            return newData;
+                          });
                         }}
                         placeholder="e.g., https://www.fedex.com"
                         className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary text-sm text-gray-900"
@@ -831,9 +841,14 @@ export default function QuestionnaireForm({
                         type="text"
                         value={ref.industry || ''}
                         onChange={(e) => {
-                          const currentRefs = Array.isArray(formData[field.key]) ? [...formData[field.key]] : [];
-                          currentRefs[refIndex] = { ...currentRefs[refIndex], industry: e.target.value };
-                          handleFieldChange(field.key, currentRefs);
+                          const newValue = e.target.value;
+                          setFormData((prevFormData: any) => {
+                            const currentRefs = Array.isArray(prevFormData[field.key]) ? [...prevFormData[field.key]] : [];
+                            currentRefs[refIndex] = { ...currentRefs[refIndex], industry: newValue };
+                            const newData = { ...prevFormData, [field.key]: currentRefs };
+                            onDataChange(newData);
+                            return newData;
+                          });
                         }}
                         placeholder="e.g., Transportation & Logistics, Financial Services"
                         className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary text-sm text-gray-900"
@@ -848,9 +863,14 @@ export default function QuestionnaireForm({
                       <textarea
                         value={ref.successStory || ''}
                         onChange={(e) => {
-                          const currentRefs = Array.isArray(formData[field.key]) ? [...formData[field.key]] : [];
-                          currentRefs[refIndex] = { ...currentRefs[refIndex], successStory: e.target.value };
-                          handleFieldChange(field.key, currentRefs);
+                          const newValue = e.target.value;
+                          setFormData((prevFormData: any) => {
+                            const currentRefs = Array.isArray(prevFormData[field.key]) ? [...prevFormData[field.key]] : [];
+                            currentRefs[refIndex] = { ...currentRefs[refIndex], successStory: newValue };
+                            const newData = { ...prevFormData, [field.key]: currentRefs };
+                            onDataChange(newData);
+                            return newData;
+                          });
                         }}
                         placeholder="Brief description of results (1-5 sentences)"
                         rows={3}
@@ -917,9 +937,14 @@ export default function QuestionnaireForm({
                         type="text"
                         value={competitor.companyName || ''}
                         onChange={(e) => {
-                          const currentComps = Array.isArray(formData[field.key]) ? [...formData[field.key]] : [];
-                          currentComps[compIndex] = { ...currentComps[compIndex], companyName: e.target.value };
-                          handleFieldChange(field.key, currentComps);
+                          const newValue = e.target.value;
+                          setFormData((prevFormData: any) => {
+                            const currentComps = Array.isArray(prevFormData[field.key]) ? [...prevFormData[field.key]] : [];
+                            currentComps[compIndex] = { ...currentComps[compIndex], companyName: newValue };
+                            const newData = { ...prevFormData, [field.key]: currentComps };
+                            onDataChange(newData);
+                            return newData;
+                          });
                         }}
                         placeholder="e.g., CBRE, Wilson Sonsini, Mercer"
                         className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary text-sm text-gray-900"
@@ -935,9 +960,14 @@ export default function QuestionnaireForm({
                         type="text"
                         value={competitor.companyWebsite || ''}
                         onChange={(e) => {
-                          const currentComps = Array.isArray(formData[field.key]) ? [...formData[field.key]] : [];
-                          currentComps[compIndex] = { ...currentComps[compIndex], companyWebsite: e.target.value };
-                          handleFieldChange(field.key, currentComps);
+                          const newValue = e.target.value;
+                          setFormData((prevFormData: any) => {
+                            const currentComps = Array.isArray(prevFormData[field.key]) ? [...prevFormData[field.key]] : [];
+                            currentComps[compIndex] = { ...currentComps[compIndex], companyWebsite: newValue };
+                            const newData = { ...prevFormData, [field.key]: currentComps };
+                            onDataChange(newData);
+                            return newData;
+                          });
                         }}
                         placeholder="e.g., https://www.cbre.com"
                         className="w-full px-3 py-2 border border-fo-light rounded-md focus:outline-none focus:ring-2 focus:ring-fo-primary text-sm text-gray-900"
