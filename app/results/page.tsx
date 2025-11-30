@@ -422,7 +422,7 @@ export default function ResultsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-fo-light">
+    <div className="min-h-screen bg-fo-light select-none">
       <div className="max-w-7xl mx-auto px-4 py-8">
         
         {/* Table of Contents - Fixed Left Sidebar */}
@@ -488,9 +488,9 @@ export default function ResultsPage() {
             </div>
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-fo-dark mb-2">
-                {outputs.company_name}&apos;s Revenue Workflows
+                {outputs.company_name}&apos;s Sales Plan
               </h1>
-              <p className="text-fo-orange font-semibold text-sm mb-1">
+              <p className="text-fo-dark font-semibold text-sm mb-1">
                 Actionable systems. Fast results. No drama.
               </p>
               <p className="text-fo-text-secondary text-sm">
@@ -724,6 +724,10 @@ export default function ResultsPage() {
         <section id="cold-email-sequences" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
             <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+              {/* Gmail logo */}
+              <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" fill="#EA4335"/>
+            </svg>
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
               {/* Outlook logo */}
               <path d="M7 2h10c1.1 0 2 .9 2 2v16c0 1.1-.9 2-2 2H7c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2zm5 4c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z" fill="#0078D4"/>
             </svg>
@@ -872,6 +876,14 @@ export default function ResultsPage() {
         {/* Newsletters with Tabs */}
         <section id="newsletter-content" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="#FF7A59">
+              {/* HubSpot logo */}
+              <path d="M18.7 13.5v-3.1c1.1-.5 1.9-1.6 1.9-2.9 0-1.8-1.5-3.2-3.2-3.2-.8 0-1.6.3-2.1.8L13 3.3V1.8c0-.4-.3-.8-.8-.8h-.5c-.4 0-.8.3-.8.8v1.5L8.7 5.1c-.6-.5-1.3-.8-2.1-.8-1.8 0-3.2 1.5-3.2 3.2 0 1.3.8 2.4 1.9 2.9v3.1c-1.1.5-1.9 1.6-1.9 2.9 0 1.8 1.5 3.2 3.2 3.2.8 0 1.6-.3 2.1-.8l2.3 1.8v1.5c0 .4.3.8.8.8h.5c.4 0 .8-.3.8-.8v-1.5l2.3-1.8c.6.5 1.3.8 2.1.8 1.8 0 3.2-1.5 3.2-3.2 0-1.3-.8-2.4-1.9-2.9zm-6.7 2.3c-1.3 0-2.4-1.1-2.4-2.4s1.1-2.4 2.4-2.4 2.4 1.1 2.4 2.4-1.1 2.4-2.4 2.4z"/>
+            </svg>
+            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="#00A1E0">
+              {/* Salesforce logo */}
+              <path d="M10.006 5.408a3.648 3.648 0 013.324-2.094c1.28 0 2.398.652 3.055 1.639a4.688 4.688 0 012.417-.665c2.652 0 4.802 2.15 4.802 4.802 0 .316-.032.625-.09.925a3.693 3.693 0 011.803 3.17c0 2.067-1.685 3.752-3.752 3.752a3.75 3.75 0 01-1.613-.367 4.79 4.79 0 01-3.857 1.95 4.782 4.782 0 01-3.562-1.595 3.92 3.92 0 01-2.426.843c-2.175 0-3.936-1.761-3.936-3.935a3.914 3.914 0 012.181-3.514 4.062 4.062 0 01-.09-.848c0-2.24 1.817-4.057 4.057-4.057.44 0 .864.07 1.262.2z"/>
+            </svg>
             <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold text-xl">
               K
             </div>
@@ -931,27 +943,57 @@ export default function ResultsPage() {
           
           {outputs.call_prep ? (
             <div className="space-y-6">
-              {/* Discovery Questions - Each in its own dark shade box */}
-              {outputs.call_prep.discoveryQuestions && outputs.call_prep.discoveryQuestions.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-3">Questions to Ask:</h3>
-                  <div className="space-y-3">
-                    {outputs.call_prep.discoveryQuestions.map((q: string, i: number) => (
-                      <div key={i} className="bg-gray-800 text-white p-4 rounded-lg">
-                        <p className="text-sm leading-relaxed">{q}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Call Script - with markdown rendering */}
+              {/* Call Script - with markdown rendering and embedded Questions */}
               {outputs.call_prep.callScript && (
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Call Script:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                     <div className="prose prose-lg max-w-none text-gray-900">
-                      <ReactMarkdown remarkPlugins={[remarkBreaks]}>
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkBreaks]}
+                        components={{
+                          // Custom renderer for headings to detect "Questions to Ask"
+                          h3: ({node, children, ...props}) => {
+                            const text = children?.toString() || '';
+                            if (text.includes('Questions to Ask') || text.includes('Discovery Questions')) {
+                              return (
+                                <div className="not-prose my-6">
+                                  <h3 className="font-semibold text-white bg-gray-800 px-4 py-3 rounded-t-lg mb-0">
+                                    {children}
+                                  </h3>
+                                </div>
+                              );
+                            }
+                            return <h3 {...props}>{children}</h3>;
+                          },
+                          // Custom renderer for unordered lists that might contain questions
+                          ul: ({node, children, ...props}) => {
+                            // Check if we're under a "Questions to Ask" section
+                            const nodeText = node?.children?.map((child: any) => 
+                              child.children?.map((c: any) => c.value).join('')
+                            ).join('') || '';
+                            
+                            if (nodeText.includes('?') && nodeText.length > 50) {
+                              return <div className="not-prose space-y-3 mb-6">{children}</div>;
+                            }
+                            return <ul {...props}>{children}</ul>;
+                          },
+                          // Custom renderer for list items under Questions
+                          li: ({node, children, ...props}) => {
+                            const text = children?.toString() || '';
+                            
+                            // If the list item looks like a question (contains ? and is long)
+                            if (text.includes('?') && text.length > 30) {
+                              return (
+                                <li className="bg-gray-800 text-white p-4 rounded-lg list-none mb-3" {...props}>
+                                  {children}
+                                </li>
+                              );
+                            }
+                            return <li {...props}>{children}</li>;
+                          }
+                        }}
+                      >
                         {outputs.call_prep.callScript.replace(/\n/g, '\n\n')}
                       </ReactMarkdown>
                     </div>
@@ -1579,16 +1621,18 @@ export default function ResultsPage() {
 
         {/* CTA Section */}
         <div className="bg-fo-accent text-white rounded-lg shadow-lg p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">Ready to execute?</h2>
+          <h2 className="text-2xl font-bold mb-4">Ready to grow your sales?</h2>
           <p className="mb-6 text-white/90">
-            Book your GTM Kickoff Call with Corey to activate these workflows
+            Book your GTM Kickoff Call with Corey to activate these workflows in your CRM
           </p>
-          <button
-            onClick={() => window.close()}
-            className="bg-fo-orange text-white px-8 py-3 rounded-lg font-bold hover:bg-opacity-90 transition-all shadow-lg"
+          <a
+            href="https://meetings.hubspot.com/corey-peck/claire-roi-roadmap-call"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-fo-orange text-white px-8 py-3 rounded-lg font-bold hover:bg-opacity-90 transition-all shadow-lg"
           >
-            ← Back to Booking
-          </button>
+            Book Meeting Now
+          </a>
         </div>
         
         </div> {/* End of lg:ml-72 main content wrapper */}

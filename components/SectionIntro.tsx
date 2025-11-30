@@ -19,8 +19,8 @@ export default function SectionIntro({
   
   return (
     <div className="mb-8 grid md:grid-cols-2 gap-6 items-start">
-      {/* Left: Video Embed - Wrapper for vertical centering */}
-      <div className="flex items-center justify-center min-h-full">
+      {/* Left: Video Embed - Wrapper for vertical alignment */}
+      <div className="flex items-start justify-center min-h-full">
         <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-xl" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
           <iframe 
             src={finalVideoUrl}
