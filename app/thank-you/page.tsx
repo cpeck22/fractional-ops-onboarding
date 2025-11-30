@@ -123,13 +123,18 @@ export default function ThankYouPage() {
           <h2 className="text-2xl font-bold text-fo-primary mb-6 text-center">
             Build My Plan Now
           </h2>
-          <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md mb-6">
+          <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md mb-6 relative">
             <iframe
               src="https://drive.google.com/file/d/1dwl4jfsXEZdujPDJwBUOGEVFmdadHdxC/preview"
               className="w-full h-full"
               allow="autoplay"
               allowFullScreen
               style={{ border: 'none' }}
+            />
+            {/* Overlay to block download button in top-right corner */}
+            <div 
+              className="absolute top-0 right-0 w-16 h-16 bg-transparent z-10"
+              onClick={(e) => e.preventDefault()}
             />
           </div>
           

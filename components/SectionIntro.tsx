@@ -30,6 +30,12 @@ export default function SectionIntro({
             title="Section Introduction Video"
             style={{ border: 'none' }}
           />
+          {/* Overlay to block download button in top-right corner */}
+          <div 
+            className="absolute top-0 right-0 w-16 h-16 bg-transparent pointer-events-auto z-10"
+            style={{ pointerEvents: 'auto' }}
+            onClick={(e) => e.preventDefault()}
+          />
         </div>
       </div>
 

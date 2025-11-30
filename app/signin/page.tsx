@@ -73,6 +73,11 @@ export default function SignInPage() {
               title="Why Login Explanation"
               style={{ border: 'none' }}
             />
+            {/* Overlay to block download button in top-right corner */}
+            <div 
+              className="absolute top-0 right-0 w-16 h-16 bg-transparent z-10"
+              onClick={(e) => e.preventDefault()}
+            />
           </div>
         </div>
         
