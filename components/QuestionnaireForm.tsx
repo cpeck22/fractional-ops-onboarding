@@ -216,9 +216,19 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       description: 'Identifying current problems helps me create targeted solutions to solve their problems.',
       example: '• "Difficulty optimizing real estate footprint while reducing costs"\n\n• "Navigating complex legal issues without in-house counsel"\n\n• "Struggling to build scalable HR processes during growth"',
       questionNumber: 18
+    },
+    { 
+      key: 'unqualifiedPersons', 
+      label: 'Who isn\'t a qualified person for our company to speak to?', 
+      placeholder: 'Please Type Your Answer here', 
+      type: 'textarea', 
+      required: false,
+      description: 'Understanding who ISN\'T a fit helps me better define your ideal customer profile and avoid wasting time on poor-fit prospects.',
+      example: '• "Startups with less than 10 employees"\n\n• "Companies without dedicated HR departments"\n\n• "Individual consultants or solopreneurs"\n\n• "Companies outside of North America"',
+      questionNumber: 19
     }
   ],
-  // Step 7: Social Proof (Q19-20)
+  // Step 7: Social Proof (Q20-21)
   socialProof: [
     { 
       key: 'proofPoints', 
@@ -228,7 +238,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       required: true,
       description: 'Proof Points are key pieces of evidence seen across all customers — think quantifiable results like cost savings, x% performance improvements, or even qualitative metrics. Ultimately, these are positive business outcomes we\'ve achieved for similar people.',
       example: '**Corporate Real Estate:**\n• "Clients save 15–25% on occupancy costs"\n\n• "Lease cycle times reduced by 30–40%"\n\n• "20% improvement in space utilization"\n\n**Legal Services:**\n• "Contract turnaround reduced by 25–35%"\n\n• "Identify and mitigate $250K+ legal risk exposure"\n\n• "100% on-time M&A closings"\n\n**HR Consulting:**\n• "15–20% employee engagement improvement"\n\n• "Time-to-hire reduced by 30%"\n\n• "Scaled headcount 2–4x with stable performance"',
-      questionNumber: 19
+      questionNumber: 20
     },
     { 
       key: 'clientReferences', 
@@ -238,10 +248,10 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       required: true,
       description: 'I need at least 1 client reference to start (you can add up to 100). Creating detailed reference clients will help me showcase how real people are succeeding with our service (or product) offering. For each client reference, provide: Company Name, Company Website, Industry they operate in, and optionally a brief success story (1-5 sentences about the results).',
       example: '**Corporate Real Estate:**\n• FedEx (https://www.fedex.com) in Transportation & Logistics — Reduced real estate costs via consolidation\n\n• Global financial firm in Financial Services — Improved lease cycle time by 30%\n\n**Legal Services:**\n• Mid-market SaaS in Software — Closed $100M acquisition with no compliance issues\n\n• PE firm in Private Equity ($2B AUM) — Standardized contracts across 6 entities\n\n**HR Consulting:**\n• Shopify (https://www.shopify.com) in E-commerce — Improved engagement by 18% in 6 months\n\n• PE-backed manufacturer in Manufacturing — Designed review system across 5 plants',
-      questionNumber: 20
+      questionNumber: 21
     }
   ],
-  // Step 8: Positioning (Q21)
+  // Step 8: Positioning (Q22)
   positioning: [
     { 
       key: 'competitors', 
@@ -251,10 +261,10 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       required: true,
       description: 'Add your direct competitors (at least 1–3 to start, up to 100). For each competitor, provide: Company Name and Website. I\'ll use AI to analyze their positioning, strengths, weaknesses, and why you win.',
       example: '**Corporate Real Estate:**\n• CBRE — https://www.cbre.com\n\n• JLL — https://www.us.jll.com\n\n• Cushman & Wakefield — https://www.cushmanwakefield.com\n\n**Legal Services:**\n• Wilson Sonsini — https://www.wsgr.com\n\n• Cooley LLP — https://www.cooley.com\n\n• Latham & Watkins — https://www.lw.com\n\n**HR Consulting:**\n• Mercer — https://www.mercer.com\n\n• Korn Ferry — https://www.kornferry.com\n\n• Gallup — https://www.gallup.com',
-      questionNumber: 21
+      questionNumber: 22
     }
   ],
-  // Step 9: Carrots & Lead Magnets (Q22)
+  // Step 9: Carrots & Lead Magnets (Q23)
   leadMagnets: [
     { 
       key: 'leadMagnet', 
@@ -264,10 +274,10 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       required: false,
       description: 'We need to entice people with something tangible. They don\'t know us yet and have no reason to care unless we give them one.\n\nThese could be as simple as a proprietary report or as big as a complementary service. Some people refer to these as "Lead Magnets."\n\nThe best versions of these are something that we have actually charged for, that we can give away for free. And ideally something that we have (or could) charge $2–10k for.\n\nThe worst versions are "audits". From our last answers, I already know we\'re great, but these prospects don\'t know us, so they won\'t care about a service from an unproven and unknown random (even if it\'s free).\n\nPS. Don\'t worry, if we only have the simple ones right now (like white papers or reports), I\'ll help us operationalize these into something more valuable later.',
       example: '• "Online lease savings calculator"\n\n• "M&A deal checklist and data room folder structure"\n\n• "Performance review toolkit with templates and HRIS integration"',
-      questionNumber: 22
+      questionNumber: 23
     }
   ],
-  // Step 10: Brand & Examples (Q23-27)
+  // Step 10: Brand & Examples (Q24-28)
   brandExamples: [
     { 
       key: 'emailExample1', 
@@ -276,7 +286,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: false,
       description: 'Share emails that have worked well for us in the past.',
-      questionNumber: 23
+      questionNumber: 24
     },
     { 
       key: 'emailExample2', 
@@ -285,7 +295,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: false,
       description: 'Share another email that has worked well for us.',
-      questionNumber: 24
+      questionNumber: 25
     },
     { 
       key: 'emailExample3', 
@@ -294,7 +304,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       type: 'textarea', 
       required: false,
       description: 'Share a third email that has worked well for us.',
-      questionNumber: 25
+      questionNumber: 26
     },
     { 
       key: 'brandDocuments', 
@@ -304,7 +314,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       required: false,
       description: 'We shouldn\'t launch any campaigns or make social content that don\'t sound like us.',
       example: 'Upload files like Tone of Voice, Brand Standards, Writing Guidelines, etc.',
-      questionNumber: 26
+      questionNumber: 27
     },
     { 
       key: 'additionalFiles', 
@@ -314,7 +324,7 @@ const sectionFields: Record<string, Array<{key: string, label: string, placehold
       required: false,
       description: 'Upload any other relevant files that didn\'t fit into the previous questions.',
       example: 'Upload any additional relevant files',
-      questionNumber: 27
+      questionNumber: 28
     }
   ]
 };

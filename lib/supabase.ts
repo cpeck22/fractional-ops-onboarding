@@ -247,7 +247,8 @@ export const loadUserQuestionnaireData = async (userId: string) => {
         geographicMarkets: '',
         preferredEngagement: '',
         decisionMakerResponsibilities: '',
-        prospectChallenges: ''
+        prospectChallenges: '',
+        unqualifiedPersons: ''
       },
       socialProof: {
         proofPoints: '',

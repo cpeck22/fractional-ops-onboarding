@@ -39,7 +39,8 @@ const sectionTitles = [
     { key: 'geographicMarkets', label: 'What geographic market(s) do we focus on?' },
     { key: 'preferredEngagement', label: 'How do these decision-makers prefer to be initially engaged?' },
     { key: 'decisionMakerResponsibilities', label: 'What are the main responsibilities of the decision-makers we sell to?' },
-    { key: 'prospectChallenges', label: 'What are the main challenges or pain our prospects currently face?' }
+    { key: 'prospectChallenges', label: 'What are the main challenges or pain our prospects currently face?' },
+    { key: 'unqualifiedPersons', label: 'Who isn\'t a qualified person for our company to speak to?' }
   ]},
   { id: 'socialProof', title: 'Step 7: Social Proof', fields: [
     { key: 'proofPoints', label: 'Why should they believe us?' },

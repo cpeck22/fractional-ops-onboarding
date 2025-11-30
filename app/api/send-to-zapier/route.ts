@@ -171,8 +171,9 @@ export async function POST(request: NextRequest) {
       preferredEngagement: questionnaireData.yourBuyers?.preferredEngagement || '',
       decisionMakerResponsibilities: questionnaireData.yourBuyers?.decisionMakerResponsibilities || '',
       prospectChallenges: questionnaireData.yourBuyers?.prospectChallenges || '',
+      unqualifiedPersons: questionnaireData.yourBuyers?.unqualifiedPersons || '',
       
-      // Step 7: Social Proof (Q19-20)
+      // Step 7: Social Proof (Q20-21)
       proofPoints: questionnaireData.socialProof?.proofPoints || '',
       clientReferences: questionnaireData.socialProof?.clientReferences || '',
       

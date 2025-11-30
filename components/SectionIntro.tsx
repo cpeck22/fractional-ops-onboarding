@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import ClaireImage from '../app/Claire_v1.png';
+import ClaireImage from '../app/Claire_v2.png';
 
 interface SectionIntroProps {
   whatIsThisFor: string[];
@@ -14,29 +14,42 @@ export default function SectionIntro({
   videoUrl,
   sectionId
 }: SectionIntroProps) {
-  // Use provided videoUrl prop, fallback to environment variable, then placeholder
-  const finalVideoUrl = videoUrl || process.env.NEXT_PUBLIC_INTRO_VIDEO_URL || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-  
   return (
     <div className="mb-8 grid md:grid-cols-2 gap-6 items-start">
-      {/* Left: Video Embed - Wrapper for vertical alignment */}
+      {/* Left: Video Embed or Coming Soon Placeholder */}
       <div className="flex items-start justify-center min-h-full">
-        <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-xl" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
-          <iframe 
-            src={finalVideoUrl}
-            className="absolute top-0 left-0 w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen 
-            title="Section Introduction Video"
-            style={{ border: 'none' }}
-          />
-          {/* Overlay to block download button in top-right corner */}
-          <div 
-            className="absolute top-0 right-0 w-16 h-16 bg-transparent pointer-events-auto z-10"
-            style={{ pointerEvents: 'auto' }}
-            onClick={(e) => e.preventDefault()}
-          />
-        </div>
+        {videoUrl ? (
+          <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-xl" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
+            <iframe 
+              src={videoUrl}
+              className="absolute top-0 left-0 w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen 
+              title="Section Introduction Video"
+              style={{ border: 'none' }}
+            />
+            {/* Overlay to block download button in top-right corner */}
+            <div 
+              className="absolute top-0 right-0 w-16 h-16 bg-transparent pointer-events-auto z-10"
+              style={{ pointerEvents: 'auto' }}
+              onClick={(e) => e.preventDefault()}
+            />
+          </div>
+        ) : (
+          <div className="relative w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden shadow-xl flex items-center justify-center" style={{ paddingTop: '56.25%' }}>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              <div className="relative w-24 h-24 mb-4">
+                <Image
+                  src={ClaireImage}
+                  alt="Claire"
+                  fill
+                  className="object-cover rounded-full border-4 border-white shadow-lg"
+                />
+              </div>
+              <p className="text-2xl font-bold text-gray-700 text-center">Video Coming Soon</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right: How do I use this in real life? + CTA Button */}
@@ -66,4 +79,3 @@ export default function SectionIntro({
     </div>
   );
 }
-

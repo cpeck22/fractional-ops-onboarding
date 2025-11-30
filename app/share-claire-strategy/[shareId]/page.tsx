@@ -1088,6 +1088,92 @@ export default function SharedStrategyPage() {
                           </ul>
                         </div>
                       )}
+                      
+                      {(outputs.service_offering as any).data?.deliverables && (outputs.service_offering as any).data.deliverables.length > 0 && (
+                        <div>
+                          <p className="font-semibold text-gray-700 mb-2">Deliverables:</p>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                            {(outputs.service_offering as any).data.deliverables.map((del: string, i: number) => (
+                              <li key={i}>{del}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {(outputs.service_offering as any).data?.competencies && (outputs.service_offering as any).data.competencies.length > 0 && (
+                        <div>
+                          <p className="font-semibold text-gray-700 mb-2">Competencies:</p>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                            {(outputs.service_offering as any).data.competencies.map((comp: string, i: number) => (
+                              <li key={i}>{comp}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {(outputs.service_offering as any).data?.comparativeAdvantage && (outputs.service_offering as any).data.comparativeAdvantage.length > 0 && (
+                        <div>
+                          <p className="font-semibold text-gray-700 mb-2">Comparative Advantage:</p>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                            {(outputs.service_offering as any).data.comparativeAdvantage.map((adv: string, i: number) => (
+                              <li key={i}>{adv}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {(outputs.service_offering as any).data?.likelyAlternative && (outputs.service_offering as any).data.likelyAlternative.length > 0 && (
+                        <div>
+                          <p className="font-semibold text-gray-700 mb-2">Likely Alternative:</p>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                            {(outputs.service_offering as any).data.likelyAlternative.map((alt: string, i: number) => (
+                              <li key={i}>{alt}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {(outputs.service_offering as any).qualifyingQuestions && (outputs.service_offering as any).qualifyingQuestions.length > 0 && (
+                        <details className="mt-4">
+                          <summary className="cursor-pointer text-fo-primary font-semibold hover:underline">
+                            View Qualifying Questions ({(outputs.service_offering as any).qualifyingQuestions.length})
+                          </summary>
+                          <div className="mt-3 space-y-3 pl-4 border-l-2 border-fo-primary/30">
+                            {(outputs.service_offering as any).qualifyingQuestions.map((q: any, i: number) => (
+                              <div key={i} className="text-sm">
+                                <p className="font-medium text-gray-900">{q.question}</p>
+                                <p className="text-gray-600 text-xs mt-1">{q.rationale}</p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  <span className={`font-semibold ${q.fitType === 'GOOD' ? 'text-green-600' : 'text-red-600'}`}>
+                                    {q.fitType}
+                                  </span> • Weight: {q.weight}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      )}
+                      
+                      {(outputs.service_offering as any).disqualifyingQuestions && (outputs.service_offering as any).disqualifyingQuestions.length > 0 && (
+                        <details className="mt-4">
+                          <summary className="cursor-pointer text-red-600 font-semibold hover:underline">
+                            View Disqualifying Questions ({(outputs.service_offering as any).disqualifyingQuestions.length})
+                          </summary>
+                          <div className="mt-3 space-y-3 pl-4 border-l-2 border-red-300">
+                            {(outputs.service_offering as any).disqualifyingQuestions.map((q: any, i: number) => (
+                              <div key={i} className="text-sm">
+                                <p className="font-medium text-gray-900">{q.question}</p>
+                                <p className="text-gray-600 text-xs mt-1">{q.rationale}</p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  <span className={`font-semibold ${q.fitType === 'GOOD' ? 'text-green-600' : 'text-red-600'}`}>
+                                    {q.fitType}
+                                  </span> • Weight: {q.weight}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1140,6 +1226,50 @@ export default function SharedStrategyPage() {
                                 </ul>
                               </div>
                             )}
+                            
+                            {persona.data?.keyConcerns && persona.data.keyConcerns.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Key Concerns:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {persona.data.keyConcerns.map((concern: string, i: number) => (
+                                    <li key={i}>{concern}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {persona.data?.keyObjectives && persona.data.keyObjectives.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Key Objectives:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {persona.data.keyObjectives.map((obj: string, i: number) => (
+                                    <li key={i}>{obj}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {persona.data?.whyTheyMatterToUs && persona.data.whyTheyMatterToUs.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Why They Matter To Us:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {persona.data.whyTheyMatterToUs.map((why: string, i: number) => (
+                                    <li key={i}>{why}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {persona.data?.whyWeMatterToThem && persona.data.whyWeMatterToThem.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Why We Matter To Them:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {persona.data.whyWeMatterToThem.map((why: string, i: number) => (
+                                    <li key={i}>{why}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -1181,6 +1311,17 @@ export default function SharedStrategyPage() {
                               </div>
                             )}
                             
+                            {useCase.data?.desiredOutcomes && useCase.data.desiredOutcomes.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Desired Outcomes:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {useCase.data.desiredOutcomes.map((outcome: string, i: number) => (
+                                    <li key={i}>{outcome}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
                             {useCase.data?.businessDrivers && useCase.data.businessDrivers.length > 0 && (
                               <div>
                                 <p className="font-semibold text-gray-700 text-sm mb-2">Business Drivers:</p>
@@ -1213,6 +1354,51 @@ export default function SharedStrategyPage() {
                             <p className="text-sm text-gray-700 mb-3">{segment.description}</p>
                           )}
                           
+                          {segment.data?.fitExplanation && (
+                            <div className="mb-3 bg-orange-50 p-3 rounded border border-orange-200">
+                              <p className="font-semibold text-gray-700 text-sm mb-1">Fit Explanation:</p>
+                              <p className="text-sm text-gray-600">{segment.data.fitExplanation}</p>
+                            </div>
+                          )}
+                          
+                          {segment.data?.firmographics && Object.keys(segment.data.firmographics).length > 0 && (
+                            <div className="mb-3 bg-yellow-50 p-3 rounded border border-yellow-200">
+                              <p className="font-semibold text-gray-700 text-sm mb-2">Firmographics:</p>
+                              <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                {segment.data.firmographics.revenue && segment.data.firmographics.revenue.length > 0 && (
+                                  <div>
+                                    <p className="font-semibold">Revenue:</p>
+                                    <p>{segment.data.firmographics.revenue.join(', ')}</p>
+                                  </div>
+                                )}
+                                {segment.data.firmographics.industry && segment.data.firmographics.industry.length > 0 && (
+                                  <div>
+                                    <p className="font-semibold">Industry:</p>
+                                    <p>{segment.data.firmographics.industry.join(', ')}</p>
+                                  </div>
+                                )}
+                                {segment.data.firmographics.employees && segment.data.firmographics.employees.length > 0 && (
+                                  <div>
+                                    <p className="font-semibold">Employees:</p>
+                                    <p>{segment.data.firmographics.employees.join(', ')}</p>
+                                  </div>
+                                )}
+                                {segment.data.firmographics.geography && segment.data.firmographics.geography.length > 0 && (
+                                  <div>
+                                    <p className="font-semibold">Geography:</p>
+                                    <p>{segment.data.firmographics.geography.join(', ')}</p>
+                                  </div>
+                                )}
+                                {segment.data.firmographics.businessModel && segment.data.firmographics.businessModel.length > 0 && (
+                                  <div>
+                                    <p className="font-semibold">Business Model:</p>
+                                    <p>{segment.data.firmographics.businessModel.join(', ')}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
                           <div className="grid md:grid-cols-2 gap-4 mt-4">
                             {segment.data?.keyPriorities && segment.data.keyPriorities.length > 0 && (
                               <div>
@@ -1220,6 +1406,28 @@ export default function SharedStrategyPage() {
                                 <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
                                   {segment.data.keyPriorities.map((priority: string, i: number) => (
                                     <li key={i}>{priority}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {segment.data?.keyConsiderations && segment.data.keyConsiderations.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Key Considerations:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {segment.data.keyConsiderations.map((consideration: string, i: number) => (
+                                    <li key={i}>{consideration}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {segment.data?.uniqueApproach && segment.data.uniqueApproach.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Unique Approach:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {segment.data.uniqueApproach.map((approach: string, i: number) => (
+                                    <li key={i}>{approach}</li>
                                   ))}
                                 </ul>
                               </div>
@@ -1261,6 +1469,13 @@ export default function SharedStrategyPage() {
                               </div>
                             )}
                             
+                            {reference.data?.howTheyBenefitFromProduct && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-1">How They Benefit:</p>
+                                <p className="text-sm text-gray-600">{reference.data.howTheyBenefitFromProduct}</p>
+                              </div>
+                            )}
+                            
                             {reference.data?.howWeImpactedTheirBusiness && reference.data.howWeImpactedTheirBusiness.length > 0 && (
                               <div>
                                 <p className="font-semibold text-gray-700 text-sm mb-2">How We Impacted Their Business:</p>
@@ -1270,6 +1485,30 @@ export default function SharedStrategyPage() {
                                   ))}
                                 </ul>
                               </div>
+                            )}
+                            
+                            {reference.data?.keyStats && reference.data.keyStats.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Key Stats:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {reference.data.keyStats.map((stat: string, i: number) => (
+                                    <li key={i}>{stat}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {reference.data?.emailSnippets && reference.data.emailSnippets.length > 0 && (
+                              <details>
+                                <summary className="cursor-pointer text-fo-primary font-semibold text-sm hover:underline">
+                                  View Email Snippets ({reference.data.emailSnippets.length})
+                                </summary>
+                                <div className="mt-2 space-y-2 pl-4 border-l-2 border-red-300">
+                                  {reference.data.emailSnippets.map((snippet: string, i: number) => (
+                                    <p key={i} className="text-xs text-gray-600 italic">&ldquo;{snippet}&rdquo;</p>
+                                  ))}
+                                </div>
+                              </details>
                             )}
                           </div>
                         </div>

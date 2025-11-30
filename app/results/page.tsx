@@ -1328,6 +1328,50 @@ export default function ResultsPage() {
                     </div>
                   )}
                   
+                  {(outputs.service_offering as any).data?.deliverables && (outputs.service_offering as any).data.deliverables.length > 0 && (
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-2">Deliverables:</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                        {(outputs.service_offering as any).data.deliverables.map((del: string, i: number) => (
+                          <li key={i}>{del}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {(outputs.service_offering as any).data?.competencies && (outputs.service_offering as any).data.competencies.length > 0 && (
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-2">Competencies:</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                        {(outputs.service_offering as any).data.competencies.map((comp: string, i: number) => (
+                          <li key={i}>{comp}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {(outputs.service_offering as any).data?.comparativeAdvantage && (outputs.service_offering as any).data.comparativeAdvantage.length > 0 && (
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-2">Comparative Advantage:</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                        {(outputs.service_offering as any).data.comparativeAdvantage.map((adv: string, i: number) => (
+                          <li key={i}>{adv}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {(outputs.service_offering as any).data?.likelyAlternative && (outputs.service_offering as any).data.likelyAlternative.length > 0 && (
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-2">Likely Alternative:</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                        {(outputs.service_offering as any).data.likelyAlternative.map((alt: string, i: number) => (
+                          <li key={i}>{alt}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
                   {(outputs.service_offering as any).qualifyingQuestions && (outputs.service_offering as any).qualifyingQuestions.length > 0 && (
                     <details className="mt-4">
                       <summary className="cursor-pointer text-fo-primary font-semibold hover:underline">
@@ -1335,6 +1379,27 @@ export default function ResultsPage() {
                       </summary>
                       <div className="mt-3 space-y-3 pl-4 border-l-2 border-fo-primary/30">
                         {(outputs.service_offering as any).qualifyingQuestions.map((q: any, i: number) => (
+                          <div key={i} className="text-sm">
+                            <p className="font-medium text-gray-900">{q.question}</p>
+                            <p className="text-gray-600 text-xs mt-1">{q.rationale}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              <span className={`font-semibold ${q.fitType === 'GOOD' ? 'text-green-600' : 'text-red-600'}`}>
+                                {q.fitType}
+                              </span> • Weight: {q.weight}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                  
+                  {(outputs.service_offering as any).disqualifyingQuestions && (outputs.service_offering as any).disqualifyingQuestions.length > 0 && (
+                    <details className="mt-4">
+                      <summary className="cursor-pointer text-red-600 font-semibold hover:underline">
+                        View Disqualifying Questions ({(outputs.service_offering as any).disqualifyingQuestions.length})
+                      </summary>
+                      <div className="mt-3 space-y-3 pl-4 border-l-2 border-red-300">
+                        {(outputs.service_offering as any).disqualifyingQuestions.map((q: any, i: number) => (
                           <div key={i} className="text-sm">
                             <p className="font-medium text-gray-900">{q.question}</p>
                             <p className="text-gray-600 text-xs mt-1">{q.rationale}</p>
@@ -1571,6 +1636,44 @@ export default function ResultsPage() {
                         <div className="mb-3 bg-orange-50 p-3 rounded border border-orange-200">
                           <p className="font-semibold text-gray-700 text-sm mb-1">Fit Explanation:</p>
                           <p className="text-sm text-gray-600">{segment.data.fitExplanation}</p>
+                        </div>
+                      )}
+                      
+                      {segment.data?.firmographics && Object.keys(segment.data.firmographics).length > 0 && (
+                        <div className="mb-3 bg-yellow-50 p-3 rounded border border-yellow-200">
+                          <p className="font-semibold text-gray-700 text-sm mb-2">Firmographics:</p>
+                          <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                            {segment.data.firmographics.revenue && segment.data.firmographics.revenue.length > 0 && (
+                              <div>
+                                <p className="font-semibold">Revenue:</p>
+                                <p>{segment.data.firmographics.revenue.join(', ')}</p>
+                              </div>
+                            )}
+                            {segment.data.firmographics.industry && segment.data.firmographics.industry.length > 0 && (
+                              <div>
+                                <p className="font-semibold">Industry:</p>
+                                <p>{segment.data.firmographics.industry.join(', ')}</p>
+                              </div>
+                            )}
+                            {segment.data.firmographics.employees && segment.data.firmographics.employees.length > 0 && (
+                              <div>
+                                <p className="font-semibold">Employees:</p>
+                                <p>{segment.data.firmographics.employees.join(', ')}</p>
+                              </div>
+                            )}
+                            {segment.data.firmographics.geography && segment.data.firmographics.geography.length > 0 && (
+                              <div>
+                                <p className="font-semibold">Geography:</p>
+                                <p>{segment.data.firmographics.geography.join(', ')}</p>
+                              </div>
+                            )}
+                            {segment.data.firmographics.businessModel && segment.data.firmographics.businessModel.length > 0 && (
+                              <div>
+                                <p className="font-semibold">Business Model:</p>
+                                <p>{segment.data.firmographics.businessModel.join(', ')}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                       

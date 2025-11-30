@@ -42,7 +42,7 @@ export interface QuestionnaireData {
     whyMoveAway: string;
   };
 
-  // Step 6: Your Buyers (Q12-18)
+  // Step 6: Your Buyers (Q12-19)
   yourBuyers: {
     seniorityLevel: string[];
     jobTitles: string;
@@ -51,6 +51,7 @@ export interface QuestionnaireData {
     preferredEngagement: string;
     decisionMakerResponsibilities: string;
     prospectChallenges: string;
+    unqualifiedPersons: string;
   };
 
   // Step 7: Social Proof (Q19-20)

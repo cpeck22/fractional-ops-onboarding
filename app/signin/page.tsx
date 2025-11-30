@@ -65,7 +65,7 @@ export default function SignInPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-3 text-center">
             Why do I need to login?
           </h3>
-          <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-xl" style={{ paddingTop: '75%' }}>
+          <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-xl" style={{ paddingTop: '56.25%' }}>
             <iframe 
               src="https://drive.google.com/file/d/12e2_ABddNtMe3CcH-rssjR45BSpRTMRE/preview"
               className="absolute top-0 left-0 w-full h-full"

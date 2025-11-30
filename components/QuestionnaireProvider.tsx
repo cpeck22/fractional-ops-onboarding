@@ -52,7 +52,8 @@ const initialData: QuestionnaireData = {
     geographicMarkets: '',
     preferredEngagement: '',
     decisionMakerResponsibilities: '',
-    prospectChallenges: ''
+    prospectChallenges: '',
+    unqualifiedPersons: ''
   },
   // Step 7: Social Proof
   socialProof: {
