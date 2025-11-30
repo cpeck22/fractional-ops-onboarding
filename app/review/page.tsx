@@ -412,10 +412,10 @@ export default function ReviewPage() {
             {/* Message */}
             <div className="text-center">
               <h2 className="text-2xl font-bold text-blue-600 mb-4">
-                Thank You!
+                I&apos;m building your sales machine!
               </h2>
-              <p className="text-gray-700 text-lg mb-4">
-                Thank you for answering all my questions. I&apos;m going to start creating your AI Sales workspaces now.
+              <p className="text-red-600 font-bold text-lg mb-4">
+                DON&apos;T CLOSE THIS WINDOW
               </p>
               <p className="text-gray-600 text-base mb-6">
                 This may take up to 5 minutes.
