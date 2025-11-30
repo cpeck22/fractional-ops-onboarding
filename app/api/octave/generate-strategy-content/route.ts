@@ -49,6 +49,24 @@ export async function POST(request: NextRequest) {
     const companyDomain = data._company_domain || '';
     const companyName = data._company_name || '';
 
+    // ============================================
+    // HARDCODED FALLBACKS FOR NEW AGENTS
+    // ============================================
+    // Ensure new agents work even for existing workspaces created before they existed
+    
+    if (!agentIds.linkedinDMs) agentIds.linkedinDMs = {};
+    if (!agentIds.youtube) agentIds.youtube = {};
+
+    if (!agentIds.linkedinDMs.askQuestion) {
+      agentIds.linkedinDMs.askQuestion = 'ca_mKHrB6A2yNiBN5yRPPsOm';
+      console.log('⚠️ Using hardcoded LinkedIn DM: Ask A Question agent (ca_mKHrB6A2yNiBN5yRPPsOm)');
+    }
+
+    if (!agentIds.youtube.longForm) {
+      agentIds.youtube.longForm = 'ca_oR6ro10L1z7N8HouxVgNc';
+      console.log('⚠️ Using hardcoded YouTube: Long-Form Script agent (ca_oR6ro10L1z7N8HouxVgNc)');
+    }
+
     console.log('✅ Phase 1 data loaded:');
     console.log(`   Prospects: ${prospects.length}`);
     console.log(`   Agent IDs: ${Object.keys(agentIds).length} categories`);
@@ -248,9 +266,15 @@ export async function POST(request: NextRequest) {
       if (result?.data?.content) agentResults.linkedinDMs.leadMagnet = result.data.content;
     }
 
+    console.log('💬 Generating LinkedIn DM: Ask A Question...');
     if (agentIds.linkedinDMs?.askQuestion) {
       const result = await runAgent('content', agentIds.linkedinDMs.askQuestion, 'LinkedIn DM: Ask A Question', 2);
-      if (result?.data?.content) agentResults.linkedinDMs.askQuestion = result.data.content;
+      if (result?.data?.content) {
+        agentResults.linkedinDMs.askQuestion = result.data.content;
+        console.log('✅ LinkedIn DM: Ask A Question completed successfully');
+      }
+    } else {
+      console.log('❌ LinkedIn DM: Ask A Question agent ID not found');
     }
 
     // ============================================
@@ -285,10 +309,18 @@ export async function POST(request: NextRequest) {
     // ============================================
     
     console.log('🎬 Generating YouTube Scripts...');
+    console.log('🔄 Running YouTube Script: Long-Form agent...');
     
     if (agentIds.youtube?.longForm) {
       const result = await runAgent('content', agentIds.youtube.longForm, 'YouTube Script: Long-Form', 0);
-      if (result?.data?.content) agentResults.youtube.longForm = result.data.content;
+      if (result?.data?.content) {
+        agentResults.youtube.longForm = result.data.content;
+        console.log('✅ YouTube Script: Long-Form completed successfully');
+      } else {
+        console.log('❌ YouTube Script: Long-Form returned no content');
+      }
+    } else {
+      console.log('❌ YouTube Script: Long-Form agent ID not found');
     }
 
     // ============================================
