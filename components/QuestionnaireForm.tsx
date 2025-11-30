@@ -340,35 +340,30 @@ export default function QuestionnaireForm({
   console.log('📝 QuestionnaireForm: Form data:', formData);
 
   useEffect(() => {
-    setFormData(data || {});
-  }, [data]);
-
-  // Initialize competitors and client references with at least 1 empty item
-  useEffect(() => {
+    console.log('📝 QuestionnaireForm: data prop changed, updating formData', data);
+    const newFormData = data || {};
+    
+    // Initialize competitors and client references with at least 1 empty item (only if truly empty)
     if (section.id === 'positioning') {
-      if (!formData.competitors || !Array.isArray(formData.competitors) || formData.competitors.length === 0) {
-        console.log('📝 Initializing competitors with 1 empty item');
-        const newData = { 
-          ...formData, 
-          competitors: [{ companyName: '', companyWebsite: '' }] 
-        };
-        setFormData(newData);
-        onDataChange(newData);
+      if (!newFormData.competitors || !Array.isArray(newFormData.competitors) || newFormData.competitors.length === 0) {
+        console.log('📝 Initializing competitors with 1 empty item (no saved data found)');
+        newFormData.competitors = [{ companyName: '', companyWebsite: '' }];
+      } else {
+        console.log('📝 Loaded', newFormData.competitors.length, 'competitors from saved data');
       }
     }
     
     if (section.id === 'socialProof') {
-      if (!formData.clientReferences || !Array.isArray(formData.clientReferences) || formData.clientReferences.length === 0) {
-        console.log('📝 Initializing clientReferences with 1 empty item');
-        const newData = { 
-          ...formData, 
-          clientReferences: [{ companyName: '', companyDomain: '', industry: '', successStory: '' }] 
-        };
-        setFormData(newData);
-        onDataChange(newData);
+      if (!newFormData.clientReferences || !Array.isArray(newFormData.clientReferences) || newFormData.clientReferences.length === 0) {
+        console.log('📝 Initializing clientReferences with 1 empty item (no saved data found)');
+        newFormData.clientReferences = [{ companyName: '', companyDomain: '', industry: '', successStory: '' }];
+      } else {
+        console.log('📝 Loaded', newFormData.clientReferences.length, 'client references from saved data');
       }
     }
-  }, [section.id]); // Only run when section changes
+    
+    setFormData(newFormData);
+  }, [data, section.id]); // Run when data OR section changes
 
   const handleFieldChange = (key: string, value: string | string[]) => {
     console.log('📝 QuestionnaireForm: handleFieldChange called with:', { key, value });
