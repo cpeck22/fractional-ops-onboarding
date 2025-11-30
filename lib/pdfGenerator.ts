@@ -89,8 +89,8 @@ export function generateQuestionnairePDF(data: PDFData): Buffer {
   // Add logo to top right
   // Logo aspect ratio: 1840 x 289 = 6.37:1 (width:height)
   if (logoBase64) {
-    const logoHeight = 10; // mm
-    const logoWidth = logoHeight * 6.37; // Maintain aspect ratio (~64mm)
+    const logoHeight = 6; // mm (smaller size)
+    const logoWidth = logoHeight * 6.37; // Maintain aspect ratio (~38mm)
     doc.addImage(logoBase64, 'PNG', pageWidth - margin - logoWidth, margin, logoWidth, logoHeight);
   }
   
