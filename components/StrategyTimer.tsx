@@ -67,7 +67,10 @@ export default function StrategyTimer({ expiresAt, showCTA = true }: StrategyTim
 
   return (
     <div className={`${bgColor} ${textColor} px-6 py-3 rounded-lg font-bold flex items-center gap-3 shadow-lg`}>
-      {/* Diamond Icon - removed per CEO feedback */}
+      {/* Blue Diamond Icon */}
+      <svg className="w-4 h-4 text-fo-primary fill-current" viewBox="0 0 24 24">
+        <path d="M12 2L2 12l10 10 10-10L12 2z" />
+      </svg>
       
       {/* Timer Text - colored based on urgency */}
       <span className={`text-lg font-bold ${daysTextColor}`}>
