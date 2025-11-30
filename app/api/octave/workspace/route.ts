@@ -98,9 +98,13 @@ export async function POST(request: NextRequest) {
           'ca_KdG0WncyW45oRqFZcdngQ', // LINKEDIN POST: Promotional Posts (Lead-Magnet)
           'ca_xfNTga6wQNUqfH45KM0Ka', // LINKEDIN POST: Actionable Post
           
-          // LinkedIn DM Agents (2)
+          // LinkedIn DM Agents (3)
           'ca_b4p8wuI4rntQdhoxK2hF7', // LINKEDIN CONNECTION DM - Newsletter CTA
           'ca_Ea41BbpWV2HPlvLQiyyT4', // LINKEDIN CONNECTION DM - Lead Magnet CTA
+          'ca_mKHrB6A2yNiBN5yRPPsOm', // LINKEDIN CONNECTION DM - Ask A Question
+          
+          // YouTube Script Agents (1)
+          'ca_oR6ro10L1z7N8HouxVgNc', // SCRIPT WRITING - Long-Form YouTube
           
           // Newsletter Agents (2)
           'ca_e4UYXGTMitLjwZEgzsNc1', // NEWSLETTER - Tactical Writing Agent

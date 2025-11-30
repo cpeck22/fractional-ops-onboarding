@@ -124,7 +124,10 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        const prospect = prospects[prospectIndex % prospects.length];
+        // Handle case where no prospects found - use company context only
+        const prospect = prospects.length > 0 
+          ? prospects[prospectIndex % prospects.length] 
+          : null;
         
         let endpoint = '';
         let requestBody: any = {
@@ -202,6 +205,12 @@ export async function POST(request: NextRequest) {
     // ============================================
     
     console.log('📧 Generating Cold Email Sequences...');
+    
+    // Check if we have prospects for personalized emails
+    if (prospects.length === 0) {
+      console.warn('⚠️ No qualified prospects found - Cold Email agents will use company context only');
+      console.warn('⚠️ This may result in less personalized emails. Consider adjusting qualification criteria.');
+    }
     
     // Order: Lead Magnet (Long), 3 Personalized Solutions, Problem/Solution, Local/Same City, Lead Magnet (Short)
     if (agentIds.coldEmails?.leadMagnetLong) {
