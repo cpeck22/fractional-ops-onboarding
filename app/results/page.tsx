@@ -723,13 +723,16 @@ export default function ResultsPage() {
         {/* Cold Email Sequences with Tabs */}
         <section id="cold-email-sequences" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-              {/* Gmail logo */}
-              <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" fill="#EA4335"/>
+            {/* Gmail logo - proper M envelope */}
+            <svg className="w-7 h-7" viewBox="0 0 48 48" fill="none">
+              <path d="M24 26.5L4 13V38C4 39.1 4.9 40 6 40H42C43.1 40 44 39.1 44 38V13L24 26.5Z" fill="#EA4335"/>
+              <path d="M44 13L24 26.5L4 13L4 10C4 8.9 4.9 8 6 8H42C43.1 8 44 8.9 44 10V13Z" fill="#C5221F"/>
+              <path d="M44 13V11L24 24L4 11V13L24 26.5L44 13Z" fill="#C5221F"/>
             </svg>
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-              {/* Outlook logo */}
-              <path d="M7 2h10c1.1 0 2 .9 2 2v16c0 1.1-.9 2-2 2H7c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2zm5 4c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z" fill="#0078D4"/>
+            {/* Outlook logo - proper blue O */}
+            <svg className="w-7 h-7" viewBox="0 0 48 48" fill="none">
+              <rect x="6" y="8" width="36" height="32" rx="2" fill="#0078D4"/>
+              <path d="M24 14C19.6 14 16 17.6 16 22C16 26.4 19.6 30 24 30C28.4 30 32 26.4 32 22C32 17.6 28.4 14 24 14ZM24 27C21.2 27 19 24.8 19 22C19 19.2 21.2 17 24 17C26.8 17 29 19.2 29 22C29 24.8 26.8 27 24 27Z" fill="white"/>
             </svg>
             Cold Email Sequences
           </h2>
