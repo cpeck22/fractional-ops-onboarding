@@ -425,6 +425,16 @@ export default function SharedStrategyPage() {
           <main className="flex-1 min-w-0 space-y-12">
             {/* Campaign Ideas Section */}
             <section id="campaign-workflows" className="scroll-mt-8">
+              {/* Section Title */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900">Campaign Ideas</h2>
+              </div>
+
               <SectionIntro
                 whatIsThisFor={sectionIntros.campaignIdeas}
                 sectionId="campaign-workflows"
@@ -432,14 +442,6 @@ export default function SharedStrategyPage() {
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-3xl font-bold text-gray-900">Campaign Ideas</h2>
-                </div>
                 
                 {outputs.campaign_ideas && outputs.campaign_ideas.length > 0 ? (
                   <div className="space-y-6">
@@ -458,6 +460,16 @@ export default function SharedStrategyPage() {
 
             {/* Prospect List Section */}
             <section id="prospect-list" className="scroll-mt-8">
+              {/* Section Title */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900">Prospect List</h2>
+              </div>
+
               <SectionIntro
                 whatIsThisFor={sectionIntros.prospectList}
                 sectionId="prospect-list"
@@ -465,14 +477,6 @@ export default function SharedStrategyPage() {
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-3xl font-bold text-gray-900">Prospect List</h2>
-                </div>
                 
                 {outputs.prospect_list && outputs.prospect_list.length > 0 ? (
                   <div className="overflow-x-auto">
@@ -505,6 +509,34 @@ export default function SharedStrategyPage() {
 
             {/* Cold Emails Section */}
             <section id="cold-emails" className="scroll-mt-8">
+              {/* Section Title */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-900">Cold Email Sequences</h2>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Image
+                    src="/Gmail_icon_(2020).svg.webp"
+                    alt="Gmail"
+                    width={32}
+                    height={32}
+                    className="object-contain"
+                  />
+                  <Image
+                    src="/Outlook-Logo.png"
+                    alt="Outlook"
+                    width={32}
+                    height={32}
+                    className="object-contain"
+                  />
+                </div>
+              </div>
+
               <SectionIntro
                 whatIsThisFor={sectionIntros.coldEmails}
                 sectionId="cold-emails"
@@ -512,32 +544,6 @@ export default function SharedStrategyPage() {
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-3xl font-bold text-gray-900">Cold Email Sequences</h2>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Image
-                      src="/Gmail_icon_(2020).svg.webp"
-                      alt="Gmail"
-                      width={32}
-                      height={32}
-                      className="object-contain"
-                    />
-                    <Image
-                      src="/Outlook-Logo.png"
-                      alt="Outlook"
-                      width={32}
-                      height={32}
-                      className="object-contain"
-                    />
-                  </div>
-                </div>
 
                 {outputs.cold_emails ? (
                   <>
@@ -566,7 +572,7 @@ export default function SharedStrategyPage() {
                           </div>
                           <div className="prose prose-sm max-w-none text-gray-700 [&_p]:mb-4 [&_p]:leading-relaxed">
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {email.body}
+                              {email.email || email.body}
                             </ReactMarkdown>
                           </div>
                         </div>
@@ -581,6 +587,16 @@ export default function SharedStrategyPage() {
 
             {/* LinkedIn Posts Section */}
             <section id="linkedin-posts" className="scroll-mt-8">
+              {/* Section Title */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900">LinkedIn Posts</h2>
+              </div>
+
               <SectionIntro
                 whatIsThisFor={sectionIntros.linkedinPosts}
                 sectionId="linkedin-posts"
@@ -588,14 +604,6 @@ export default function SharedStrategyPage() {
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
-                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                    </svg>
-                  </div>
-                  <h2 className="text-3xl font-bold text-gray-900">LinkedIn Posts</h2>
-                </div>
 
                 {outputs.linkedin_posts ? (
                   <>
@@ -629,6 +637,16 @@ export default function SharedStrategyPage() {
 
             {/* LinkedIn DMs Section */}
             <section id="linkedin-dms" className="scroll-mt-8">
+              {/* Section Title */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900">LinkedIn DMs</h2>
+              </div>
+
               <SectionIntro
                 whatIsThisFor={sectionIntros.linkedinDMs}
                 sectionId="linkedin-dms"
@@ -636,14 +654,6 @@ export default function SharedStrategyPage() {
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
-                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                    </svg>
-                  </div>
-                  <h2 className="text-3xl font-bold text-gray-900">LinkedIn DMs</h2>
-                </div>
 
                 {outputs.linkedin_dms ? (
                   <>
@@ -682,6 +692,37 @@ export default function SharedStrategyPage() {
 
             {/* Newsletter Section */}
             <section id="newsletters" className="scroll-mt-8">
+              {/* Section Title */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-900">Newsletter Content</h2>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Image
+                    src="/HubSpot-Symbol.png"
+                    alt="HubSpot"
+                    width={32}
+                    height={32}
+                    className="object-contain"
+                  />
+                  <Image
+                    src="/Salesforce.com_logo.svg.png"
+                    alt="Salesforce"
+                    width={32}
+                    height={32}
+                    className="object-contain"
+                  />
+                  <div className="px-3 py-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-white font-bold rounded text-sm">
+                    Kit
+                  </div>
+                </div>
+              </div>
+
               <SectionIntro
                 whatIsThisFor={sectionIntros.newsletters}
                 sectionId="newsletters"
@@ -689,35 +730,6 @@ export default function SharedStrategyPage() {
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-3xl font-bold text-gray-900">Newsletter Content</h2>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Image
-                      src="/HubSpot-Symbol.png"
-                      alt="HubSpot"
-                      width={32}
-                      height={32}
-                      className="object-contain"
-                    />
-                    <Image
-                      src="/Salesforce.com_logo.svg.png"
-                      alt="Salesforce"
-                      width={32}
-                      height={32}
-                      className="object-contain"
-                    />
-                    <div className="px-3 py-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-white font-bold rounded text-sm">
-                      Kit
-                    </div>
-                  </div>
-                </div>
 
                 {outputs.newsletters ? (
                   <>
@@ -756,25 +768,27 @@ export default function SharedStrategyPage() {
 
             {/* YouTube Scripts Section */}
             <section id="youtube-scripts" className="scroll-mt-8">
+              {/* Section Title */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-900">YouTube Video Scripts</h2>
+                </div>
+                <svg className="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              </div>
+
               <SectionIntro
                 whatIsThisFor={sectionIntros.youtubeScripts}
                 sectionId="youtube-scripts"
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
-                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                      </svg>
-                    </div>
-                    <h2 className="text-3xl font-bold text-gray-900">YouTube Video Scripts</h2>
-                  </div>
-                  <svg className="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                  </svg>
-                </div>
 
                 {outputs.youtube_scripts?.longForm ? (
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
@@ -795,6 +809,16 @@ export default function SharedStrategyPage() {
 
             {/* Call Prep Section */}
             <section id="call-prep" className="scroll-mt-8">
+              {/* Section Title */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900">Call Prep</h2>
+              </div>
+
               <SectionIntro
                 whatIsThisFor={sectionIntros.callPrep}
                 sectionId="call-prep"
@@ -802,14 +826,6 @@ export default function SharedStrategyPage() {
               />
               
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-fo-primary to-fo-orange rounded-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-3xl font-bold text-gray-900">Call Prep</h2>
-                </div>
 
                 {outputs.call_prep ? (
                   <div className="space-y-6">
@@ -881,39 +897,355 @@ export default function SharedStrategyPage() {
               </div>
             </section>
 
-            {/* Strategic Elements Appendix */}
+            {/* Strategic Elements Library */}
             <div className="border-t-4 border-fo-primary pt-12 mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-8">Strategic Elements Library</h2>
-              
-              {appendixSections.map((section) => {
-                const data = outputs[section.key as keyof OctaveOutputs];
-                const hasData = Array.isArray(data) ? data.length > 0 : !!data;
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Strategic Elements Library</h2>
+              <p className="text-gray-600 mb-8">
+                Foundational library materials created in your Octave workspace
+              </p>
 
-                return (
-                  <section key={section.id} id={section.id} className="scroll-mt-8 mb-12">
-                    <div className="bg-white rounded-lg shadow-lg p-8">
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">{section.label}</h3>
-                      {hasData ? (
-                        <div className="prose prose-sm max-w-none text-gray-700">
-                          {Array.isArray(data) ? (
-                            <ul className="space-y-2">
-                              {data.map((item: any, index: number) => (
-                                <li key={index} className="border-l-2 border-fo-primary pl-4 py-2">
-                                  {typeof item === 'string' ? item : JSON.stringify(item)}
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <div className="whitespace-pre-wrap">{String(data)}</div>
-                          )}
+              <div className="space-y-8">
+                {/* Service Offering - FULL DETAIL */}
+                {outputs.service_offering && (
+                  <div id="service-offering" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">
+                      Service Offering
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="font-semibold text-gray-700">Name:</p>
+                        <p className="text-gray-900">{outputs.service_offering.name || 'N/A'}</p>
+                      </div>
+                      
+                      {outputs.service_offering.description && (
+                        <div>
+                          <p className="font-semibold text-gray-700">Description:</p>
+                          <p className="text-gray-900 text-sm">{outputs.service_offering.description}</p>
                         </div>
-                      ) : (
-                        <ErrorPlaceholder assetType={section.label} />
+                      )}
+                      
+                      {(outputs.service_offering as any).data?.type && (
+                        <div>
+                          <p className="font-semibold text-gray-700">Type:</p>
+                          <p className="text-gray-900">{(outputs.service_offering as any).data.type}</p>
+                        </div>
+                      )}
+                      
+                      {(outputs.service_offering as any).data?.summary && (
+                        <div>
+                          <p className="font-semibold text-gray-700">Summary:</p>
+                          <p className="text-gray-900 text-sm">{(outputs.service_offering as any).data.summary}</p>
+                        </div>
+                      )}
+                      
+                      {(outputs.service_offering as any).data?.capabilities && (outputs.service_offering as any).data.capabilities.length > 0 && (
+                        <div>
+                          <p className="font-semibold text-gray-700 mb-2">Key Capabilities:</p>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                            {(outputs.service_offering as any).data.capabilities.map((cap: string, i: number) => (
+                              <li key={i}>{cap}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {(outputs.service_offering as any).data?.differentiatedValue && (outputs.service_offering as any).data.differentiatedValue.length > 0 && (
+                        <div>
+                          <p className="font-semibold text-gray-700 mb-2">Differentiated Value:</p>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                            {(outputs.service_offering as any).data.differentiatedValue.map((val: string, i: number) => (
+                              <li key={i}>{val}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {(outputs.service_offering as any).data?.statusQuo && (outputs.service_offering as any).data.statusQuo.length > 0 && (
+                        <div>
+                          <p className="font-semibold text-gray-700 mb-2">Status Quo:</p>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                            {(outputs.service_offering as any).data.statusQuo.map((sq: string, i: number) => (
+                              <li key={i}>{sq}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {(outputs.service_offering as any).data?.challengesAddressed && (outputs.service_offering as any).data.challengesAddressed.length > 0 && (
+                        <div>
+                          <p className="font-semibold text-gray-700 mb-2">Challenges Addressed:</p>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-900 pl-4">
+                            {(outputs.service_offering as any).data.challengesAddressed.map((ch: string, i: number) => (
+                              <li key={i}>{ch}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {(outputs.service_offering as any).data?.customerBenefits && (outputs.service_offering as any).data.customerBenefits.length > 0 && (
+                        <div>
+                          <p className="font-semibold text-gray-700 mb-2">Customer Benefits:</p>
+                          <ul className="list-disc list-inside space-y-1 text-gray-900 pl-4">
+                            {(outputs.service_offering as any).data.customerBenefits.map((ben: string, i: number) => (
+                              <li key={i}>{ben}</li>
+                            ))}
+                          </ul>
+                        </div>
                       )}
                     </div>
-                  </section>
-                );
-              })}
+                  </div>
+                )}
+
+                {/* Personas - FULL DETAIL */}
+                {outputs.personas && outputs.personas.length > 0 && (
+                  <div id="personas" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">
+                      Personas ({outputs.personas.length})
+                    </h3>
+                    <div className="space-y-6">
+                      {outputs.personas.map((persona: any, index: number) => (
+                        <div key={index} className="bg-white p-5 rounded-lg border border-purple-200 shadow-sm">
+                          <h4 className="font-bold text-lg text-fo-primary mb-3">{persona.name}</h4>
+                          
+                          {persona.description && (
+                            <p className="text-sm text-gray-700 mb-3">{persona.description}</p>
+                          )}
+                          
+                          <div className="grid md:grid-cols-2 gap-4 mt-4">
+                            {persona.data?.commonJobTitles && persona.data.commonJobTitles.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Common Job Titles:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {persona.data.commonJobTitles.map((title: string, i: number) => (
+                                    <li key={i}>{title}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {persona.data?.primaryResponsibilities && persona.data.primaryResponsibilities.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Primary Responsibilities:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {persona.data.primaryResponsibilities.map((resp: string, i: number) => (
+                                    <li key={i}>{resp}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {persona.data?.painPoints && persona.data.painPoints.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Pain Points:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {persona.data.painPoints.map((pain: string, i: number) => (
+                                    <li key={i}>{pain}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Use Cases - FULL DETAIL */}
+                {outputs.use_cases && outputs.use_cases.length > 0 && (
+                  <div id="use-cases" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">
+                      Use Cases ({outputs.use_cases.length})
+                    </h3>
+                    <div className="space-y-6">
+                      {outputs.use_cases.map((useCase: any, index: number) => (
+                        <div key={index} className="bg-white p-5 rounded-lg border border-green-200 shadow-sm">
+                          <h4 className="font-bold text-lg text-fo-primary mb-2">{useCase.name}</h4>
+                          
+                          {useCase.description && (
+                            <p className="text-sm text-gray-700 mb-3">{useCase.description}</p>
+                          )}
+                          
+                          {useCase.data?.summary && (
+                            <div className="mb-3">
+                              <p className="font-semibold text-gray-700 text-sm mb-1">Summary:</p>
+                              <p className="text-sm text-gray-600">{useCase.data.summary}</p>
+                            </div>
+                          )}
+                          
+                          <div className="grid md:grid-cols-2 gap-4 mt-4">
+                            {useCase.data?.scenarios && useCase.data.scenarios.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Scenarios:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {useCase.data.scenarios.map((scenario: string, i: number) => (
+                                    <li key={i}>{scenario}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {useCase.data?.businessDrivers && useCase.data.businessDrivers.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Business Drivers:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {useCase.data.businessDrivers.map((driver: string, i: number) => (
+                                    <li key={i}>{driver}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Segments - FULL DETAIL */}
+                {outputs.segments && outputs.segments.length > 0 && (
+                  <div id="segments" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">
+                      Market Segments ({outputs.segments.length})
+                    </h3>
+                    <div className="space-y-6">
+                      {outputs.segments.map((segment: any, index: number) => (
+                        <div key={index} className="bg-white p-5 rounded-lg border border-orange-200 shadow-sm">
+                          <h4 className="font-bold text-lg text-fo-primary mb-2">{segment.name}</h4>
+                          
+                          {segment.description && (
+                            <p className="text-sm text-gray-700 mb-3">{segment.description}</p>
+                          )}
+                          
+                          <div className="grid md:grid-cols-2 gap-4 mt-4">
+                            {segment.data?.keyPriorities && segment.data.keyPriorities.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">Key Priorities:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {segment.data.keyPriorities.map((priority: string, i: number) => (
+                                    <li key={i}>{priority}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Client References - FULL DETAIL */}
+                {outputs.client_references && outputs.client_references.length > 0 && (
+                  <div id="client-references" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">
+                      Client References ({outputs.client_references.length})
+                    </h3>
+                    <div className="space-y-6">
+                      {outputs.client_references.map((reference: any, index: number) => (
+                        <div key={index} className="bg-white p-5 rounded-lg border border-red-200 shadow-sm">
+                          <h4 className="font-bold text-lg text-fo-primary mb-2">{reference.name || reference.internalName || 'Unnamed Reference'}</h4>
+                          
+                          {reference.description && (
+                            <p className="text-sm text-gray-700 mb-3">{reference.description}</p>
+                          )}
+                          
+                          <div className="space-y-3 mt-4">
+                            {reference.data?.howTheyMakeMoney && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-1">How They Make Money:</p>
+                                <p className="text-sm text-gray-600">{reference.data.howTheyMakeMoney}</p>
+                              </div>
+                            )}
+                            
+                            {reference.data?.howTheyUseProduct && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-1">How They Use Our Product/Service:</p>
+                                <p className="text-sm text-gray-600">{reference.data.howTheyUseProduct}</p>
+                              </div>
+                            )}
+                            
+                            {reference.data?.howWeImpactedTheirBusiness && reference.data.howWeImpactedTheirBusiness.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-2">How We Impacted Their Business:</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
+                                  {reference.data.howWeImpactedTheirBusiness.map((impact: string, i: number) => (
+                                    <li key={i}>{impact}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Competitors - FULL DETAIL */}
+                {outputs.competitors && outputs.competitors.length > 0 && (
+                  <div id="competitors" className="border border-gray-200 rounded-lg p-6 bg-white scroll-mt-8">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">
+                      Competitive Analysis ({outputs.competitors.length})
+                    </h3>
+                    <div className="space-y-6">
+                      {outputs.competitors.map((competitor: any, index: number) => (
+                        <div key={index} className="bg-white p-5 rounded-lg border border-orange-200 shadow-sm">
+                          <h4 className="font-bold text-lg text-fo-primary mb-2">{competitor.name || competitor.internalName || 'Unnamed Competitor'}</h4>
+                          
+                          {competitor.companyWebsite && (
+                            <p className="text-sm text-gray-600 mb-2">
+                              <span className="font-semibold">Website:</span>{' '}
+                              <a href={competitor.companyWebsite} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                {competitor.companyWebsite}
+                              </a>
+                            </p>
+                          )}
+                          
+                          {competitor.description && (
+                            <p className="text-sm text-gray-700 mb-3">{competitor.description}</p>
+                          )}
+                          
+                          <div className="space-y-3 mt-4">
+                            {competitor.data?.comparativeStrengths && competitor.data.comparativeStrengths.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-1">Their Strengths:</p>
+                                <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                  {competitor.data.comparativeStrengths.map((strength: string, idx: number) => (
+                                    <li key={idx}>{strength}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {competitor.data?.keyDifferentiators && competitor.data.keyDifferentiators.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-gray-700 text-sm mb-1">Key Differentiators:</p>
+                                <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                  {competitor.data.keyDifferentiators.map((diff: string, idx: number) => (
+                                    <li key={idx}>{diff}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {competitor.data?.reasonsWeWin && competitor.data.reasonsWeWin.length > 0 && (
+                              <div className="bg-green-50 p-3 rounded-md border border-green-200">
+                                <p className="font-semibold text-green-800 text-sm mb-1">🎯 Why We Win:</p>
+                                <ul className="list-disc list-inside text-sm text-green-700 space-y-1">
+                                  {competitor.data.reasonsWeWin.map((reason: string, idx: number) => (
+                                    <li key={idx}>{reason}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* CTA Section */}
