@@ -252,16 +252,36 @@ export function QuestionnaireProvider({ children }: { children: ReactNode }) {
       
       console.log('💾 Single field save successful, now saving all fields...');
       
-      // Save all sections
+      // Save all sections with defensive checks
       const savePromises = Object.entries(questionnaireData).map(([sectionId, sectionData]) => {
         if (sectionData && typeof sectionData === 'object') {
           return Object.entries(sectionData).map(([fieldKey, fieldValue]) => {
-            console.log('💾 Saving field:', { sectionId, fieldKey, fieldValue });
-            return saveQuestionnaireField(currentUser.id, sectionId, fieldKey, fieldValue as string);
+            // Skip undefined/null values
+            if (fieldValue === undefined || fieldValue === null) {
+              console.log(`💾 Skipping null/undefined field: ${sectionId}.${fieldKey}`);
+              return Promise.resolve();
+            }
+            
+            // Skip empty arrays
+            if (Array.isArray(fieldValue) && fieldValue.length === 0) {
+              console.log(`💾 Skipping empty array: ${sectionId}.${fieldKey}`);
+              return Promise.resolve();
+            }
+            
+            console.log('💾 Saving field:', { 
+              sectionId, 
+              fieldKey, 
+              valueType: typeof fieldValue,
+              isArray: Array.isArray(fieldValue),
+              arrayLength: Array.isArray(fieldValue) ? fieldValue.length : 'N/A',
+              value: fieldValue 
+            });
+            
+            return saveQuestionnaireField(currentUser.id, sectionId, fieldKey, fieldValue);
           });
         }
         return [];
-      }).flat();
+      }).flat().filter(Boolean);
 
       console.log('💾 Total fields to save:', savePromises.length);
       await Promise.all(savePromises);

@@ -135,13 +135,21 @@ export const saveQuestionnaireField = async (
   fieldValue: any,  // Changed from string to any to accept arrays/objects
   retries: number = 3 // Add retry logic for robustness
 ) => {
-  console.log(`💾 Saving field: ${section}.${fieldKey}`);
+  // Extra logging for Q19, 20, 21 (proofPoints, clientReferences, competitors)
+  const isQ19_20_21 = fieldKey === 'proofPoints' || fieldKey === 'clientReferences' || fieldKey === 'competitors';
+  
+  console.log(`💾 ${isQ19_20_21 ? '🚨 Q19/20/21 SPECIAL:' : ''} Saving field: ${section}.${fieldKey}`, {
+    type: typeof fieldValue,
+    isArray: Array.isArray(fieldValue),
+    length: Array.isArray(fieldValue) ? fieldValue.length : 'N/A',
+    preview: typeof fieldValue === 'string' ? fieldValue.substring(0, 100) : fieldValue
+  });
   
   // Stringify arrays and objects before saving
   let valueToSave = fieldValue;
   if (typeof fieldValue === 'object' && fieldValue !== null) {
     valueToSave = JSON.stringify(fieldValue);
-    console.log(`💾 Stringified ${fieldKey} for storage`);
+    console.log(`💾 ${isQ19_20_21 ? '🚨' : ''} Stringified ${fieldKey} for storage:`, valueToSave.substring(0, 200));
   }
   
   // Retry logic with exponential backoff
@@ -251,7 +259,7 @@ export const loadUserQuestionnaireData = async (userId: string) => {
         }]
       },
       positioning: {
-        competitors: ''
+        competitors: []
       },
       leadMagnets: {
         leadMagnet: ''
