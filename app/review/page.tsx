@@ -69,21 +69,79 @@ export default function ReviewPage() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');
   const [userId, setUserId] = useState<string>('');
+  const [localData, setLocalData] = useState<any>(null);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const router = useRouter();
 
-  // Get user email and ID on mount
+  // Get user email and ID on mount + reload fresh data from database
   useEffect(() => {
-    const getUserInfo = async () => {
+    const getUserInfoAndReloadData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.email) {
         setUserEmail(user.email);
         setUserId(user.id);
         console.log('👤 User email:', user.email);
         console.log('👤 User ID:', user.id);
+        
+        // Reload fresh data from database for review page
+        console.log('🔄 Review page: Reloading fresh data from database...');
+        try {
+          const response = await fetch('/api/load-questionnaire', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id })
+          });
+          const result = await response.json();
+          
+          if (result.data) {
+            // Transform the data the same way as QuestionnaireProvider
+            const rawData = result.data;
+            const transformedData: any = {
+              companyInfo: {},
+              whatYouDo: {},
+              howYouDoIt: {},
+              whatYouDeliver: {},
+              creatingDesire: {},
+              yourBuyers: {},
+              socialProof: {},
+              positioning: {},
+              leadMagnets: {},
+              brandExamples: {}
+            };
+            
+            rawData.forEach((row: any) => {
+              const section = row.section;
+              const fieldKey = row.field_key;
+              const fieldValue = row.field_value;
+              
+              if (transformedData[section]) {
+                // Parse JSON for arrays
+                if ((fieldKey === 'seniorityLevel' || fieldKey === 'clientReferences' || fieldKey === 'competitors') && typeof fieldValue === 'string') {
+                  try {
+                    transformedData[section][fieldKey] = JSON.parse(fieldValue);
+                  } catch (e) {
+                    transformedData[section][fieldKey] = fieldKey === 'seniorityLevel' ? [] : [];
+                  }
+                } else {
+                  transformedData[section][fieldKey] = fieldValue;
+                }
+              }
+            });
+            
+            console.log('✅ Review page: Fresh data loaded:', transformedData);
+            setLocalData(transformedData);
+          }
+        } catch (error) {
+          console.error('❌ Failed to reload data:', error);
+          // Fallback to questionnaireData from context
+          setLocalData(questionnaireData);
+        } finally {
+          setIsLoadingData(false);
+        }
       }
     };
-    getUserInfo();
-  }, []);
+    getUserInfoAndReloadData();
+  }, [questionnaireData]);
 
   const handleSubmit = async () => {
     setShowModal(true);
@@ -220,6 +278,21 @@ export default function ReviewPage() {
     router.push('/questionnaire');
   };
 
+  // Show loading state while fetching fresh data
+  if (isLoadingData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-fo-light to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-fo-primary mx-auto mb-4"></div>
+          <p className="text-fo-dark text-lg font-semibold">Loading your questionnaire...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Use localData (fresh from database) instead of questionnaireData (cached)
+  const dataToDisplay = localData || questionnaireData;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-fo-light to-white">
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -237,7 +310,7 @@ export default function ReviewPage() {
         <div className="bg-white rounded-lg shadow-fo-shadow p-8 mb-8">
           <div className="space-y-8">
             {sectionTitles.map((section, index) => {
-              const sectionData = questionnaireData[section.id as keyof typeof questionnaireData] as any;
+              const sectionData = dataToDisplay[section.id as keyof typeof dataToDisplay] as any;
               
               return (
                 <div key={section.id}>
