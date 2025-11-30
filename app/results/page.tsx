@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
 import ClaireImage from '../Claire_v2.png';
 import SectionIntro from '@/components/SectionIntro';
 
@@ -967,21 +966,50 @@ export default function ResultsPage() {
           
           {outputs.call_prep ? (
             <div className="space-y-6">
-              {/* Call Script - with markdown rendering and embedded Questions */}
+              {/* Call Script - with markdown rendering and highlighted Questions */}
               {outputs.call_prep.callScript && (
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Call Script:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed [&_.inline-question]:not-prose">
+                    <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed">
                       <ReactMarkdown 
                         remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeRaw]}
+                        components={{
+                          // Style paragraphs that are questions
+                          p: ({node, children, ...props}) => {
+                            const text = String(children);
+                            const isQuestion = text.startsWith('Questions:') || 
+                                             text.match(/^[-•]\s*.+\?$/) ||
+                                             (text.trim().endsWith('?') && text.length < 200);
+                            
+                            if (isQuestion) {
+                              return (
+                                <p {...props} className="font-bold italic text-fo-orange text-lg border-l-4 border-fo-orange pl-4 my-4">
+                                  {children}
+                                </p>
+                              );
+                            }
+                            return <p {...props}>{children}</p>;
+                          },
+                          // Style list items that are questions
+                          li: ({node, children, ...props}) => {
+                            const text = String(children);
+                            const isQuestion = text.trim().endsWith('?');
+                            
+                            if (isQuestion) {
+                              return (
+                                <li {...props} className="font-bold italic text-fo-orange">
+                                  {children}
+                                </li>
+                              );
+                            }
+                            return <li {...props}>{children}</li>;
+                          }
+                        }}
                       >
                         {outputs.call_prep.callScript
                           .replace(/\\n/g, '\n')                  // Convert escaped newlines
                           .replace(/(\r\n|\r|\n)/g, '\n\n')       // Convert every newline to paragraph break
-                          .replace(/^Questions:\s*(.+)$/gm, '<div class="inline-question bg-gray-800 text-white p-4 rounded-lg my-3 block">Questions: $1</div>')  // Questions: lines
-                          .replace(/^[-•]\s*(.+\?)$/gm, '<div class="inline-question bg-gray-800 text-white p-4 rounded-lg my-3 block">$1</div>')  // Question bullets
                           .trim()
                         }
                       </ReactMarkdown>
