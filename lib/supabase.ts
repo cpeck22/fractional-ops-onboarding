@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Use fallbacks for build time to prevent crashes if env vars are missing
+// These will be replaced by actual env vars at runtime in Vercel
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 
-console.log('🔧 Supabase: URL configured:', supabaseUrl ? 'Yes' : 'No');
-console.log('🔧 Supabase: Anon key configured:', supabaseAnonKey ? 'Yes' : 'No');
+console.log('🔧 Supabase: URL configured:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Yes' : 'No');
+console.log('🔧 Supabase: Anon key configured:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Yes' : 'No');
 
 // Main client for auth and database (uses anon key)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
