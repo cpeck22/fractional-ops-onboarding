@@ -292,18 +292,87 @@ export const loadUserQuestionnaireData = async (userId: string) => {
             (questionnaireData[section] as any)[row.field_key] = parsed;
             console.log(`🔍 Parsed ${row.field_key} as JSON:`, parsed);
           } catch (e) {
-            console.warn(`⚠️ Failed to parse ${row.field_key}, using fallback`);
+            console.warn(`⚠️ Failed to parse ${row.field_key}, using fallback parsing for text content`);
+            
             if (row.field_key === 'seniorityLevel') {
               (questionnaireData[section] as any)[row.field_key] = row.field_value ? [row.field_value] : [];
             } else if (row.field_key === 'clientReferences') {
-              (questionnaireData[section] as any)[row.field_key] = [{
-                companyName: '',
-                companyDomain: '',
-                industry: '',
-                successStory: row.field_value // Put old text in success story
-              }];
+              // Try to parse bulleted list format: "• Company Name — Success Story"
+              if (row.field_value && typeof row.field_value === 'string' && row.field_value.includes('\n')) {
+                const refs = row.field_value.split('\n')
+                  .filter((line: string) => line.trim().length > 0)
+                  .map((line: string) => {
+                    // Remove bullet points
+                    const cleanLine = line.replace(/^[•\-\*]\s+/, '');
+                    // Split by dash/em-dash separators
+                    const parts = cleanLine.split(/\s+[—–-]\s+/);
+                    const name = parts[0]?.trim() || 'Client Reference';
+                    const story = parts[1]?.trim() || '';
+                    
+                    // Try to extract domain if present, otherwise placeholder
+                    const domainMatch = cleanLine.match(/(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.[a-zA-Z]{2,})/);
+                    const domain = domainMatch ? domainMatch[0] : 'example.com'; // Placeholder needed for API
+                    
+                    // Try to infer industry
+                    const industry = name.toLowerCase().includes('association') ? 'Non-Profit/Association' :
+                                   name.toLowerCase().includes('healthcare') ? 'Healthcare' :
+                                   name.toLowerCase().includes('tech') ? 'Technology' :
+                                   'General Business';
+
+                    return {
+                      companyName: name,
+                      companyDomain: domain,
+                      industry: industry,
+                      successStory: story || cleanLine // Fallback to whole line if no separator
+                    };
+                  });
+                
+                (questionnaireData[section] as any)[row.field_key] = refs.length > 0 ? refs : [{
+                  companyName: 'Example Client',
+                  companyDomain: 'example.com',
+                  industry: 'General Business',
+                  successStory: row.field_value
+                }];
+              } else {
+                // Fallback for single line or non-parseable
+                (questionnaireData[section] as any)[row.field_key] = [{
+                  companyName: 'Client Reference',
+                  companyDomain: 'example.com',
+                  industry: 'General Business',
+                  successStory: row.field_value // Put old text in success story
+                }];
+              }
             } else if (row.field_key === 'competitors') {
-              (questionnaireData[section] as any)[row.field_key] = [];
+              // Try to parse format: "Company Name — URL"
+              if (row.field_value && typeof row.field_value === 'string' && (row.field_value.includes('\n') || row.field_value.includes('http'))) {
+                const comps = row.field_value.split('\n')
+                  .filter((line: string) => line.trim().length > 0)
+                  .map((line: string) => {
+                    const cleanLine = line.replace(/^[•\-\*]\s+/, '');
+                    
+                    // Extract URL
+                    const urlMatch = cleanLine.match(/(https?:\/\/[^\s]+)|(www\.[^\s]+)/);
+                    const url = urlMatch ? urlMatch[0] : '';
+                    
+                    // Name is everything before the URL or separator
+                    let name = cleanLine;
+                    if (url) {
+                      name = cleanLine.replace(url, '').replace(/\s+[—–-]\s*$/, '').trim();
+                    } else {
+                      const parts = cleanLine.split(/\s+[—–-]\s+/);
+                      name = parts[0]?.trim();
+                    }
+                    
+                    return {
+                      companyName: name || 'Competitor',
+                      companyWebsite: url || 'https://example.com'
+                    };
+                  });
+                  
+                (questionnaireData[section] as any)[row.field_key] = comps;
+              } else {
+                (questionnaireData[section] as any)[row.field_key] = [];
+              }
             }
           }
         } else {

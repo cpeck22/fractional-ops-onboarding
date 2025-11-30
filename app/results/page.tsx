@@ -1895,7 +1895,7 @@ export default function ResultsPage() {
                 <div className="space-y-6">
                   {outputs.competitors.map((competitor: any, index: number) => (
                     <div key={index} className="bg-white p-5 rounded-lg border border-orange-200 shadow-sm">
-                      <h4 className="font-bold text-lg text-fo-primary mb-2">{competitor.name || competitor.internalName || 'Unnamed Competitor'}</h4>
+                      <h4 className="font-bold text-lg text-fo-primary mb-2">{competitor.name || competitor.internalName || competitor.companyName || 'Unnamed Competitor'}</h4>
                       
                       {competitor.companyWebsite && (
                         <p className="text-sm text-gray-600 mb-2">
