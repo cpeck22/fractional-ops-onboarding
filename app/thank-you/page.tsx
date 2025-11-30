@@ -186,7 +186,7 @@ export default function ThankYouPage() {
                 <p className="text-red-600 font-semibold text-lg mb-2">
                   Don&apos;t close this window.
                 </p>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-900 text-sm">
                   (It will update automatically once I&apos;m done)
                 </p>
               </div>

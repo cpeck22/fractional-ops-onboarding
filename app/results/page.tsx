@@ -971,11 +971,18 @@ export default function ResultsPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Call Script:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed [&_.inline-question]:not-prose">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          div: ({node, ...props}) => <div {...props} />,
+                        }}
+                      >
                         {outputs.call_prep.callScript
                           .replace(/\\n/g, '\n')                  // Convert escaped newlines
                           .replace(/(\r\n|\r|\n)/g, '\n\n')       // Convert every newline to paragraph break
+                          .replace(/^Questions:\s*(.+)$/gm, '<div class="inline-question bg-gray-800 text-white p-4 rounded-lg my-3 block">Questions: $1</div>')  // Questions: lines
+                          .replace(/^[-•]\s*(.+\?)$/gm, '<div class="inline-question bg-gray-800 text-white p-4 rounded-lg my-3 block">$1</div>')  // Question bullets
                           .trim()
                         }
                       </ReactMarkdown>
