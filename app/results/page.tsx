@@ -107,14 +107,21 @@ export default function ResultsPage() {
   // Track active section on scroll
   useEffect(() => {
     const handleScroll = () => {
-      const sections = tocSections.map(section => ({
-        id: section.id,
-        element: document.getElementById(section.id)
-      })).filter(section => section.element !== null);
+      // Combine both tocSections and appendixSections for tracking
+      const allSections = [
+        ...tocSections.map(section => ({
+          id: section.id,
+          element: document.getElementById(section.id)
+        })),
+        ...appendixSections.map(section => ({
+          id: section.id,
+          element: document.getElementById(section.id)
+        }))
+      ].filter(section => section.element !== null);
 
-      // Find which section is currently in view
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i];
+      // Find which section is currently in view (start from bottom to top)
+      for (let i = allSections.length - 1; i >= 0; i--) {
+        const section = allSections[i];
         if (section.element) {
           const rect = section.element.getBoundingClientRect();
           if (rect.top <= 150) {
@@ -884,14 +891,22 @@ export default function ResultsPage() {
         {/* Newsletters with Tabs */}
         <section id="newsletter-content" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="#FF7A59">
-              {/* HubSpot logo */}
-              <path d="M18.7 13.5v-3.1c1.1-.5 1.9-1.6 1.9-2.9 0-1.8-1.5-3.2-3.2-3.2-.8 0-1.6.3-2.1.8L13 3.3V1.8c0-.4-.3-.8-.8-.8h-.5c-.4 0-.8.3-.8.8v1.5L8.7 5.1c-.6-.5-1.3-.8-2.1-.8-1.8 0-3.2 1.5-3.2 3.2 0 1.3.8 2.4 1.9 2.9v3.1c-1.1.5-1.9 1.6-1.9 2.9 0 1.8 1.5 3.2 3.2 3.2.8 0 1.6-.3 2.1-.8l2.3 1.8v1.5c0 .4.3.8.8.8h.5c.4 0 .8-.3.8-.8v-1.5l2.3-1.8c.6.5 1.3.8 2.1.8 1.8 0 3.2-1.5 3.2-3.2 0-1.3-.8-2.4-1.9-2.9zm-6.7 2.3c-1.3 0-2.4-1.1-2.4-2.4s1.1-2.4 2.4-2.4 2.4 1.1 2.4 2.4-1.1 2.4-2.4 2.4z"/>
-            </svg>
-            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="#00A1E0">
-              {/* Salesforce logo */}
-              <path d="M10.006 5.408a3.648 3.648 0 013.324-2.094c1.28 0 2.398.652 3.055 1.639a4.688 4.688 0 012.417-.665c2.652 0 4.802 2.15 4.802 4.802 0 .316-.032.625-.09.925a3.693 3.693 0 011.803 3.17c0 2.067-1.685 3.752-3.752 3.752a3.75 3.75 0 01-1.613-.367 4.79 4.79 0 01-3.857 1.95 4.782 4.782 0 01-3.562-1.595 3.92 3.92 0 01-2.426.843c-2.175 0-3.936-1.761-3.936-3.935a3.914 3.914 0 012.181-3.514 4.062 4.062 0 01-.09-.848c0-2.24 1.817-4.057 4.057-4.057.44 0 .864.07 1.262.2z"/>
-            </svg>
+            {/* HubSpot logo */}
+            <Image 
+              src="/HubSpot-Symbol.png" 
+              alt="HubSpot" 
+              width={32} 
+              height={32}
+              className="object-contain"
+            />
+            {/* Salesforce logo */}
+            <Image 
+              src="/Salesforce.com_logo.svg.png" 
+              alt="Salesforce" 
+              width={32} 
+              height={32}
+              className="object-contain"
+            />
             <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold text-xl">
               K
             </div>
@@ -956,33 +971,8 @@ export default function ResultsPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Call Script:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed">
-                      <ReactMarkdown 
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          // Custom renderer for paragraphs to detect "Questions:" lines
-                          p: ({node, children, ...props}) => {
-                            const text = children?.toString() || '';
-                            
-                            // Check if this paragraph starts with "Questions:" (with or without bold)
-                            if (text.includes('Questions:')) {
-                              // Split the text at "Questions:"
-                              const parts = text.split('Questions:');
-                              if (parts.length > 1 && parts[1].trim()) {
-                                return (
-                                  <div className="not-prose my-4">
-                                    <p className="font-semibold text-gray-900 mb-2">Questions:</p>
-                                    <div className="bg-gray-800 text-white p-4 rounded-lg">
-                                      <p className="text-sm leading-relaxed m-0">{parts[1].trim()}</p>
-                                    </div>
-                                  </div>
-                                );
-                              }
-                            }
-                            return <p {...props}>{children}</p>;
-                          }
-                        }}
-                      >
+                    <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed [&_p:has(strong:first-child)]:bg-gray-800 [&_p:has(strong:first-child)]:text-white [&_p:has(strong:first-child)]:p-4 [&_p:has(strong:first-child)]:rounded-lg [&_p:has(strong:first-child)]:not-prose">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {outputs.call_prep.callScript}
                       </ReactMarkdown>
                     </div>
