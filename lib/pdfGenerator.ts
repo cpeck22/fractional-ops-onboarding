@@ -86,14 +86,17 @@ export function generateQuestionnairePDF(data: PDFData): Buffer {
     console.warn('⚠️ Could not load logo for PDF:', error);
   }
   
-  // Add logo to top right
-  // Logo aspect ratio: 1840 x 289 = 6.37:1 (width:height)
-  if (logoBase64) {
-    const logoHeight = 6; // mm (smaller size)
-    const logoWidth = logoHeight * 6.37; // Maintain aspect ratio (~38mm)
-    doc.addImage(logoBase64, 'PNG', pageWidth - margin - logoWidth, margin, logoWidth, logoHeight);
-  }
+  // Helper function to add logo to current page
+  const addLogo = () => {
+    if (logoBase64) {
+      const logoHeight = 6; // mm (smaller size)
+      const logoWidth = logoHeight * 6.37; // Maintain aspect ratio (~38mm)
+      doc.addImage(logoBase64, 'PNG', pageWidth - margin - logoWidth, margin, logoWidth, logoHeight);
+    }
+  };
   
+  // Add logo to first page
+  addLogo();
   yPosition += 5; // Add space after logo
   
   // Helper function to add text and handle page breaks
@@ -107,6 +110,8 @@ export function generateQuestionnairePDF(data: PDFData): Buffer {
     if (yPosition + (lines.length * fontSize * 0.35) > pageHeight - margin) {
       doc.addPage();
       yPosition = margin;
+      addLogo(); // Add logo to new page
+      yPosition += 5; // Add space after logo on new page
     }
     
     doc.text(lines, margin, yPosition);

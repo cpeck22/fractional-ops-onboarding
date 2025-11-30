@@ -73,7 +73,7 @@ export default function ResultsPage() {
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [shareLink, setShareLink] = useState<{ shareId: string; expiresAt: string } | null>(null);
   const [creatingShare, setCreatingShare] = useState(false);
-  const [activeEmailTab, setActiveEmailTab] = useState('personalizedSolutions');
+  const [activeEmailTab, setActiveEmailTab] = useState('leadMagnetLong');
   const [activePostTab, setActivePostTab] = useState('inspiring');
   const [activeDMTab, setActiveDMTab] = useState('newsletter');
   const [activeNewsletterTab, setActiveNewsletterTab] = useState('tactical');
@@ -409,11 +409,11 @@ export default function ResultsPage() {
   }
 
   const emailTabs = [
+    { id: 'leadMagnetLong', label: 'Lead Magnet (Long)', color: 'pink' },
     { id: 'personalizedSolutions', label: '3 Personalized Solutions', color: 'blue' },
-    { id: 'leadMagnetShort', label: 'Lead Magnet (Short)', color: 'green' },
-    { id: 'localCity', label: 'Local/Same City', color: 'purple' },
     { id: 'problemSolution', label: 'Problem/Solution', color: 'orange' },
-    { id: 'leadMagnetLong', label: 'Lead Magnet (Long)', color: 'pink' }
+    { id: 'localCity', label: 'Local/Same City', color: 'purple' },
+    { id: 'leadMagnetShort', label: 'Lead Magnet (Short)', color: 'green' }
   ];
 
   const postTabs = [

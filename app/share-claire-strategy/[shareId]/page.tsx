@@ -82,7 +82,7 @@ export default function SharedStrategyPage() {
   const [outputs, setOutputs] = useState<OctaveOutputs | null>(null);
   const [loading, setLoading] = useState(true);
   const [expired, setExpired] = useState(false);
-  const [activeEmailTab, setActiveEmailTab] = useState('personalizedSolutions');
+  const [activeEmailTab, setActiveEmailTab] = useState('leadMagnetLong');
   const [activePostTab, setActivePostTab] = useState('inspiring');
   const [activeDMTab, setActiveDMTab] = useState('newsletter');
   const [activeNewsletterTab, setActiveNewsletterTab] = useState('tactical');
@@ -320,11 +320,11 @@ export default function SharedStrategyPage() {
   ];
 
   const emailTabs = [
-    { id: 'personalizedSolutions', label: '3 Personalized Solutions' },
     { id: 'leadMagnetLong', label: 'Lead Magnet (Long)' },
-    { id: 'leadMagnetShort', label: 'Lead Magnet (Short)' },
+    { id: 'personalizedSolutions', label: '3 Personalized Solutions' },
     { id: 'problemSolution', label: 'Problem/Solution' },
     { id: 'localCity', label: 'Local/Same City' },
+    { id: 'leadMagnetShort', label: 'Lead Magnet (Short)' },
   ];
 
   const postTabs = [
