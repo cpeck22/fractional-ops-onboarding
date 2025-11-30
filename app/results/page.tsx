@@ -33,10 +33,14 @@ interface OctaveOutputs {
   linkedin_dms: {
     newsletter: string;
     leadMagnet: string;
+    askQuestion: string;
   };
   newsletters: {
     tactical: string;
     leadership: string;
+  };
+  youtube_scripts: {
+    longForm: string;
   };
   call_prep: any;
   // Library materials
@@ -80,6 +84,7 @@ export default function ResultsPage() {
     { id: 'linkedin-posts', label: 'LinkedIn Posts', emoji: '' },
     { id: 'linkedin-dms', label: 'LinkedIn DMs', emoji: '' },
     { id: 'newsletter-content', label: 'Newsletter Content', emoji: '' },
+    { id: 'youtube-scripts', label: 'YouTube Video Scripts', emoji: '' },
     { id: 'call-prep', label: 'Call Prep', emoji: '' },
   ];
 
@@ -345,7 +350,8 @@ export default function ResultsPage() {
 
   const dmTabs = [
     { id: 'newsletter', label: 'Newsletter CTA', color: 'blue' },
-    { id: 'leadMagnet', label: 'Lead Magnet CTA', color: 'green' }
+    { id: 'leadMagnet', label: 'Lead Magnet CTA', color: 'green' },
+    { id: 'askQuestion', label: 'Ask A Question', color: 'purple' }
   ];
 
   const newsletterTabs = [
@@ -425,6 +431,16 @@ export default function ResultsPage() {
       "Building Trust and Familiarity Before Direct Outreach",
       "Nurturing Cold or Passive Leads Over Time",
       "Giving Reps Content to Reference in Follow-Up Messages"
+    ],
+    youtubeScripts: [
+      "Creating Long-Form Video Scripts for YouTube",
+      "Aligning Video Content with Active Campaigns",
+      "Educating Prospects Through Video Content",
+      "Building Trust and Authority Through Thought Leadership",
+      "Repurposing Sales Messaging into Video Format",
+      "Driving Traffic to Landing Pages or Lead Magnets",
+      "Creating Evergreen Content for SEO and Discovery",
+      "Giving Prospects a Different Way to Engage with Your Message"
     ]
   };
 
@@ -948,6 +964,42 @@ export default function ResultsPage() {
             </div>
           ) : (
             <ErrorPlaceholder assetType={`Newsletter ${newsletterTabs.find(t => t.id === activeNewsletterTab)?.label}`} />
+          )}
+        </section>
+
+        {/* YouTube Video Scripts */}
+        <section id="youtube-scripts" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            {/* YouTube logo */}
+            <svg className="w-8 h-8" viewBox="0 0 159 110" fill="none">
+              <path d="M154,17.5c-1.82-6.73-7.07-12-13.8-13.8C128.47,0.47,79,0,79,0S29.53,0.47,17.8,3.7C11.07,5.52,5.82,10.77,4,17.5 C0.78,29.23,0,50.16,0,50.16s0.78,21.89,4,33.63c1.82,6.73,7.07,12,13.8,13.8C29.53,100.53,79,101,79,101s49.47-0.47,61.2-3.7 c6.73-1.82,12-7.07,13.8-13.8C157.22,72.05,159,50.16,159,50.16S157.22,29.23,154,17.5z" fill="#FF0000"/>
+              <path d="M63.5,71.12l41-21.12l-41-21.12V71.12z" fill="white"/>
+            </svg>
+            YouTube Video Scripts
+          </h2>
+          
+          {/* Section Intro - No video, just placeholder */}
+          <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+            <h3 className="font-semibold text-gray-900 mb-3">How do I use this in real life?</h3>
+            <ul className="space-y-2">
+              {sectionIntros.youtubeScripts.map((item, index) => (
+                <li key={index} className="flex items-start gap-2 text-gray-700">
+                  <span className="text-fo-orange font-bold mt-1">→</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* YouTube Script Content */}
+          {outputs.youtube_scripts?.longForm ? (
+            <div className="bg-white p-6 rounded-lg border border-gray-200">
+              <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
+                {outputs.youtube_scripts.longForm}
+              </pre>
+            </div>
+          ) : (
+            <ErrorPlaceholder assetType="YouTube Video Script" />
           )}
         </section>
 

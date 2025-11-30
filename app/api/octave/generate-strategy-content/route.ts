@@ -80,11 +80,15 @@ export async function POST(request: NextRequest) {
       },
       linkedinDMs: {
         newsletter: '',
-        leadMagnet: ''
+        leadMagnet: '',
+        askQuestion: ''
       },
       newsletters: {
         tactical: '',
         leadership: ''
+      },
+      youtube: {
+        longForm: ''
       },
       callPrep: null as any
     };
@@ -243,6 +247,11 @@ export async function POST(request: NextRequest) {
       if (result?.data?.content) agentResults.linkedinDMs.leadMagnet = result.data.content;
     }
 
+    if (agentIds.linkedinDMs?.askQuestion) {
+      const result = await runAgent('content', agentIds.linkedinDMs.askQuestion, 'LinkedIn DM: Ask A Question', 2);
+      if (result?.data?.content) agentResults.linkedinDMs.askQuestion = result.data.content;
+    }
+
     // ============================================
     // Run Newsletter agents
     // ============================================
@@ -271,6 +280,17 @@ export async function POST(request: NextRequest) {
     }
 
     // ============================================
+    // Run YouTube Script agent
+    // ============================================
+    
+    console.log('🎬 Generating YouTube Scripts...');
+    
+    if (agentIds.youtube?.longForm) {
+      const result = await runAgent('content', agentIds.youtube.longForm, 'YouTube Script: Long-Form', 0);
+      if (result?.data?.content) agentResults.youtube.longForm = result.data.content;
+    }
+
+    // ============================================
     // STEP 15: SAVE PHASE 2 RESULTS TO DATABASE
     // ============================================
     
@@ -284,6 +304,7 @@ export async function POST(request: NextRequest) {
         linkedin_dms: agentResults.linkedinDMs,
         newsletters: agentResults.newsletters,
         call_prep: agentResults.callPrep,
+        youtube_scripts: agentResults.youtube,
         agents_generated_at: new Date().toISOString()
       })
       .eq('user_id', userId)
@@ -302,6 +323,7 @@ export async function POST(request: NextRequest) {
     console.log('   💬 LinkedIn DMs: SAVED');
     console.log('   📰 Newsletters: SAVED');
     console.log('   📞 Call Prep: SAVED');
+    console.log('   🎬 YouTube Scripts: SAVED');
 
     return NextResponse.json({
       success: true,
@@ -312,7 +334,8 @@ export async function POST(request: NextRequest) {
         linkedinPosts: Object.values(agentResults.linkedinPosts).filter(v => v).length,
         linkedinDMs: Object.values(agentResults.linkedinDMs).filter(v => v).length,
         newsletters: Object.values(agentResults.newsletters).filter(v => v).length,
-        callPrep: agentResults.callPrep ? 1 : 0
+        callPrep: agentResults.callPrep ? 1 : 0,
+        youtubeScripts: agentResults.youtube.longForm ? 1 : 0
       }
     });
 

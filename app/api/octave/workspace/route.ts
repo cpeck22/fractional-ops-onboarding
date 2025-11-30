@@ -208,7 +208,8 @@ export async function POST(request: NextRequest) {
       callPrep: null,
       linkedinPosts: {},
       linkedinDMs: {},
-      newsletters: {}
+      newsletters: {},
+      youtube: {}
     };
     
     if (workspaceApiKey) {
@@ -346,6 +347,9 @@ export async function POST(request: NextRequest) {
               } else if (agentName.includes('lead magnet') || agentName.includes('lead-magnet')) {
                 newAgentIds.linkedinDMs.leadMagnet = agentOId;
                 console.log(`    ✅ MAPPED as LINKEDIN_DM: Lead Magnet CTA`);
+              } else if (agentName.includes('ask') && agentName.includes('question')) {
+                newAgentIds.linkedinDMs.askQuestion = agentOId;
+                console.log(`    ✅ MAPPED as LINKEDIN_DM: Ask A Question`);
               } else {
                 // FALLBACK: Use generic LinkedIn DM for missing variants
                 console.log(`    ⚠️  Found LinkedIn DM "${agent.name}" but doesn't match specific criteria`);
@@ -355,8 +359,14 @@ export async function POST(request: NextRequest) {
                 } else if (!newAgentIds.linkedinDMs.leadMagnet) {
                   newAgentIds.linkedinDMs.leadMagnet = agentOId;
                   console.log(`    ✅ FALLBACK MAPPED as LINKEDIN_DM: Lead Magnet CTA`);
+                } else if (!newAgentIds.linkedinDMs.askQuestion) {
+                  newAgentIds.linkedinDMs.askQuestion = agentOId;
+                  console.log(`    ✅ FALLBACK MAPPED as LINKEDIN_DM: Ask A Question`);
                 }
               }
+            } else if (agentName.includes('youtube') || (agentName.includes('script') && agentName.includes('long'))) {
+              newAgentIds.youtube.longForm = agentOId;
+              console.log(`    ✅ MAPPED as YOUTUBE: Long-Form Script`);
             } else {
               console.log(`    ⏭️  Skipped (CONTENT agent, but doesn't match our criteria)`);
             }
@@ -382,9 +392,12 @@ export async function POST(request: NextRequest) {
         console.log('✅ LinkedIn DMs:');
         console.log('   - Newsletter CTA:', newAgentIds.linkedinDMs.newsletter || '❌');
         console.log('   - Lead Magnet CTA:', newAgentIds.linkedinDMs.leadMagnet || '❌');
+        console.log('   - Ask A Question:', newAgentIds.linkedinDMs.askQuestion || '❌');
         console.log('✅ Newsletters:');
         console.log('   - Tactical:', newAgentIds.newsletters.tactical || '❌');
         console.log('   - Leadership:', newAgentIds.newsletters.leadership || '❌');
+        console.log('✅ YouTube Scripts:');
+        console.log('   - Long-Form:', newAgentIds.youtube.longForm || '❌');
         console.log('================================');
         
         // Count missing agents
@@ -401,8 +414,10 @@ export async function POST(request: NextRequest) {
         if (!newAgentIds.linkedinPosts.actionable) missingAgents.push('LinkedIn Post: Actionable');
         if (!newAgentIds.linkedinDMs.newsletter) missingAgents.push('LinkedIn DM: Newsletter');
         if (!newAgentIds.linkedinDMs.leadMagnet) missingAgents.push('LinkedIn DM: Lead Magnet');
+        if (!newAgentIds.linkedinDMs.askQuestion) missingAgents.push('LinkedIn DM: Ask A Question');
         if (!newAgentIds.newsletters.tactical) missingAgents.push('Newsletter: Tactical');
         if (!newAgentIds.newsletters.leadership) missingAgents.push('Newsletter: Leadership');
+        if (!newAgentIds.youtube.longForm) missingAgents.push('YouTube Script: Long-Form');
         
         if (missingAgents.length > 0) {
           console.warn('');
@@ -566,6 +581,7 @@ export async function POST(request: NextRequest) {
             linkedin_dms: null,
             newsletters: null,
             call_prep: null,
+            youtube_scripts: null,
             // Library materials (populated at workspace creation - Phase 1)
             service_offering: fullServiceOffering, // ✅ Now using full product data from Octave
             use_cases: useCases,

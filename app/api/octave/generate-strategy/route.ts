@@ -189,11 +189,15 @@ export async function POST(request: NextRequest) {
       },
       linkedinDMs: {
         newsletter: '',
-        leadMagnet: ''
+        leadMagnet: '',
+        askQuestion: ''
       },
       newsletters: {
         tactical: '',
         leadership: ''
+      },
+      youtube: {
+        longForm: ''
       }
     };
 
@@ -278,7 +282,13 @@ export async function POST(request: NextRequest) {
             } else if (agentName.includes('lead magnet')) {
               newAgentIds.linkedinDMs.leadMagnet = agentOId;
               console.log(`  ✅ MAPPED as LINKEDIN_DM: Lead Magnet CTA`);
+            } else if (agentName.includes('ask') && agentName.includes('question')) {
+              newAgentIds.linkedinDMs.askQuestion = agentOId;
+              console.log(`  ✅ MAPPED as LINKEDIN_DM: Ask A Question`);
             }
+          } else if (agentName.includes('youtube') || (agentName.includes('script') && agentName.includes('long'))) {
+            newAgentIds.youtube.longForm = agentOId;
+            console.log(`  ✅ MAPPED as YOUTUBE: Long-Form Script`);
           } else if (agentName.includes('newsletter')) {
             if (agentName.includes('tactical')) {
               newAgentIds.newsletters.tactical = agentOId;
@@ -296,8 +306,9 @@ export async function POST(request: NextRequest) {
       console.log('Cold Emails:', Object.values(newAgentIds.coldEmails).filter(id => id).length, '/5');
       console.log('Call Prep:', newAgentIds.callPrep ? '✅' : '❌');
       console.log('LinkedIn Posts:', Object.values(newAgentIds.linkedinPosts).filter(id => id).length, '/3');
-      console.log('LinkedIn DMs:', Object.values(newAgentIds.linkedinDMs).filter(id => id).length, '/2');
+      console.log('LinkedIn DMs:', Object.values(newAgentIds.linkedinDMs).filter(id => id).length, '/3');
       console.log('Newsletters:', Object.values(newAgentIds.newsletters).filter(id => id).length, '/2');
+      console.log('YouTube Scripts:', newAgentIds.youtube.longForm ? '✅' : '❌');
 
     } catch (error) {
       console.error('❌ Failed to list agents:', error);
