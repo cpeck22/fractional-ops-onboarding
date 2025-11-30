@@ -282,11 +282,11 @@ export async function POST(request: NextRequest) {
             } else if (agentName.includes('lead magnet')) {
               newAgentIds.linkedinDMs.leadMagnet = agentOId;
               console.log(`  ✅ MAPPED as LINKEDIN_DM: Lead Magnet CTA`);
-            } else if (agentName.includes('ask') && agentName.includes('question')) {
+            } else if ((agentName.includes('ask') && agentName.includes('question')) || agentName.match(/ask\s*a\s*question/i)) {
               newAgentIds.linkedinDMs.askQuestion = agentOId;
               console.log(`  ✅ MAPPED as LINKEDIN_DM: Ask A Question`);
             }
-          } else if (agentName.includes('youtube') || (agentName.includes('script') && agentName.includes('long'))) {
+          } else if (agentName.includes('youtube') || agentName.includes('script writing') || (agentName.includes('script') && (agentName.includes('long') || agentName.includes('form')))) {
             newAgentIds.youtube.longForm = agentOId;
             console.log(`  ✅ MAPPED as YOUTUBE: Long-Form Script`);
           } else if (agentName.includes('newsletter')) {

@@ -185,29 +185,30 @@ export async function POST(request: NextRequest) {
     
     console.log('📧 Generating Cold Email Sequences...');
     
+    // Order: Lead Magnet (Long), 3 Personalized Solutions, Problem/Solution, Local/Same City, Lead Magnet (Short)
+    if (agentIds.coldEmails?.leadMagnetLong) {
+      const result = await runAgent('sequence', agentIds.coldEmails.leadMagnetLong, 'Cold Email: Lead Magnet Long', 0);
+      if (result?.data?.emails) agentResults.coldEmails.leadMagnetLong = result.data.emails;
+    }
+
     if (agentIds.coldEmails?.personalizedSolutions) {
-      const result = await runAgent('sequence', agentIds.coldEmails.personalizedSolutions, 'Cold Email: Personalized Solutions', 0);
+      const result = await runAgent('sequence', agentIds.coldEmails.personalizedSolutions, 'Cold Email: Personalized Solutions', 1);
       if (result?.data?.emails) agentResults.coldEmails.personalizedSolutions = result.data.emails;
     }
 
-    if (agentIds.coldEmails?.leadMagnetShort) {
-      const result = await runAgent('sequence', agentIds.coldEmails.leadMagnetShort, 'Cold Email: Lead Magnet Short', 1);
-      if (result?.data?.emails) agentResults.coldEmails.leadMagnetShort = result.data.emails;
-    }
-
-    if (agentIds.coldEmails?.localCity) {
-      const result = await runAgent('sequence', agentIds.coldEmails.localCity, 'Cold Email: Local/Same City', 2);
-      if (result?.data?.emails) agentResults.coldEmails.localCity = result.data.emails;
-    }
-
     if (agentIds.coldEmails?.problemSolution) {
-      const result = await runAgent('sequence', agentIds.coldEmails.problemSolution, 'Cold Email: Problem/Solution', 3);
+      const result = await runAgent('sequence', agentIds.coldEmails.problemSolution, 'Cold Email: Problem/Solution', 2);
       if (result?.data?.emails) agentResults.coldEmails.problemSolution = result.data.emails;
     }
 
-    if (agentIds.coldEmails?.leadMagnetLong) {
-      const result = await runAgent('sequence', agentIds.coldEmails.leadMagnetLong, 'Cold Email: Lead Magnet Long', 4);
-      if (result?.data?.emails) agentResults.coldEmails.leadMagnetLong = result.data.emails;
+    if (agentIds.coldEmails?.localCity) {
+      const result = await runAgent('sequence', agentIds.coldEmails.localCity, 'Cold Email: Local/Same City', 3);
+      if (result?.data?.emails) agentResults.coldEmails.localCity = result.data.emails;
+    }
+
+    if (agentIds.coldEmails?.leadMagnetShort) {
+      const result = await runAgent('sequence', agentIds.coldEmails.leadMagnetShort, 'Cold Email: Lead Magnet Short', 4);
+      if (result?.data?.emails) agentResults.coldEmails.leadMagnetShort = result.data.emails;
     }
 
     // ============================================
