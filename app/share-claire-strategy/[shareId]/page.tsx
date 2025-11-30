@@ -479,28 +479,152 @@ export default function SharedStrategyPage() {
               <div className="bg-white rounded-lg shadow-lg p-8">
                 
                 {outputs.prospect_list && outputs.prospect_list.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {outputs.prospect_list.map((prospect: any, index: number) => (
-                          <tr key={index}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{prospect.company || 'N/A'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{prospect.name || 'N/A'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{prospect.title || 'N/A'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{prospect.location || 'N/A'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <>
+                    {(() => {
+                      // Prioritize prospects by contact information availability
+                      const prioritizedList = [...outputs.prospect_list].sort((a: any, b: any) => {
+                        // Priority 1: Both email and phone
+                        const aPriority1 = (a.email && a.mobile_number) ? 1 : 0;
+                        const bPriority1 = (b.email && b.mobile_number) ? 1 : 0;
+                        
+                        // Priority 2: Email only
+                        const aPriority2 = (a.email && !a.mobile_number) ? 1 : 0;
+                        const bPriority2 = (b.email && !b.mobile_number) ? 1 : 0;
+                        
+                        // Priority 3: Phone only
+                        const aPriority3 = (!a.email && a.mobile_number) ? 1 : 0;
+                        const bPriority3 = (!b.email && b.mobile_number) ? 1 : 0;
+                        
+                        // Calculate priority scores (higher is better)
+                        const aScore = aPriority1 * 4 + aPriority2 * 3 + aPriority3 * 2;
+                        const bScore = bPriority1 * 4 + bPriority2 * 3 + bPriority3 * 2;
+                        
+                        return bScore - aScore;
+                      });
+
+                      return (
+                        <div className="space-y-4">
+                          {prioritizedList.map((prospect: any, index: number) => {
+                            const hasEmailAndPhone = prospect.email && prospect.mobile_number;
+                            const hasEmailOnly = prospect.email && !prospect.mobile_number;
+                            const hasPhoneOnly = !prospect.email && prospect.mobile_number;
+                            
+                            return (
+                              <div key={index} className="bg-gray-50 p-5 rounded-lg border border-gray-200 hover:border-fo-primary transition-colors">
+                                <div className="grid md:grid-cols-2 gap-4">
+                                  {/* Left: Basic Info */}
+                                  <div>
+                                    <p className="font-semibold text-fo-primary text-lg">{prospect.name || `Prospect ${index + 1}`}</p>
+                                    <p className="text-sm text-gray-700 mt-1">{prospect.title || 'N/A'}</p>
+                                    <p className="text-sm text-gray-600 mt-1">{prospect.company || 'N/A'}</p>
+                                    {prospect.location && (
+                                      <p className="text-xs text-gray-500 mt-1">{prospect.location}</p>
+                                    )}
+                                    
+                                    {/* LinkedIn */}
+                                    {prospect.linkedIn && (
+                                      <a 
+                                        href={prospect.linkedIn} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-700 text-xs inline-flex items-center gap-1 mt-2"
+                                      >
+                                        <span>LinkedIn Profile</span>
+                                        <span>→</span>
+                                      </a>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Right: Contact Info */}
+                                  <div className="space-y-3">
+                                    {/* Priority Badge */}
+                                    <div className="inline-block">
+                                      {hasEmailAndPhone && (
+                                        <span className="text-xs font-semibold px-2 py-1 bg-green-100 text-green-700 rounded">
+                                          Priority 1: Full Contact Info
+                                        </span>
+                                      )}
+                                      {hasEmailOnly && (
+                                        <span className="text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                                          Priority 2: Email Available
+                                        </span>
+                                      )}
+                                      {hasPhoneOnly && (
+                                        <span className="text-xs font-semibold px-2 py-1 bg-purple-100 text-purple-700 rounded">
+                                          Priority 3: Phone Available
+                                        </span>
+                                      )}
+                                      {!prospect.email && !prospect.mobile_number && (
+                                        <span className="text-xs font-semibold px-2 py-1 bg-gray-100 text-gray-600 rounded">
+                                          Priority 4: No Contact Info
+                                        </span>
+                                      )}
+                                    </div>
+                                    
+                                    {/* Email */}
+                                    {prospect.email ? (
+                                      <div className="flex items-start gap-2">
+                                        <span className="text-green-600 text-sm font-bold">✓</span>
+                                        <div className="flex-1 min-w-0">
+                                          <div className="text-xs text-gray-500 font-semibold">Email</div>
+                                          <a 
+                                            href={`mailto:${prospect.email}`}
+                                            className="text-sm text-fo-primary hover:underline break-all font-medium"
+                                          >
+                                            {prospect.email}
+                                          </a>
+                                          {prospect.email_status && (
+                                            <span className={`text-xs ml-2 px-1.5 py-0.5 rounded ${
+                                              prospect.email_status === 'valid' || prospect.email_status === 'valid_catch_all' ? 'bg-green-100 text-green-700' :
+                                              'bg-gray-100 text-gray-600'
+                                            }`}>
+                                              {prospect.email_status === 'valid_catch_all' ? 'valid' : prospect.email_status.replace('_', ' ')}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-start gap-2">
+                                        <span className="text-gray-400 text-sm">✗</span>
+                                        <div className="flex-1">
+                                          <div className="text-xs text-gray-500">Email</div>
+                                          <div className="text-sm text-gray-400">Not found</div>
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {/* Mobile */}
+                                    {prospect.mobile_number ? (
+                                      <div className="flex items-start gap-2">
+                                        <span className="text-green-600 text-sm font-bold">✓</span>
+                                        <div className="flex-1">
+                                          <div className="text-xs text-gray-500 font-semibold">Mobile Phone</div>
+                                          <a 
+                                            href={`tel:${String(prospect.mobile_number).startsWith('+') ? prospect.mobile_number : `+${prospect.mobile_number}`}`}
+                                            className="text-sm text-fo-primary hover:underline font-medium"
+                                          >
+                                            {String(prospect.mobile_number).startsWith('+') ? prospect.mobile_number : `+${prospect.mobile_number}`}
+                                          </a>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-start gap-2">
+                                        <span className="text-gray-400 text-sm">✗</span>
+                                        <div className="flex-1">
+                                          <div className="text-xs text-gray-500">Mobile Phone</div>
+                                          <div className="text-sm text-gray-400">Not found</div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </>
                 ) : (
                   <ErrorPlaceholder assetType="Prospect List" />
                 )}

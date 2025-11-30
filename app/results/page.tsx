@@ -696,39 +696,70 @@ export default function ResultsPage() {
           {outputs.prospect_list && outputs.prospect_list.length > 0 ? (
             <>
               {(() => {
-                // FILTER: Senior decision-makers with contact info
-                const seniorityKeywords = ['owner', 'ceo', 'chief', 'president', 'vp', 'vice president', 'director', 'head', 'partner', 'operator', 'founder', 'managing', 'executive'];
-                
-                const fullyQualified = outputs.prospect_list.filter((p: any) => {
-                  // Must have at least email OR mobile
-                  const hasContact = p.email || p.mobile_number;
-                  
-                  // Must have senior title (contains any keyword)
-                  const titleLower = (p.title || '').toLowerCase();
-                  const isSenior = seniorityKeywords.some(keyword => titleLower.includes(keyword));
-                  
-                  return hasContact && isSenior;
+                // FILTER: Contacts with Priority 1-3 (have email and/or phone)
+                const qualifiedContacts = outputs.prospect_list.filter((p: any) => {
+                  // Priority 1-3: Must have at least email OR mobile
+                  return p.email || p.mobile_number;
                 });
 
-                // DEDUPLICATE: By company, keeping most senior person
+                // PRIORITIZE: Sort by contact info availability
+                const prioritized = qualifiedContacts.sort((a: any, b: any) => {
+                  // Priority 1: Both email and phone
+                  const aPriority1 = (a.email && a.mobile_number) ? 1 : 0;
+                  const bPriority1 = (b.email && b.mobile_number) ? 1 : 0;
+                  
+                  // Priority 2: Email only
+                  const aPriority2 = (a.email && !a.mobile_number) ? 1 : 0;
+                  const bPriority2 = (b.email && !b.mobile_number) ? 1 : 0;
+                  
+                  // Priority 3: Phone only
+                  const aPriority3 = (!a.email && a.mobile_number) ? 1 : 0;
+                  const bPriority3 = (!b.email && b.mobile_number) ? 1 : 0;
+                  
+                  // Calculate priority scores (higher is better)
+                  const aScore = aPriority1 * 4 + aPriority2 * 3 + aPriority3 * 2;
+                  const bScore = bPriority1 * 4 + bPriority2 * 3 + bPriority3 * 2;
+                  
+                  return bScore - aScore;
+                });
+
+                // DEDUPLICATE: By company, keeping most senior person with best contact info
                 const deduped = Object.values(
-                  fullyQualified.reduce((acc: any, prospect: any) => {
+                  prioritized.reduce((acc: any, prospect: any) => {
                     const company = prospect.company || 'Unknown';
                     
-                    // If company not seen yet, or this person is more senior
+                    // If company not seen yet, add it
                     if (!acc[company]) {
                       acc[company] = prospect;
                     } else {
-                      // Determine seniority by currentSeniority field or job title keywords
-                      const seniorityRanks: Record<string, number> = {
-                        'C-Level': 1, 'VP': 2, 'Director': 3, 'Manager': 4, 'Individual Contributor': 5
+                      // Calculate contact quality score
+                      const getContactScore = (p: any) => {
+                        if (p.email && p.mobile_number) return 4;
+                        if (p.email) return 3;
+                        if (p.mobile_number) return 2;
+                        return 1;
                       };
                       
-                      const currentSeniority = seniorityRanks[acc[company].currentSeniority] || 999;
-                      const newSeniority = seniorityRanks[prospect.currentSeniority] || 999;
+                      // Determine seniority
+                      const seniorityKeywords = ['owner', 'ceo', 'chief', 'president', 'vp', 'vice president', 'director', 'head', 'partner', 'operator', 'founder', 'managing', 'executive'];
+                      const getSeniorityScore = (p: any) => {
+                        const titleLower = (p.title || '').toLowerCase();
+                        if (titleLower.includes('ceo') || titleLower.includes('chief') || titleLower.includes('owner') || titleLower.includes('founder')) return 5;
+                        if (titleLower.includes('president') || titleLower.includes('partner')) return 4;
+                        if (titleLower.includes('vp') || titleLower.includes('vice president')) return 3;
+                        if (titleLower.includes('director') || titleLower.includes('head')) return 2;
+                        if (seniorityKeywords.some(k => titleLower.includes(k))) return 1;
+                        return 0;
+                      };
                       
-                      // Lower number = more senior
-                      if (newSeniority < currentSeniority) {
+                      const currentContactScore = getContactScore(acc[company]);
+                      const newContactScore = getContactScore(prospect);
+                      const currentSeniorityScore = getSeniorityScore(acc[company]);
+                      const newSeniorityScore = getSeniorityScore(prospect);
+                      
+                      // Keep the one with better contact info, or if tied, more senior
+                      if (newContactScore > currentContactScore || 
+                          (newContactScore === currentContactScore && newSeniorityScore > currentSeniorityScore)) {
                         acc[company] = prospect;
                       }
                     }
@@ -737,110 +768,155 @@ export default function ResultsPage() {
                   }, {})
                 );
 
-                // LIMIT: Show max 50 contacts
-                const finalList = deduped.slice(0, 50);
+                // LIMIT: Show max 100 contacts (increased from 50 to show more prospects)
+                const finalList = deduped.slice(0, 100);
+                
+                // Count by priority
+                const priority1Count = finalList.filter((p: any) => p.email && p.mobile_number).length;
+                const priority2Count = finalList.filter((p: any) => p.email && !p.mobile_number).length;
+                const priority3Count = finalList.filter((p: any) => !p.email && p.mobile_number).length;
                 
                 return (
                   <>
-                    <p className="text-gray-600 mb-4">
-                      Found <strong>{finalList.length}</strong> fully qualified prospects (with LinkedIn, Email, and Mobile)
-                    </p>
+                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-gray-800 font-semibold mb-2">
+                        Found <strong>{finalList.length}</strong> qualified prospects with contact information:
+                      </p>
+                      <div className="grid grid-cols-3 gap-3 text-sm">
+                        <div className="bg-white p-2 rounded border border-green-200">
+                          <div className="text-green-700 font-bold">{priority1Count}</div>
+                          <div className="text-gray-600 text-xs">Priority 1 (Email + Phone)</div>
+                        </div>
+                        <div className="bg-white p-2 rounded border border-blue-200">
+                          <div className="text-blue-700 font-bold">{priority2Count}</div>
+                          <div className="text-gray-600 text-xs">Priority 2 (Email Only)</div>
+                        </div>
+                        <div className="bg-white p-2 rounded border border-purple-200">
+                          <div className="text-purple-700 font-bold">{priority3Count}</div>
+                          <div className="text-gray-600 text-xs">Priority 3 (Phone Only)</div>
+                        </div>
+                      </div>
+                    </div>
                     
                     <div className="space-y-3">
-                      {finalList.map((prospect: any, index: number) => (
-                  <div key={index} className="bg-fo-light p-4 rounded-lg border border-gray-200 hover:border-fo-primary transition-colors">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {/* Left: Basic Info */}
-                      <div>
-                        <p className="font-semibold text-fo-primary">{prospect.name || `Prospect ${index + 1}`}</p>
-                        <p className="text-sm text-fo-secondary">{prospect.title}</p>
-                        <p className="text-sm text-gray-500">{prospect.company}</p>
+                      {finalList.map((prospect: any, index: number) => {
+                        const hasEmailAndPhone = prospect.email && prospect.mobile_number;
+                        const hasEmailOnly = prospect.email && !prospect.mobile_number;
+                        const hasPhoneOnly = !prospect.email && prospect.mobile_number;
                         
-                        {/* LinkedIn */}
-                        {prospect.linkedIn && (
-                          <a 
-                            href={prospect.linkedIn} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-700 text-xs inline-flex items-center gap-1 mt-2"
-                          >
-                            <span>LinkedIn</span>
-                            <span>→</span>
-                          </a>
-                        )}
-                      </div>
-                      
-                      {/* Right: Contact Info (ENRICHED DATA!) */}
-                      <div className="space-y-2">
-                        {/* Email */}
-                        {prospect.email ? (
-                          <div className="flex items-start gap-2">
-                            <span className="text-green-600 text-sm">✓</span>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-gray-500">Email</div>
-                              <a 
-                                href={`mailto:${prospect.email}`}
-                                className="text-sm text-fo-primary hover:underline break-all"
-                              >
-                                {prospect.email}
-                              </a>
-                              {prospect.email_status && (
-                                <span className={`text-xs ml-2 px-1.5 py-0.5 rounded ${
-                                  prospect.email_status === 'valid' || prospect.email_status === 'valid_catch_all' ? 'bg-green-100 text-green-700' :
-                                  'bg-gray-100 text-gray-600'
-                                }`}>
-                                  {prospect.email_status === 'valid_catch_all' ? 'valid' : prospect.email_status.replace('_', ' ')}
-                                </span>
+                        return (
+                        <div key={index} className="bg-fo-light p-4 rounded-lg border border-gray-200 hover:border-fo-primary transition-colors">
+                          <div className="grid md:grid-cols-2 gap-4">
+                            {/* Left: Basic Info */}
+                            <div>
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <p className="font-semibold text-fo-primary">{prospect.name || `Prospect ${index + 1}`}</p>
+                                {/* Priority Badge */}
+                                {hasEmailAndPhone && (
+                                  <span className="text-xs font-semibold px-2 py-1 bg-green-100 text-green-700 rounded whitespace-nowrap">
+                                    Priority 1
+                                  </span>
+                                )}
+                                {hasEmailOnly && (
+                                  <span className="text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-700 rounded whitespace-nowrap">
+                                    Priority 2
+                                  </span>
+                                )}
+                                {hasPhoneOnly && (
+                                  <span className="text-xs font-semibold px-2 py-1 bg-purple-100 text-purple-700 rounded whitespace-nowrap">
+                                    Priority 3
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-fo-secondary">{prospect.title}</p>
+                              <p className="text-sm text-gray-500">{prospect.company}</p>
+                              
+                              {/* LinkedIn */}
+                              {prospect.linkedIn && (
+                                <a 
+                                  href={prospect.linkedIn} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-700 text-xs inline-flex items-center gap-1 mt-2"
+                                >
+                                  <span>LinkedIn</span>
+                                  <span>→</span>
+                                </a>
+                              )}
+                            </div>
+                            
+                            {/* Right: Contact Info (ENRICHED DATA!) */}
+                            <div className="space-y-2">
+                              {/* Email */}
+                              {prospect.email ? (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-green-600 text-sm font-bold">✓</span>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-xs text-gray-500 font-semibold">Email</div>
+                                    <a 
+                                      href={`mailto:${prospect.email}`}
+                                      className="text-sm text-fo-primary hover:underline break-all"
+                                    >
+                                      {prospect.email}
+                                    </a>
+                                    {prospect.email_status && (
+                                      <span className={`text-xs ml-2 px-1.5 py-0.5 rounded ${
+                                        prospect.email_status === 'valid' || prospect.email_status === 'valid_catch_all' ? 'bg-green-100 text-green-700' :
+                                        'bg-gray-100 text-gray-600'
+                                      }`}>
+                                        {prospect.email_status === 'valid_catch_all' ? 'valid' : prospect.email_status.replace('_', ' ')}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-gray-400 text-sm">✗</span>
+                                  <div className="flex-1">
+                                    <div className="text-xs text-gray-500">Email</div>
+                                    <div className="text-sm text-gray-400">Not found</div>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Mobile */}
+                              {prospect.mobile_number ? (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-green-600 text-sm font-bold">✓</span>
+                                  <div className="flex-1">
+                                    <div className="text-xs text-gray-500 font-semibold">Mobile</div>
+                                    <a 
+                                      href={`tel:${String(prospect.mobile_number).startsWith('+') ? prospect.mobile_number : `+${prospect.mobile_number}`}`}
+                                      className="text-sm text-fo-primary hover:underline"
+                                    >
+                                      {String(prospect.mobile_number).startsWith('+') ? prospect.mobile_number : `+${prospect.mobile_number}`}
+                                    </a>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-gray-400 text-sm">✗</span>
+                                  <div className="flex-1">
+                                    <div className="text-xs text-gray-500">Mobile</div>
+                                    <div className="text-sm text-gray-400">Not found</div>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Email Provider */}
+                              {prospect.enrichment_data?.mx_provider && (
+                                <div className="pt-2 border-t border-gray-200">
+                                  <div className="text-xs text-gray-500 mb-0.5">Email Provider</div>
+                                  <div className="text-sm text-gray-700 capitalize">
+                                    {prospect.enrichment_data.mx_provider}
+                                  </div>
+                                </div>
                               )}
                             </div>
                           </div>
-                        ) : (
-                          <div className="flex items-start gap-2">
-                            <span className="text-gray-400 text-sm">✗</span>
-                            <div className="flex-1">
-                              <div className="text-xs text-gray-500">Email</div>
-                              <div className="text-sm text-gray-400">Not found</div>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Mobile */}
-                        {prospect.mobile_number ? (
-                          <div className="flex items-start gap-2">
-                            <span className="text-green-600 text-sm">✓</span>
-                            <div className="flex-1">
-                              <div className="text-xs text-gray-500">Mobile</div>
-                              <a 
-                                href={`tel:${String(prospect.mobile_number).startsWith('+') ? prospect.mobile_number : `+${prospect.mobile_number}`}`}
-                                className="text-sm text-fo-primary hover:underline"
-                              >
-                                {String(prospect.mobile_number).startsWith('+') ? prospect.mobile_number : `+${prospect.mobile_number}`}
-                              </a>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-start gap-2">
-                            <span className="text-gray-400 text-sm">✗</span>
-                            <div className="flex-1">
-                              <div className="text-xs text-gray-500">Mobile</div>
-                              <div className="text-sm text-gray-400">Not found</div>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Email Provider */}
-                        {prospect.enrichment_data?.mx_provider && (
-                          <div className="pt-2 border-t border-gray-200">
-                            <div className="text-xs text-gray-500 mb-0.5">Email Provider</div>
-                            <div className="text-sm text-gray-700 capitalize">
-                              {prospect.enrichment_data.mx_provider}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </>
                 );
