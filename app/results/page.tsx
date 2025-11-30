@@ -60,10 +60,10 @@ const ErrorPlaceholder = ({ assetType }: { assetType: string }) => (
   <div className="bg-gradient-to-br from-fo-light to-white border-l-4 border-fo-orange rounded-lg p-6 shadow-sm">
     <div className="text-fo-orange mb-3 font-bold text-lg flex items-center gap-2">
       <span>⚠️</span>
-      <span>Need more context</span>
+      <span>Additional Information Required</span>
     </div>
     <p className="text-fo-text-secondary text-sm">
-      I need more details to create <strong>{assetType}</strong>. Book a GTM Kickoff Call to review together.
+      I need more details to create <strong>{assetType}</strong> you&apos;d be happy with. If you need help with this, Book a Call, and we can fix it together.
     </p>
   </div>
 );
