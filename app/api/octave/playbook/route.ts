@@ -114,10 +114,15 @@ export async function POST(request: NextRequest) {
         const playbookOId = response.data?.playbook?.oId || response.data?.oId;
         
         console.log(`✅ Created playbook ${i + 1}: ${segment.name} Sales Playbook (${playbookOId})`);
+        
+        // Extract description from Octave response
+        const playbookDescription = response.data?.playbook?.description || response.data?.description || playbookRequest.description;
+        
         createdPlaybooks.push({
           index: i,
           segmentName: segment.name,
           playbookName: `${segment.name} Sales Playbook`,
+          description: playbookDescription,
           oId: playbookOId,
           referencesIncluded: matchingReferences.length,
           referenceNames: referenceNames,

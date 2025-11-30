@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
     // ============================================
     const campaignIdeas = createdPlaybooks.map((playbook: any) => ({
       title: playbook.playbookName || `${playbook.segmentName} Campaign`,
-      description: `Targeted outreach campaign for ${playbook.segmentName} companies`,
+      description: playbook.data?.playbook?.description || playbook.data?.description || `Targeted outreach campaign for ${playbook.segmentName} companies`,
       // Include full playbook details for appendix display
       segmentName: playbook.segmentName,
       oId: playbook.oId,
