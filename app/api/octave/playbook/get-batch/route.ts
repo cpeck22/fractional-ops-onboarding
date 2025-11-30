@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`📖 Fetching ${playbookOIds.length} playbooks from Octave...`);
 
-    const playbooks = [];
+    const playbooks: any[] = [];
     
     // Fetch playbooks in parallel for better performance
     // Limit concurrency if needed, but for small batches (e.g. < 10), Promise.all is fine
