@@ -24,16 +24,16 @@ interface QuestionnaireFormProps {
 
 // Claire's Video URLs mapped to each section (with proper Google Drive embed permissions)
 const SECTION_VIDEO_URLS: Record<string, string> = {
-  companyInfo: 'https://drive.google.com/file/d/18iFGVasRYZEXnUXX6tsyTw6hWa54Mc0H/preview', // Section 1
-  whatYouDo: 'https://drive.google.com/file/d/1ePtt9sLrMxJwJZgmTHWuCEEHPZZ90Gld/preview', // Section 2
-  howYouDoIt: 'https://drive.google.com/file/d/1kbHdmh8VD74E3x0ElCPoX4WKYBGD3oma/preview', // Section 3
-  whatYouDeliver: 'https://drive.google.com/file/d/1aGy0467_vwhEhN8yba1j1UNU8qrR62z4/preview', // Section 4
-  creatingDesire: 'https://drive.google.com/file/d/1aCmO4daWvQfn6WcvBvCvksnnBOBIe3Wp/preview', // Section 5
-  yourBuyers: 'https://drive.google.com/file/d/1jUKuE22v25AwEB51aNEMUfXktwRlPbab/preview', // Section 6
-  socialProof: 'https://drive.google.com/file/d/1PmZnHiQv4dKBr0WrKV90hH3sXjnUpIEZ/preview', // Section 7
-  positioning: 'https://drive.google.com/file/d/199jJPE9vATJgB1Y75Uy-UVvzTW7DOw-r/preview', // Section 8
-  leadMagnets: 'https://drive.google.com/file/d/1s4urxySLU8nj3ozDgOER3geTiEs4nyOj/preview', // Section 9
-  brandExamples: 'https://drive.google.com/file/d/1qCJ8ggOedeMS5HKd58WCUPv4xPzOO38k/preview', // Section 10
+  companyInfo: 'https://drive.google.com/file/d/1fNooGo0t8oZsqNrevlO_VWBJMYEcnOmA/preview', // Section 1
+  whatYouDo: 'https://drive.google.com/file/d/1wwtIa0UBVv4QsKWB9qSE92HF5q4IsCA-/preview', // Section 2
+  howYouDoIt: 'https://drive.google.com/file/d/1ol8JLmq7DzZJv1pl1ZgZzhXZPWK5qzff/preview', // Section 3
+  whatYouDeliver: 'https://drive.google.com/file/d/1ZZu3VfFnCFinLJYZjNQy19HgMLxZGW6N/preview', // Section 4
+  creatingDesire: 'https://drive.google.com/file/d/1HhjxjxJdPMGJpRh7gkgPi-ZcfQqzxwFz/preview', // Section 5
+  yourBuyers: 'https://drive.google.com/file/d/1gyNIxCiUYkV7HZUB1pX3A2Wcr2sb7nqY/preview', // Section 6
+  socialProof: 'https://drive.google.com/file/d/1gyNIxCiUYkV7HZUB1pX3A2Wcr2sb7nqY/preview', // Section 7
+  positioning: 'https://drive.google.com/file/d/1BSkZIpRHtGuNkEztTTfCcFY2EONuXHHm/preview', // Section 8
+  leadMagnets: 'https://drive.google.com/file/d/1w8w_yg4HypKjjTx5DDw3X42Z4FM8avqa/preview', // Section 9
+  brandExamples: 'https://drive.google.com/file/d/1DDUu2WnUdUpQqaiad0PXvwR8hn3E7P5I/preview', // Section 10
 };
 
 const sectionFields: Record<string, Array<{key: string, label: string, placeholder: string, type: 'text' | 'textarea' | 'dropdown' | 'multiselect' | 'file' | 'client-references' | 'competitors', required?: boolean, description?: string, example?: string, options?: string[], questionNumber?: number}>> = {

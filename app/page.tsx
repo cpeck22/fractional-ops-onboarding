@@ -62,7 +62,7 @@ export default function Home() {
           </h2>
           <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md relative">
             <iframe
-              src="https://drive.google.com/file/d/1oqfYYd2P6dxUdxMA55GjzS5YcKfo4iD2/preview"
+              src="https://drive.google.com/file/d/1mK4Z7Sp8_t9gU3_WCO5QWmORl4dQXekw/preview"
               className="w-full h-full"
               allow="autoplay"
               allowFullScreen
