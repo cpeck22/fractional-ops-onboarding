@@ -52,6 +52,7 @@ interface OctaveOutputs {
   segments?: any[];
   competitors?: any[];
   created_at: string;
+  workspace_api_key?: string;
 }
 
 interface ShareData {
@@ -80,6 +81,7 @@ export default function SharedStrategyPage() {
   const shareId = params.shareId as string;
   const [shareData, setShareData] = useState<ShareData | null>(null);
   const [outputs, setOutputs] = useState<OctaveOutputs | null>(null);
+  const [enrichedCampaignIdeas, setEnrichedCampaignIdeas] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [expired, setExpired] = useState(false);
   const [activeEmailTab, setActiveEmailTab] = useState('leadMagnetLong');
@@ -148,6 +150,62 @@ export default function SharedStrategyPage() {
 
     loadSharedStrategy();
   }, [shareId]);
+
+  // Fetch fresh playbook data when outputs are loaded
+  useEffect(() => {
+    async function enrichPlaybooks() {
+      if (!outputs?.campaign_ideas || outputs.campaign_ideas.length === 0) return;
+      if (!outputs?.workspace_api_key) return;
+      
+      // Extract playbook oIds
+      const playbookOIds = outputs.campaign_ideas
+        .map((idea: any) => idea.oId)
+        .filter((oId: string) => oId);
+      
+      if (playbookOIds.length === 0) return;
+      
+      console.log('🔄 Fetching fresh playbook data from Octave...');
+      
+      try {
+        const response = await fetch('/api/octave/playbook/get-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            playbookOIds,
+            workspaceApiKey: outputs.workspace_api_key
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.playbooks) {
+          // Merge fresh data with existing campaign_ideas
+          const enriched = outputs.campaign_ideas.map((idea: any) => {
+            const freshData = result.playbooks.find((p: any) => p.oId === idea.oId);
+            if (freshData) {
+              return {
+                ...idea,
+                ...freshData,
+                // Keep original fields that might not be in Octave response
+                title: idea.title,
+                segmentName: idea.segmentName,
+                referencesIncluded: idea.referencesIncluded,
+                referenceNames: idea.referenceNames
+              };
+            }
+            return idea;
+          });
+          
+          setEnrichedCampaignIdeas(enriched);
+          console.log('✅ Successfully enriched playbook data');
+        }
+      } catch (error) {
+        console.error('⚠️ Failed to enrich playbooks, using cached data:', error);
+      }
+    }
+    
+    enrichPlaybooks();
+  }, [outputs]);
 
   // Scroll tracking for navigation
   useEffect(() => {
@@ -1613,7 +1671,7 @@ export default function SharedStrategyPage() {
                       Sales playbooks created from your segments, personas, and use cases
                     </p>
                     <div className="space-y-6">
-                      {outputs.campaign_ideas.map((playbook: any, index: number) => (
+                      {(enrichedCampaignIdeas || outputs.campaign_ideas).map((playbook: any, index: number) => (
                         <div key={index} className="bg-white p-5 rounded-lg border border-blue-200 shadow-sm">
                           <div className="flex items-start justify-between mb-3">
                             <h4 className="font-bold text-lg text-fo-primary">{playbook.title}</h4>
