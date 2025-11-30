@@ -55,29 +55,26 @@ export default function ClaireVideoPlaceholder({
 
   return (
     <div className="bg-gradient-to-r from-fo-light to-white rounded-lg p-6 mb-8 border-2 border-fo-primary shadow-lg">
-      {/* Section Info at Top */}
-      <div className="mb-4">
-        <h3 className="text-xl font-bold text-fo-primary mb-2">
-          {sectionTitle}
-        </h3>
-        <p className="text-sm text-fo-text-secondary leading-relaxed">
-          {sectionDescription}
-        </p>
-      </div>
-      
       {/* Video Container - Centered with 16:9 Aspect Ratio */}
       <div className="w-full max-w-2xl mx-auto">
         <div className="relative w-full" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
           <div className="absolute inset-0 bg-gradient-to-br from-fo-primary to-fo-secondary rounded-lg overflow-hidden shadow-xl">
             {videoUrl && !videoError ? (
-              <iframe
-                ref={videoRef}
-                src={videoUrl}
-                className="w-full h-full"
-                allow="autoplay"
-                allowFullScreen
-                style={{ border: 'none' }}
-              />
+              <>
+                <iframe
+                  ref={videoRef}
+                  src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}vq=hd1080`}
+                  className="w-full h-full"
+                  allow="autoplay"
+                  allowFullScreen
+                  style={{ border: 'none' }}
+                />
+                {/* Overlay to block download button in top-right corner */}
+                <div 
+                  className="absolute top-0 right-0 w-16 h-16 bg-transparent z-10"
+                  onClick={(e) => e.preventDefault()}
+                />
+              </>
             ) : (
               <div className="relative w-full h-full flex items-center justify-center">
                 <Image

@@ -60,13 +60,18 @@ export default function Home() {
           <h2 className="text-xl font-bold text-blue-600 mb-4 text-center">
             👇 Why is there a Login?!
           </h2>
-          <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md">
+          <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md relative">
             <iframe
               src="https://drive.google.com/file/d/1oqfYYd2P6dxUdxMA55GjzS5YcKfo4iD2/preview"
               className="w-full h-full"
               allow="autoplay"
               allowFullScreen
               style={{ border: 'none' }}
+            />
+            {/* Overlay to block download button in top-right corner */}
+            <div 
+              className="absolute top-0 right-0 w-16 h-16 bg-transparent z-10"
+              onClick={(e) => e.preventDefault()}
             />
           </div>
         </div>
