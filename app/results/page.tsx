@@ -6,8 +6,10 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import toast from 'react-hot-toast';
 import ClaireImage from '../Claire_v2.png';
 import SectionIntro from '@/components/SectionIntro';
+import StrategyTimer from '@/components/StrategyTimer';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -69,6 +71,8 @@ export default function ResultsPage() {
   const [outputs, setOutputs] = useState<OctaveOutputs | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [shareLink, setShareLink] = useState<{ shareId: string; expiresAt: string } | null>(null);
+  const [creatingShare, setCreatingShare] = useState(false);
   const [activeEmailTab, setActiveEmailTab] = useState('personalizedSolutions');
   const [activePostTab, setActivePostTab] = useState('inspiring');
   const [activeDMTab, setActiveDMTab] = useState('newsletter');
@@ -143,7 +147,31 @@ export default function ResultsPage() {
 
   useEffect(() => {
     loadResults();
+    checkExistingShare();
   }, []);
+
+  const checkExistingShare = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: share, error } = await supabase
+        .from('shared_strategies')
+        .select('share_id, expires_at')
+        .eq('user_id', user.id)
+        .single();
+
+      if (share && !error) {
+        console.log('✅ Existing share link found:', share.share_id);
+        setShareLink({
+          shareId: share.share_id,
+          expiresAt: share.expires_at
+        });
+      }
+    } catch (error) {
+      console.log('No existing share link found');
+    }
+  };
 
   const loadResults = async () => {
     try {
@@ -297,6 +325,50 @@ export default function ResultsPage() {
       alert('Failed to download PDF. Please try again.');
     } finally {
       setDownloadingPDF(false);
+    }
+  };
+
+  const handleShareStrategy = async () => {
+    try {
+      setCreatingShare(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        alert('Please sign in to share your strategy');
+        return;
+      }
+
+      const response = await fetch('/api/share-strategy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setShareLink({
+          shareId: result.shareId,
+          expiresAt: result.expiresAt
+        });
+
+        // Copy link to clipboard
+        const shareUrl = `${window.location.origin}/share-claire-strategy/${result.shareId}`;
+        await navigator.clipboard.writeText(shareUrl);
+        
+        if (result.alreadyExists) {
+          toast.success('Share link copied to clipboard!');
+        } else {
+          toast.success('Share link created and copied to clipboard!');
+        }
+      } else {
+        toast.error('Failed to create share link');
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+      toast.error('Failed to create share link');
+    } finally {
+      setCreatingShare(false);
     }
   };
 
@@ -524,22 +596,31 @@ export default function ResultsPage() {
                 })}
               </p>
             </div>
-            <button
-              onClick={handleDownloadPDF}
-              disabled={downloadingPDF}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap shadow-lg"
-            >
-              {downloadingPDF ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Generating...
-                </>
-              ) : (
-                <>
-                  Download Report
-                </>
-              )}
-            </button>
+            
+            {/* Conditional: Show Timer if shared, otherwise Show Share Button */}
+            {shareLink ? (
+              <StrategyTimer expiresAt={shareLink.expiresAt} showCTA={true} />
+            ) : (
+              <button
+                onClick={handleShareStrategy}
+                disabled={creatingShare}
+                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap shadow-lg"
+              >
+                {creatingShare ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Creating Link...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                    Share Strategy
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
 
