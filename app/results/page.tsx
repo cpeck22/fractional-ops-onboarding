@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import ClaireImage from '../Claire_v2.png';
 import SectionIntro from '@/components/SectionIntro';
 
@@ -974,9 +975,7 @@ export default function ResultsPage() {
                     <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed [&_.inline-question]:not-prose">
                       <ReactMarkdown 
                         remarkPlugins={[remarkGfm]}
-                        components={{
-                          div: ({node, ...props}) => <div {...props} />,
-                        }}
+                        rehypePlugins={[rehypeRaw]}
                       >
                         {outputs.call_prep.callScript
                           .replace(/\\n/g, '\n')                  // Convert escaped newlines
