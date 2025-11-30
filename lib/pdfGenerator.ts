@@ -1,5 +1,7 @@
 import { jsPDF } from 'jspdf';
 import { QuestionnaireData } from '@/types';
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface PDFData {
   email: string;
@@ -74,6 +76,26 @@ export function generateQuestionnairePDF(data: PDFData): Buffer {
   const maxWidth = pageWidth - (margin * 2);
   let yPosition = margin;
   
+  // Load logo as base64
+  let logoBase64 = '';
+  try {
+    const logoPath = path.join(process.cwd(), 'app', 'Fractional-Ops_Symbol_Main- 2.png');
+    const logoBuffer = fs.readFileSync(logoPath);
+    logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+  } catch (error) {
+    console.warn('⚠️ Could not load logo for PDF:', error);
+  }
+  
+  // Add logo to top right
+  // Logo aspect ratio: 1840 x 289 = 6.37:1 (width:height)
+  if (logoBase64) {
+    const logoHeight = 10; // mm
+    const logoWidth = logoHeight * 6.37; // Maintain aspect ratio (~64mm)
+    doc.addImage(logoBase64, 'PNG', pageWidth - margin - logoWidth, margin, logoWidth, logoHeight);
+  }
+  
+  yPosition += 5; // Add space after logo
+  
   // Helper function to add text and handle page breaks
   const addText = (text: string, fontSize: number = 10, isBold: boolean = false) => {
     doc.setFontSize(fontSize);
@@ -95,10 +117,10 @@ export function generateQuestionnairePDF(data: PDFData): Buffer {
     yPosition += space;
   };
   
-  // Title - matching Review page
+  // Title
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('Review Our Ops Transformation System™', margin, yPosition);
+  doc.text('10 Steps to Sales Excellence Questionnaire', margin, yPosition);
   yPosition += 10;
   
   // Loop through sections - matching Review page structure
