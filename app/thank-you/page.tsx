@@ -125,7 +125,7 @@ export default function ThankYouPage() {
           </h2>
           <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md mb-6 relative">
             <iframe
-              src="https://drive.google.com/file/d/1dwl4jfsXEZdujPDJwBUOGEVFmdadHdxC/preview"
+              src="https://drive.google.com/file/d/1lJ6Ur1sonko5DmCqAUW5N_LobfMlkopJ/preview"
               className="w-full h-full"
               allow="autoplay"
               allowFullScreen
