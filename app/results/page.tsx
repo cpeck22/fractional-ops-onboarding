@@ -775,34 +775,12 @@ export default function ResultsPage() {
                   <>
                     <div className="space-y-3">
                       {finalList.map((prospect: any, index: number) => {
-                        const hasEmailAndPhone = prospect.email && prospect.mobile_number;
-                        const hasEmailOnly = prospect.email && !prospect.mobile_number;
-                        const hasPhoneOnly = !prospect.email && prospect.mobile_number;
-                        
                         return (
                         <div key={index} className="bg-fo-light p-4 rounded-lg border border-gray-200 hover:border-fo-primary transition-colors">
                           <div className="grid md:grid-cols-2 gap-4">
                             {/* Left: Basic Info */}
                             <div>
-                              <div className="flex items-start justify-between gap-2 mb-2">
-                                <p className="font-semibold text-fo-primary">{prospect.name || `Prospect ${index + 1}`}</p>
-                                {/* Priority Badge */}
-                                {hasEmailAndPhone && (
-                                  <span className="text-xs font-semibold px-2 py-1 bg-green-100 text-green-700 rounded whitespace-nowrap">
-                                    Priority 1
-                                  </span>
-                                )}
-                                {hasEmailOnly && (
-                                  <span className="text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-700 rounded whitespace-nowrap">
-                                    Priority 2
-                                  </span>
-                                )}
-                                {hasPhoneOnly && (
-                                  <span className="text-xs font-semibold px-2 py-1 bg-purple-100 text-purple-700 rounded whitespace-nowrap">
-                                    Priority 3
-                                  </span>
-                                )}
-                              </div>
+                              <p className="font-semibold text-fo-primary mb-1">{prospect.name || `Prospect ${index + 1}`}</p>
                               <p className="text-sm text-fo-secondary">{prospect.title}</p>
                               <p className="text-sm text-gray-500">{prospect.company}</p>
                               
