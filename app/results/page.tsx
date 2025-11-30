@@ -955,45 +955,26 @@ export default function ResultsPage() {
                       <ReactMarkdown 
                         remarkPlugins={[remarkBreaks]}
                         components={{
-                          // Custom renderer for headings to detect "Questions to Ask"
-                          h3: ({node, children, ...props}) => {
-                            const text = children?.toString() || '';
-                            if (text.includes('Questions to Ask') || text.includes('Discovery Questions')) {
-                              return (
-                                <div className="not-prose my-6">
-                                  <h3 className="font-semibold text-white bg-gray-800 px-4 py-3 rounded-t-lg mb-0">
-                                    {children}
-                                  </h3>
-                                </div>
-                              );
-                            }
-                            return <h3 {...props}>{children}</h3>;
-                          },
-                          // Custom renderer for unordered lists that might contain questions
-                          ul: ({node, children, ...props}) => {
-                            // Check if we're under a "Questions to Ask" section
-                            const nodeText = node?.children?.map((child: any) => 
-                              child.children?.map((c: any) => c.value).join('')
-                            ).join('') || '';
-                            
-                            if (nodeText.includes('?') && nodeText.length > 50) {
-                              return <div className="not-prose space-y-3 mb-6">{children}</div>;
-                            }
-                            return <ul {...props}>{children}</ul>;
-                          },
-                          // Custom renderer for list items under Questions
-                          li: ({node, children, ...props}) => {
+                          // Custom renderer for paragraphs to detect "Questions:" lines
+                          p: ({node, children, ...props}) => {
                             const text = children?.toString() || '';
                             
-                            // If the list item looks like a question (contains ? and is long)
-                            if (text.includes('?') && text.length > 30) {
-                              return (
-                                <li className="bg-gray-800 text-white p-4 rounded-lg list-none mb-3" {...props}>
-                                  {children}
-                                </li>
-                              );
+                            // Check if this paragraph starts with "Questions:" (with or without bold)
+                            if (text.includes('Questions:')) {
+                              // Split the text at "Questions:"
+                              const parts = text.split('Questions:');
+                              if (parts.length > 1 && parts[1].trim()) {
+                                return (
+                                  <div className="not-prose my-4">
+                                    <p className="font-semibold text-gray-900 mb-2">Questions:</p>
+                                    <div className="bg-gray-800 text-white p-4 rounded-lg">
+                                      <p className="text-sm leading-relaxed m-0">{parts[1].trim()}</p>
+                                    </div>
+                                  </div>
+                                );
+                              }
                             }
-                            return <li {...props}>{children}</li>;
+                            return <p {...props}>{children}</p>;
                           }
                         }}
                       >
