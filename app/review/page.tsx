@@ -301,7 +301,7 @@ export default function ReviewPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-fo-primary mb-2">
-            Review Our Ops Transformation System™
+            Review Before Submitting
           </h1>
           <p className="text-fo-text-secondary text-sm">
             Please review all our answers before submitting to create our Octave workspace.
