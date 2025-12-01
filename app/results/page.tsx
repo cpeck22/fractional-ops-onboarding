@@ -1285,10 +1285,42 @@ export default function ResultsPage() {
                       <ReactMarkdown 
                         remarkPlugins={[remarkGfm]}
                         components={{
-                          h1: ({node, ...props}) => <h1 {...props} className="text-xl font-bold underline text-purple-700 mb-4" />,
-                          h2: ({node, ...props}) => <h2 {...props} className="text-lg font-bold underline text-purple-700 mb-3" />,
-                          h3: ({node, ...props}) => <h3 {...props} className="text-md font-bold underline text-purple-700 mb-2" />,
-                          strong: ({node, ...props}) => <strong {...props} className="font-bold underline text-purple-700" />,
+                          h1: ({node, children, ...props}) => {
+                            const text = String(children);
+                            const isObjectionHeader = text.startsWith('Objection');
+                            return (
+                              <h1 {...props} className={`text-xl font-bold mb-4 ${isObjectionHeader ? 'underline text-purple-700' : 'text-gray-900'}`}>
+                                {children}
+                              </h1>
+                            );
+                          },
+                          h2: ({node, children, ...props}) => {
+                            const text = String(children);
+                            const isObjectionHeader = text.startsWith('Objection');
+                            return (
+                              <h2 {...props} className={`text-lg font-bold mb-3 ${isObjectionHeader ? 'underline text-purple-700' : 'text-gray-900'}`}>
+                                {children}
+                              </h2>
+                            );
+                          },
+                          h3: ({node, children, ...props}) => {
+                            const text = String(children);
+                            const isObjectionHeader = text.startsWith('Objection');
+                            return (
+                              <h3 {...props} className={`text-md font-bold mb-2 ${isObjectionHeader ? 'underline text-purple-700' : 'text-gray-900'}`}>
+                                {children}
+                              </h3>
+                            );
+                          },
+                          strong: ({node, children, ...props}) => {
+                            const text = String(children);
+                            const isObjectionHeader = text.startsWith('Objection');
+                            return (
+                              <strong {...props} className={`font-bold ${isObjectionHeader ? 'underline text-purple-700' : 'text-gray-900'}`}>
+                                {children}
+                              </strong>
+                            );
+                          },
                         }}
                       >
                         {outputs.call_prep.objectionHandling
