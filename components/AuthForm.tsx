@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase, signInWithEmail, signUpWithEmail, signOut, getCurrentUser, checkEmailExists } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import toast from 'react-hot-toast';
+import TermsAndConditionsModal from './TermsAndConditionsModal';
 
 interface AuthFormProps {
   onAuthSuccess: () => void;
@@ -21,6 +22,7 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [emailExists, setEmailExists] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   useEffect(() => {
     console.log('🔐 AuthForm: Setting up auth listeners...');
@@ -300,9 +302,13 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
               </div>
               <label htmlFor="terms" className="text-xs text-gray-600 leading-relaxed">
                 By checking this box, I confirm that I have read, understand, and agree to be legally bound by all{' '}
-                <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
+                <button 
+                  type="button"
+                  onClick={() => setShowTermsModal(true)}
+                  className="text-blue-600 hover:underline font-medium bg-transparent border-none p-0 inline cursor-pointer"
+                >
                   Terms and Conditions
-                </a>, including all policies and documents referenced within them. I further confirm that I have the authority to bind my organization to these Terms.
+                </button>, including all policies and documents referenced within them. I further confirm that I have the authority to bind my organization to these Terms.
               </label>
             </div>
           </>
@@ -311,13 +317,13 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
         <button
           type="submit"
           disabled={loading || (!isLogin && (password !== confirmPassword || !termsAccepted))}
-          className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors mb-4"
         >
           {loading ? 'Please wait...' : (isLogin ? 'Sign In' : (emailExists ? 'Sign In Instead' : 'Start Now'))}
         </button>
       </form>
 
-      <div className="text-center">
+      <div className="text-center mt-6">
         <button
           onClick={() => {
             if (isLogin) {
@@ -333,6 +339,14 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
           {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign In"}
         </button>
       </div>
+
+      {/* Terms Modal */}
+      {showTermsModal && (
+        <TermsAndConditionsModal
+          readOnly={true}
+          onClose={() => setShowTermsModal(false)}
+        />
+      )}
     </div>
   );
 }

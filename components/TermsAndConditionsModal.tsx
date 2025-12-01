@@ -5,22 +5,26 @@ import { useState } from 'react';
 import { recordTermsAcceptance } from '@/lib/supabase';
 
 interface TermsModalProps {
-  userId: string;
-  userEmail: string;
-  onAccept: () => void;
+  userId?: string;
+  userEmail?: string;
+  onAccept?: () => void;
+  onClose?: () => void;
+  readOnly?: boolean;
 }
 
-export default function TermsAndConditionsModal({ userId, userEmail, onAccept }: TermsModalProps) {
+export default function TermsAndConditionsModal({ userId, userEmail, onAccept, onClose, readOnly = false }: TermsModalProps) {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [accepting, setAccepting] = useState(false);
 
   const TERMS_VERSION = '1.0'; // Update this when T&C changes
 
   const handleAccept = async () => {
+    if (readOnly) return;
+    
     setAccepting(true);
     try {
       await recordTermsAcceptance(TERMS_VERSION);
-      onAccept();
+      if (onAccept) onAccept();
     } catch (error) {
       console.error('Failed to record T&C acceptance:', error);
       alert('Failed to save acceptance. Please try again.');
@@ -31,9 +35,22 @@ export default function TermsAndConditionsModal({ userId, userEmail, onAccept }:
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col relative">
+        {/* Close Button for Read Only Mode */}
+        {readOnly && onClose && (
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10"
+            aria-label="Close"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
         {/* Header */}
-        <div className="p-6 border-b">
+        <div className="p-6 border-b pr-12">
           <h2 className="text-2xl font-bold text-gray-900">
             Terms and Conditions
           </h2>
@@ -278,34 +295,36 @@ export default function TermsAndConditionsModal({ userId, userEmail, onAccept }:
           </div>
         </div>
 
-        {/* Footer with Checkbox and Accept button */}
-        <div className="p-6 border-t bg-gray-50">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                id="terms-acceptance"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-              />
-              <label htmlFor="terms-acceptance" className="text-sm text-gray-700 cursor-pointer select-none">
-                I have read and agree to the Terms and Conditions
-              </label>
+        {/* Footer only shown if not readOnly */}
+        {!readOnly && (
+          <div className="p-6 border-t bg-gray-50">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="terms-acceptance"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                />
+                <label htmlFor="terms-acceptance" className="text-sm text-gray-700 cursor-pointer select-none">
+                  I have read and agree to the Terms and Conditions
+                </label>
+              </div>
+              
+              <button
+                onClick={handleAccept}
+                disabled={!acceptedTerms || accepting}
+                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold 
+                         hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 
+                         focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed 
+                         transition-colors"
+              >
+                {accepting ? 'Processing...' : 'I Accept Terms & Conditions'}
+              </button>
             </div>
-            
-            <button
-              onClick={handleAccept}
-              disabled={!acceptedTerms || accepting}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold 
-                       hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 
-                       focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed 
-                       transition-colors"
-            >
-              {accepting ? 'Processing...' : 'I Accept Terms & Conditions'}
-            </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
