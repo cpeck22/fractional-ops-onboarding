@@ -1234,6 +1234,7 @@ export default function ResultsPage() {
                           p: ({node, children, ...props}) => {
                             const text = String(children);
                             const isQuestion = text.startsWith('Questions:') || 
+                                             text.startsWith('Ask:') ||
                                              text.match(/^[-•]\s*.+\?$/) ||
                                              (text.trim().endsWith('?') && text.length < 200);
                             
@@ -1263,6 +1264,8 @@ export default function ResultsPage() {
                         }}
                       >
                         {outputs.call_prep.callScript
+                          .replace(/Explore:/g, 'Ask:')
+                          .replace(/Discovery Questions:/g, 'Ask:')
                           .replace(/\\n/g, '\n')                  // Convert escaped newlines
                           .replace(/(\r\n|\r|\n)/g, '\n\n')       // Convert every newline to paragraph break
                           .trim()
@@ -1279,7 +1282,15 @@ export default function ResultsPage() {
                   <h3 className="font-semibold text-gray-900 mb-3">Objection Handling:</h3>
                   <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                     <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h1: ({node, ...props}) => <h1 {...props} className="text-xl font-bold underline text-purple-700 mb-4" />,
+                          h2: ({node, ...props}) => <h2 {...props} className="text-lg font-bold underline text-purple-700 mb-3" />,
+                          h3: ({node, ...props}) => <h3 {...props} className="text-md font-bold underline text-purple-700 mb-2" />,
+                          strong: ({node, ...props}) => <strong {...props} className="font-bold underline text-purple-700" />,
+                        }}
+                      >
                         {outputs.call_prep.objectionHandling
                           .replace(/\\n/g, '\n')                  // Convert escaped newlines
                           .replace(/(\r\n|\r|\n)/g, '\n\n')       // Convert every newline to paragraph break
