@@ -1185,7 +1185,7 @@ export default function ResultsPage() {
             <ul className="space-y-2">
               {sectionIntros.youtubeScripts.map((item, index) => (
                 <li key={index} className="flex items-start gap-2 text-gray-700">
-                  <span className="text-fo-orange font-bold mt-1">→</span>
+                  <span className="text-green-600 mt-0.5 flex-shrink-0 text-lg">✓</span>
                   <span>{item}</span>
                 </li>
               ))}
