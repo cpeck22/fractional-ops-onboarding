@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
+// Set maximum duration to 60 seconds (Vercel Pro limit) to allow time for playbook generation
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
+
 const OCTAVE_PLAYBOOK_API_URL = 'https://app.octavehq.com/api/v2/playbook/create';
 
 interface PlaybookSegment {
@@ -103,36 +107,74 @@ export async function POST(request: NextRequest) {
 
         console.log('📚 Playbook request:', JSON.stringify(playbookRequest, null, 2));
 
-        // Use workspace API key
-        const response = await axios.post(OCTAVE_PLAYBOOK_API_URL, playbookRequest, {
-          headers: {
-            'Content-Type': 'application/json',
-            'api_key': workspaceApiKey
-          }
-        });
+        // Use workspace API key with retry logic for creation
+        let response;
+        let lastError;
+        const MAX_RETRIES = 3;
 
-        const playbookOId = response.data?.playbook?.oId || response.data?.oId;
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            if (attempt > 1) console.log(`📚 Attempt ${attempt}/${MAX_RETRIES} to create playbook...`);
+            
+            response = await axios.post(OCTAVE_PLAYBOOK_API_URL, playbookRequest, {
+              headers: {
+                'Content-Type': 'application/json',
+                'api_key': workspaceApiKey
+              },
+              timeout: 50000 // 50 second timeout (slightly less than maxDuration)
+            });
+            
+            // If we get here, it succeeded
+            break; 
+          } catch (err: any) {
+            lastError = err;
+            console.warn(`⚠️ Playbook creation attempt ${attempt} failed:`, err.message);
+            
+            // Only retry on network errors or 5xx errors
+            const isRetryable = !err.response || (err.response.status >= 500 && err.response.status < 600) || err.code === 'ECONNABORTED' || err.code === 'ETIMEDOUT';
+            
+            if (!isRetryable || attempt === MAX_RETRIES) {
+              throw err;
+            }
+            
+            // Exponential backoff: 1s, 2s, 4s
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
+          }
+        }
+
+        const playbookOId = response?.data?.playbook?.oId || response?.data?.oId;
         
         console.log(`✅ Created playbook ${i + 1}: ${segment.name} Sales Playbook (${playbookOId})`);
         
         // Fetch full playbook details to get all fields (executive summary, approach angle, etc.)
-        let fullPlaybookData = response.data;
+        let fullPlaybookData = response?.data;
+        
         if (playbookOId) {
-          try {
-            console.log(`📖 Fetching full playbook details for ${playbookOId}...`);
-            const getResponse = await axios.get(
-              `https://app.octavehq.com/api/v2/playbook/get?oId=${playbookOId}`,
-              {
-                headers: {
-                  'Content-Type': 'application/json',
-                  'api_key': workspaceApiKey
+          // Also retry the fetch if it fails
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              console.log(`📖 Fetching full playbook details for ${playbookOId}...`);
+              const getResponse = await axios.get(
+                `https://app.octavehq.com/api/v2/playbook/get?oId=${playbookOId}`,
+                {
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'api_key': workspaceApiKey
+                  },
+                  timeout: 30000 // 30 second timeout for fetch
                 }
+              );
+              fullPlaybookData = getResponse.data;
+              console.log(`✅ Fetched full playbook data with all fields`);
+              break; // Success
+            } catch (fetchError: any) {
+              console.warn(`⚠️ Attempt ${attempt} to fetch playbook details failed:`, fetchError.message);
+              if (attempt === 3) {
+                console.warn(`⚠️ Could not fetch full playbook details, using creation response.`);
+              } else {
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Simple 1s wait
               }
-            );
-            fullPlaybookData = getResponse.data;
-            console.log(`✅ Fetched full playbook data with all fields`);
-          } catch (fetchError: any) {
-            console.warn(`⚠️ Could not fetch full playbook details, using creation response:`, fetchError.message);
+            }
           }
         }
         
@@ -181,4 +223,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

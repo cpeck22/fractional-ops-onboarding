@@ -38,42 +38,55 @@ export async function POST(request: NextRequest) {
     // Fetch playbooks in parallel for better performance
     // Limit concurrency if needed, but for small batches (e.g. < 10), Promise.all is fine
     const fetchPromises = playbookOIds.map(async (oId: string) => {
-      try {
-        const response = await axios.get(
-          `https://app.octavehq.com/api/v2/playbook/get?oId=${oId}`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'api_key': workspaceApiKey
+      const MAX_RETRIES = 3;
+      
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          const response = await axios.get(
+            `https://app.octavehq.com/api/v2/playbook/get?oId=${oId}`,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'api_key': workspaceApiKey
+              },
+              timeout: 30000 // 30 second timeout
             }
+          );
+          
+          const playbookData = response.data;
+          const playbookInnerData = playbookData.data || {};
+          
+          const result: PlaybookData = {
+            oId: playbookData.oId,
+            name: playbookData.name,
+            description: playbookData.description,
+            executiveSummary: playbookInnerData.executiveSummary,
+            keyInsight: playbookData.keyInsight || playbookInnerData.keyInsight,
+            approachAngle: playbookInnerData.approachAngle,
+            valueProps: playbookInnerData.valueProps,
+            qualifyingQuestions: playbookData.qualifyingQuestions || [],
+            disqualifyingQuestions: playbookData.disqualifyingQuestions || [],
+            type: playbookData.type,
+            status: playbookData.status,
+            segmentOId: playbookData.segmentOId,
+            personaOIds: playbookData.personaOIds || [],
+            useCaseOIds: playbookData.useCaseOIds || [],
+            referenceOIds: playbookData.referenceOIds || []
+          };
+          return result;
+        } catch (error: any) {
+          // Only log warning if not final attempt
+          if (attempt < MAX_RETRIES) {
+            console.warn(`⚠️ Fetch attempt ${attempt} for ${oId} failed:`, error.message);
+            // Backoff: 1s, 2s, ...
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          } else {
+            console.error(`❌ Failed to fetch playbook ${oId} after ${MAX_RETRIES} attempts:`, error.message);
+            return null;
           }
-        );
-        
-        const playbookData = response.data;
-        const playbookInnerData = playbookData.data || {};
-        
-        const result: PlaybookData = {
-          oId: playbookData.oId,
-          name: playbookData.name,
-          description: playbookData.description,
-          executiveSummary: playbookInnerData.executiveSummary,
-          keyInsight: playbookData.keyInsight || playbookInnerData.keyInsight,
-          approachAngle: playbookInnerData.approachAngle,
-          valueProps: playbookInnerData.valueProps,
-          qualifyingQuestions: playbookData.qualifyingQuestions || [],
-          disqualifyingQuestions: playbookData.disqualifyingQuestions || [],
-          type: playbookData.type,
-          status: playbookData.status,
-          segmentOId: playbookData.segmentOId,
-          personaOIds: playbookData.personaOIds || [],
-          useCaseOIds: playbookData.useCaseOIds || [],
-          referenceOIds: playbookData.referenceOIds || []
-        };
-        return result;
-      } catch (error: any) {
-        console.error(`⚠️ Failed to fetch playbook ${oId}:`, error.message);
-        return null;
+        }
       }
+      return null;
     });
 
     const results = await Promise.all(fetchPromises);
@@ -96,4 +109,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
