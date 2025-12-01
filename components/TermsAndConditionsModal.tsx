@@ -11,18 +11,10 @@ interface TermsModalProps {
 }
 
 export default function TermsAndConditionsModal({ userId, userEmail, onAccept }: TermsModalProps) {
-  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [accepting, setAccepting] = useState(false);
 
   const TERMS_VERSION = '1.0'; // Update this when T&C changes
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    const scrolledToBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 50;
-    if (scrolledToBottom && !hasScrolledToBottom) {
-      setHasScrolledToBottom(true);
-    }
-  };
 
   const handleAccept = async () => {
     setAccepting(true);
@@ -51,10 +43,7 @@ export default function TermsAndConditionsModal({ userId, userEmail, onAccept }:
         </div>
 
         {/* Content - scrollable */}
-        <div 
-          className="flex-1 overflow-y-auto p-6 prose prose-sm max-w-none"
-          onScroll={handleScroll}
-        >
+        <div className="flex-1 overflow-y-auto p-6 prose prose-sm max-w-none">
           <div className="text-gray-800">
             <h1 className="text-xl font-bold mb-4">Fractional Ops Site Terms and Conditions</h1>
             <p className="text-sm text-gray-600 mb-4">Last updated: November 26, 2025</p>
@@ -289,18 +278,26 @@ export default function TermsAndConditionsModal({ userId, userEmail, onAccept }:
           </div>
         </div>
 
-        {/* Footer with Accept button */}
+        {/* Footer with Checkbox and Accept button */}
         <div className="p-6 border-t bg-gray-50">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
-              {hasScrolledToBottom 
-                ? '✓ You can now accept the terms' 
-                : '⬇️ Please scroll to the bottom to continue'}
-            </p>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                id="terms-acceptance"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              />
+              <label htmlFor="terms-acceptance" className="text-sm text-gray-700 cursor-pointer select-none">
+                I have read and agree to the Terms and Conditions
+              </label>
+            </div>
+            
             <button
               onClick={handleAccept}
-              disabled={!hasScrolledToBottom || accepting}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold 
+              disabled={!acceptedTerms || accepting}
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold 
                        hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 
                        focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed 
                        transition-colors"
@@ -313,4 +310,3 @@ export default function TermsAndConditionsModal({ userId, userEmail, onAccept }:
     </div>
   );
 }
-
