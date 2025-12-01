@@ -20,7 +20,7 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
   const [user, setUser] = useState<User | null>(null);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [emailExists, setEmailExists] = useState(false);
-  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   useEffect(() => {
     console.log('🔐 AuthForm: Setting up auth listeners...');
@@ -86,6 +86,13 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
           setLoading(false);
           return;
         }
+
+        // Validate T&C acceptance
+        if (!termsAccepted) {
+          toast.error('Please accept the Terms and Conditions to continue.');
+          setLoading(false);
+          return;
+        }
         
         // Check if email already exists BEFORE attempting signup
         console.log('🔍 Checking if email exists before signup:', email);
@@ -101,7 +108,15 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
         }
         
         console.log('🔍 Email is new, proceeding with signup');
-        const { data, error } = await signUpWithEmail(email, password);
+        const { data, error } = await signUpWithEmail(email, password, {
+          data: {
+            terms_acceptance: {
+              accepted: true,
+              acceptedAt: new Date().toISOString(),
+              version: '1.0'
+            }
+          }
+        });
         
         if (error) {
           console.log('🔍 Signup error:', error.message);
@@ -248,31 +263,54 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
         </div>
 
         {!isLogin && (
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required={!isLogin}
-              minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Confirm your password"
-            />
-            {password && confirmPassword && password !== confirmPassword && (
-              <p className="mt-1 text-sm text-red-600">
-                Passwords do not match
-              </p>
-            )}
-          </div>
+          <>
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm Password
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required={!isLogin}
+                minLength={6}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Confirm your password"
+              />
+              {password && confirmPassword && password !== confirmPassword && (
+                <p className="mt-1 text-sm text-red-600">
+                  Passwords do not match
+                </p>
+              )}
+            </div>
+
+            {/* Terms and Conditions Checkbox */}
+            <div className="flex items-start gap-2 mt-4 mb-2">
+              <div className="flex items-center h-5 mt-1">
+                <input
+                  id="terms"
+                  name="terms"
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  required
+                  className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300"
+                />
+              </div>
+              <label htmlFor="terms" className="text-xs text-gray-600 leading-relaxed">
+                By checking this box, I confirm that I have read, understand, and agree to be legally bound by all{' '}
+                <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
+                  Terms and Conditions
+                </a>, including all policies and documents referenced within them. I further confirm that I have the authority to bind my organization to these Terms.
+              </label>
+            </div>
+          </>
         )}
 
         <button
           type="submit"
-          disabled={loading || (!isLogin && password !== confirmPassword)}
+          disabled={loading || (!isLogin && (password !== confirmPassword || !termsAccepted))}
           className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? 'Please wait...' : (isLogin ? 'Sign In' : (emailExists ? 'Sign In Instead' : 'Start Now'))}
@@ -294,21 +332,6 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
         >
           {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign In"}
         </button>
-      </div>
-
-      <div className="text-center">
-        <p className="text-xs text-gray-400">
-          By continuing, you agree to our{' '}
-          <a 
-            href="/terms" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-700 underline"
-          >
-            terms of service
-          </a>{' '}
-          and privacy policy.
-        </p>
       </div>
     </div>
   );
