@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ============================================
-    // STEP 2-14: RUN ALL CONTENT AGENTS
+    // STEP 2-14: RUN ALL CONTENT AGENTS (PARALLEL)
     // ============================================
     
     console.log('🚀 Starting content generation for', prospects.length, 'prospects');
@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
           }
         );
 
-        console.log(`📊 ${agentName} response:`, JSON.stringify(response.data, null, 2));
+        // console.log(`📊 ${agentName} response:`, JSON.stringify(response.data, null, 2)); // Too verbose for parallel
 
         // Check for both "success" and "found" fields (Octave API inconsistency)
         if (response.data?.success || response.data?.found) {
@@ -201,136 +201,94 @@ export async function POST(request: NextRequest) {
     };
 
     // ============================================
-    // Run all Cold Email agents
+    // QUEUE ALL AGENTS IN PARALLEL
     // ============================================
     
-    console.log('📧 Generating Cold Email Sequences...');
-    
-    // Check if we have prospects for personalized emails
+    const promises: Promise<void>[] = [];
+
+    // --- Cold Email Agents ---
     if (prospects.length === 0) {
       console.warn('⚠️ No qualified prospects found - Cold Email agents will use company context only');
-      console.warn('⚠️ This may result in less personalized emails. Consider adjusting qualification criteria.');
     }
-    
-    // Order: Lead Magnet (Long), 3 Personalized Solutions, Problem/Solution, Local/Same City, Lead Magnet (Short)
+
     if (agentIds.coldEmails?.leadMagnetLong) {
-      const result = await runAgent('sequence', agentIds.coldEmails.leadMagnetLong, 'Cold Email: Lead Magnet Long', 0);
-      if (result?.data?.emails) agentResults.coldEmails.leadMagnetLong = result.data.emails;
+      promises.push(runAgent('sequence', agentIds.coldEmails.leadMagnetLong, 'Cold Email: Lead Magnet Long', 0)
+        .then(res => { if (res?.data?.emails) agentResults.coldEmails.leadMagnetLong = res.data.emails; }));
     }
-
     if (agentIds.coldEmails?.personalizedSolutions) {
-      const result = await runAgent('sequence', agentIds.coldEmails.personalizedSolutions, 'Cold Email: Personalized Solutions', 1);
-      if (result?.data?.emails) agentResults.coldEmails.personalizedSolutions = result.data.emails;
+      promises.push(runAgent('sequence', agentIds.coldEmails.personalizedSolutions, 'Cold Email: Personalized Solutions', 1)
+        .then(res => { if (res?.data?.emails) agentResults.coldEmails.personalizedSolutions = res.data.emails; }));
     }
-
     if (agentIds.coldEmails?.problemSolution) {
-      const result = await runAgent('sequence', agentIds.coldEmails.problemSolution, 'Cold Email: Problem/Solution', 2);
-      if (result?.data?.emails) agentResults.coldEmails.problemSolution = result.data.emails;
+      promises.push(runAgent('sequence', agentIds.coldEmails.problemSolution, 'Cold Email: Problem/Solution', 2)
+        .then(res => { if (res?.data?.emails) agentResults.coldEmails.problemSolution = res.data.emails; }));
     }
-
     if (agentIds.coldEmails?.localCity) {
-      const result = await runAgent('sequence', agentIds.coldEmails.localCity, 'Cold Email: Local/Same City', 3);
-      if (result?.data?.emails) agentResults.coldEmails.localCity = result.data.emails;
+      promises.push(runAgent('sequence', agentIds.coldEmails.localCity, 'Cold Email: Local/Same City', 3)
+        .then(res => { if (res?.data?.emails) agentResults.coldEmails.localCity = res.data.emails; }));
     }
-
     if (agentIds.coldEmails?.leadMagnetShort) {
-      const result = await runAgent('sequence', agentIds.coldEmails.leadMagnetShort, 'Cold Email: Lead Magnet Short', 4);
-      if (result?.data?.emails) agentResults.coldEmails.leadMagnetShort = result.data.emails;
+      promises.push(runAgent('sequence', agentIds.coldEmails.leadMagnetShort, 'Cold Email: Lead Magnet Short', 4)
+        .then(res => { if (res?.data?.emails) agentResults.coldEmails.leadMagnetShort = res.data.emails; }));
     }
 
-    // ============================================
-    // Run LinkedIn Post agents
-    // ============================================
-    
-    console.log('📱 Generating LinkedIn Posts...');
-    
+    // --- LinkedIn Post Agents ---
     if (agentIds.linkedinPosts?.inspiring) {
-      const result = await runAgent('content', agentIds.linkedinPosts.inspiring, 'LinkedIn Post: Inspiring', 0);
-      if (result?.data?.content) agentResults.linkedinPosts.inspiring = result.data.content;
+      promises.push(runAgent('content', agentIds.linkedinPosts.inspiring, 'LinkedIn Post: Inspiring', 0)
+        .then(res => { if (res?.data?.content) agentResults.linkedinPosts.inspiring = res.data.content; }));
     }
-
     if (agentIds.linkedinPosts?.promotional) {
-      const result = await runAgent('content', agentIds.linkedinPosts.promotional, 'LinkedIn Post: Promotional', 1);
-      if (result?.data?.content) agentResults.linkedinPosts.promotional = result.data.content;
+      promises.push(runAgent('content', agentIds.linkedinPosts.promotional, 'LinkedIn Post: Promotional', 1)
+        .then(res => { if (res?.data?.content) agentResults.linkedinPosts.promotional = res.data.content; }));
     }
-
     if (agentIds.linkedinPosts?.actionable) {
-      const result = await runAgent('content', agentIds.linkedinPosts.actionable, 'LinkedIn Post: Actionable', 2);
-      if (result?.data?.content) agentResults.linkedinPosts.actionable = result.data.content;
+      promises.push(runAgent('content', agentIds.linkedinPosts.actionable, 'LinkedIn Post: Actionable', 2)
+        .then(res => { if (res?.data?.content) agentResults.linkedinPosts.actionable = res.data.content; }));
     }
 
-    // ============================================
-    // Run LinkedIn DM agents
-    // ============================================
-    
-    console.log('💬 Generating LinkedIn DMs...');
-    
+    // --- LinkedIn DM Agents ---
     if (agentIds.linkedinDMs?.newsletter) {
-      const result = await runAgent('content', agentIds.linkedinDMs.newsletter, 'LinkedIn DM: Newsletter CTA', 0);
-      if (result?.data?.content) agentResults.linkedinDMs.newsletter = result.data.content;
+      promises.push(runAgent('content', agentIds.linkedinDMs.newsletter, 'LinkedIn DM: Newsletter CTA', 0)
+        .then(res => { if (res?.data?.content) agentResults.linkedinDMs.newsletter = res.data.content; }));
     }
-
     if (agentIds.linkedinDMs?.leadMagnet) {
-      const result = await runAgent('content', agentIds.linkedinDMs.leadMagnet, 'LinkedIn DM: Lead Magnet CTA', 1);
-      if (result?.data?.content) agentResults.linkedinDMs.leadMagnet = result.data.content;
+      promises.push(runAgent('content', agentIds.linkedinDMs.leadMagnet, 'LinkedIn DM: Lead Magnet CTA', 1)
+        .then(res => { if (res?.data?.content) agentResults.linkedinDMs.leadMagnet = res.data.content; }));
     }
-
-    console.log('💬 Generating LinkedIn DM: Ask A Question...');
     if (agentIds.linkedinDMs?.askQuestion) {
-      const result = await runAgent('content', agentIds.linkedinDMs.askQuestion, 'LinkedIn DM: Ask A Question', 2);
-      if (result?.data?.content) {
-        agentResults.linkedinDMs.askQuestion = result.data.content;
-        console.log('✅ LinkedIn DM: Ask A Question completed successfully');
-      }
-    } else {
-      console.log('❌ LinkedIn DM: Ask A Question agent ID not found');
+      promises.push(runAgent('content', agentIds.linkedinDMs.askQuestion, 'LinkedIn DM: Ask A Question', 2)
+        .then(res => { if (res?.data?.content) agentResults.linkedinDMs.askQuestion = res.data.content; }));
     }
 
-    // ============================================
-    // Run Newsletter agents
-    // ============================================
-    
-    console.log('📰 Generating Newsletters...');
-    
+    // --- Newsletter Agents ---
     if (agentIds.newsletters?.tactical) {
-      const result = await runAgent('content', agentIds.newsletters.tactical, 'Newsletter: Tactical', 0);
-      if (result?.data?.content) agentResults.newsletters.tactical = result.data.content;
+      promises.push(runAgent('content', agentIds.newsletters.tactical, 'Newsletter: Tactical', 0)
+        .then(res => { if (res?.data?.content) agentResults.newsletters.tactical = res.data.content; }));
     }
-
     if (agentIds.newsletters?.leadership) {
-      const result = await runAgent('content', agentIds.newsletters.leadership, 'Newsletter: Leadership', 1);
-      if (result?.data?.content) agentResults.newsletters.leadership = result.data.content;
+      promises.push(runAgent('content', agentIds.newsletters.leadership, 'Newsletter: Leadership', 1)
+        .then(res => { if (res?.data?.content) agentResults.newsletters.leadership = res.data.content; }));
     }
 
-    // ============================================
-    // Run Call Prep agent
-    // ============================================
-    
-    console.log('📞 Generating Call Prep...');
-    
+    // --- Call Prep Agent ---
     if (agentIds.callPrep) {
-      const result = await runAgent('callPrep', agentIds.callPrep, 'Call Prep Agent', 0);
-      if (result?.data) agentResults.callPrep = result.data;
+      promises.push(runAgent('callPrep', agentIds.callPrep, 'Call Prep Agent', 0)
+        .then(res => { if (res?.data) agentResults.callPrep = res.data; }));
+    }
+
+    // --- YouTube Script Agent ---
+    if (agentIds.youtube?.longForm) {
+      promises.push(runAgent('content', agentIds.youtube.longForm, 'YouTube Script: Long-Form', 0)
+        .then(res => { if (res?.data?.content) agentResults.youtube.longForm = res.data.content; }));
     }
 
     // ============================================
-    // Run YouTube Script agent
+    // EXECUTE ALL AGENTS
     // ============================================
     
-    console.log('🎬 Generating YouTube Scripts...');
-    console.log('🔄 Running YouTube Script: Long-Form agent...');
-    
-    if (agentIds.youtube?.longForm) {
-      const result = await runAgent('content', agentIds.youtube.longForm, 'YouTube Script: Long-Form', 0);
-      if (result?.data?.content) {
-        agentResults.youtube.longForm = result.data.content;
-        console.log('✅ YouTube Script: Long-Form completed successfully');
-      } else {
-        console.log('❌ YouTube Script: Long-Form returned no content');
-      }
-    } else {
-      console.log('❌ YouTube Script: Long-Form agent ID not found');
-    }
+    console.log(`⏳ Waiting for ${promises.length} agents to complete in parallel...`);
+    await Promise.all(promises);
+    console.log('✅ All agents finished execution');
 
     // ============================================
     // STEP 15: SAVE PHASE 2 RESULTS TO DATABASE
@@ -360,13 +318,7 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Phase 2 content saved to database');
     console.log('🎯 ===== PHASE 2 COMPLETE =====');
-    console.log('   📧 Cold Emails: SAVED');
-    console.log('   📱 LinkedIn Posts: SAVED');
-    console.log('   💬 LinkedIn DMs: SAVED');
-    console.log('   📰 Newsletters: SAVED');
-    console.log('   📞 Call Prep: SAVED');
-    console.log('   🎬 YouTube Scripts: SAVED');
-
+    
     return NextResponse.json({
       success: true,
       phase: 2,
@@ -389,4 +341,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
