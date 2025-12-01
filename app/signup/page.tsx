@@ -67,27 +67,6 @@ export default function SignupPage() {
           </div>
         </div>
         
-        {/* Why Login? Video Explanation */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3 text-center">
-            Why do I need to login?
-          </h3>
-          <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-xl" style={{ paddingTop: '56.25%' }}>
-            <iframe 
-              src="https://drive.google.com/file/d/12e2_ABddNtMe3CcH-rssjR45BSpRTMRE/preview"
-              className="absolute top-0 left-0 w-full h-full"
-              allow="autoplay"
-              title="Why Login Explanation"
-              style={{ border: 'none' }}
-            />
-            {/* Overlay to block download button in top-right corner */}
-            <div 
-              className="absolute top-0 right-0 w-16 h-16 bg-transparent z-10"
-              onClick={(e) => e.preventDefault()}
-            />
-          </div>
-        </div>
-        
         {/* Collaboration Warning Banner */}
         <div className="bg-gray-800 rounded-2xl p-6 mb-6">
           <div className="flex items-start gap-4">
