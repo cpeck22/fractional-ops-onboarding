@@ -23,6 +23,10 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
   const [emailExists, setEmailExists] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  
+  // Anti-bot states
+  const [formStartTime] = useState(Date.now());
+  const [honeypot, setHoneypot] = useState('');
 
   useEffect(() => {
     console.log('🔐 AuthForm: Setting up auth listeners...');
@@ -74,6 +78,23 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Anti-bot checks (only for signup, but could be for login too)
+    if (!isLogin) {
+      // 1. Check Honeypot (must be empty)
+      if (honeypot) {
+        console.warn('Bot detected: Honeypot filled');
+        // Silently fail or show generic error
+        return;
+      }
+
+      // 2. Check Time Threshold (must be > 2 seconds)
+      if (Date.now() - formStartTime < 2000) {
+        console.warn('Bot detected: Submitted too fast');
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -222,7 +243,20 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 relative">
+        {/* Honeypot Field - Invisible to users but visible to bots */}
+        <div className="absolute opacity-0 -z-10 w-0 h-0 overflow-hidden">
+          <label htmlFor="website_url_check">Website URL</label>
+          <input
+            id="website_url_check"
+            type="text"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
+
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
             Email Address
