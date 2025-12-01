@@ -1194,10 +1194,12 @@ export default function ResultsPage() {
 
           {/* YouTube Script Content */}
           {outputs.youtube_scripts?.longForm ? (
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
-                {outputs.youtube_scripts.longForm}
-              </pre>
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+              <div className="prose prose-lg max-w-none text-gray-900 [&_p]:mb-6 [&_p]:leading-relaxed">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {outputs.youtube_scripts.longForm}
+                </ReactMarkdown>
+              </div>
             </div>
           ) : (
             <ErrorPlaceholder assetType="YouTube Video Script" />

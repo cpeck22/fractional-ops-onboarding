@@ -449,7 +449,7 @@ export default function ReviewPage() {
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-8 py-2 bg-gradient-to-r from-fo-primary to-fo-secondary text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fo-primary disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+            className="px-8 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
           >
             {isSubmitting ? (
               <div className="flex items-center">
@@ -457,7 +457,7 @@ export default function ReviewPage() {
                 Creating Workspace...
               </div>
             ) : (
-              "We're Good To Go Claire!"
+              "Build My Plan"
             )}
           </button>
         </div>
@@ -492,8 +492,11 @@ export default function ReviewPage() {
               <p className="text-red-600 font-bold text-lg mb-4">
                 DON&apos;T CLOSE THIS WINDOW
               </p>
-              <p className="text-gray-600 text-base mb-6">
+              <p className="text-gray-600 text-base mb-2">
                 This may take up to 5 minutes.
+              </p>
+              <p className="text-gray-900 font-bold text-lg mb-6">
+                I&apos;ll take you to a new page when I&apos;m done!
               </p>
               
               {/* Loading Animation */}
