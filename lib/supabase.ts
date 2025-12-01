@@ -409,7 +409,15 @@ export const loadUserQuestionnaireData = async (userId: string) => {
     
     // Step 8: Positioning (competitors from socialProof)
     if (questionnaireData.socialProof && (questionnaireData.socialProof as any).competitors) {
-      questionnaireData.positioning.competitors = (questionnaireData.socialProof as any).competitors;
+      const legacyCompetitors = (questionnaireData.socialProof as any).competitors;
+      const currentCompetitors = questionnaireData.positioning.competitors;
+      
+      // Only overwrite if we have legacy data AND no current data
+      if (Array.isArray(legacyCompetitors) && legacyCompetitors.length > 0 && 
+          (!currentCompetitors || currentCompetitors.length === 0)) {
+        console.log('🔍 Migrating competitors from socialProof to positioning');
+        (questionnaireData.positioning as any).competitors = legacyCompetitors;
+      }
     }
     
     // Step 9: Lead Magnets (from callToAction)
