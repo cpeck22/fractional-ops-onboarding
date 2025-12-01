@@ -12,14 +12,12 @@ import { signOut } from '@/lib/supabase';
 export const dynamic = 'force-dynamic';
 
 export default function QuestionnairePage() {
-  console.log('📋 QuestionnairePage: Component mounting...');
   
   const { questionnaireData, updateQuestionnaireData, isSaving, saveCurrentData } = useQuestionnaire();
   const [currentSection, setCurrentSection] = useState(0);
+  const [showIntro, setShowIntro] = useState(true);
   const router = useRouter();
 
-  console.log('📋 QuestionnairePage: Current questionnaire data:', questionnaireData);
-  console.log('📋 QuestionnairePage: Current section:', currentSection);
 
   const sections = [
     { id: 'companyInfo', title: 'Step 1: Who We Are', description: "Let's start with the basics about our company" },
@@ -50,15 +48,12 @@ export default function QuestionnairePage() {
   };
 
   const handleDataChange = (sectionData: any) => {
-    console.log('📋 QuestionnairePage: handleDataChange called with:', sectionData);
-    console.log('📋 QuestionnairePage: Current section ID:', sections[currentSection].id);
     updateQuestionnaireData({
       [sections[currentSection].id]: sectionData
     });
   };
 
   const handleLogout = () => {
-    console.log('🚪 Logout button clicked - clearing session');
     
     // Clear Supabase auth from localStorage
     localStorage.removeItem('supabase.auth.token');
@@ -70,9 +65,48 @@ export default function QuestionnairePage() {
       }
     });
     
-    console.log('🚪 Session cleared, redirecting...');
     window.location.href = '/';
   };
+
+  const handleStart = () => {
+    setShowIntro(false);
+  };
+
+  if (showIntro) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-fo-light to-white flex items-center justify-center">
+          <div className="max-w-4xl w-full mx-auto px-4 py-8 flex flex-col items-center">
+             {/* Header with Logout Button */}
+             <div className="w-full relative text-center mb-8">
+                <button
+                  onClick={handleLogout}
+                  className="absolute right-0 top-0 text-fo-text-secondary hover:text-fo-primary transition-colors duration-200 text-sm font-medium"
+                >
+                  Log Out
+                </button>
+            </div>
+
+            <div className="w-full bg-black rounded-lg overflow-hidden shadow-2xl mb-8 aspect-video">
+              <iframe 
+                src="https://drive.google.com/file/d/1mK4Z7Sp8_t9gU3_WCO5QWmORl4dQXekw/preview" 
+                className="w-full h-full" 
+                allow="autoplay"
+                style={{ border: 'none' }}
+              />
+            </div>
+
+            <button
+              onClick={handleStart}
+              className="bg-purple-600 hover:bg-purple-700 text-white text-xl font-bold py-4 px-12 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              Start Now
+            </button>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute>
