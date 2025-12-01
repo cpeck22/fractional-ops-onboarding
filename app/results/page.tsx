@@ -1321,9 +1321,39 @@ export default function ResultsPage() {
                               </strong>
                             );
                           },
+                          p: ({node, children, ...props}) => {
+                            const text = String(children);
+                            const isQuestion = text.startsWith('Questions:') || 
+                                             text.startsWith('Ask:') ||
+                                             text.match(/^[-•]\s*.+\?$/) ||
+                                             (text.trim().endsWith('?') && text.length < 200);
+                            
+                            if (isQuestion) {
+                              return (
+                                <p {...props} className="font-bold italic text-fo-orange text-lg border-l-4 border-fo-orange pl-4 my-4">
+                                  {children}
+                                </p>
+                              );
+                            }
+                            return <p {...props}>{children}</p>;
+                          },
+                          li: ({node, children, ...props}) => {
+                            const text = String(children);
+                            const isQuestion = text.trim().endsWith('?');
+                            
+                            if (isQuestion) {
+                              return (
+                                <li {...props} className="font-bold italic text-fo-orange">
+                                  {children}
+                                </li>
+                              );
+                            }
+                            return <li {...props}>{children}</li>;
+                          },
                         }}
                       >
                         {outputs.call_prep.objectionHandling
+                          .replace(/Discovery Questions:/g, 'Ask:')
                           .replace(/\\n/g, '\n')                  // Convert escaped newlines
                           .replace(/(\r\n|\r|\n)/g, '\n\n')       // Convert every newline to paragraph break
                           .trim()
