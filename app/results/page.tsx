@@ -767,7 +767,7 @@ export default function ResultsPage() {
                 });
 
                 // PRIORITIZE: Sort by contact info availability
-                const prioritized = qualifiedContacts.sort((a: any, b: any) => {
+                const finalList = qualifiedContacts.sort((a: any, b: any) => {
                   // Priority 1: Both email and phone
                   const aPriority1 = (a.email && a.mobile_number) ? 1 : 0;
                   const bPriority1 = (b.email && b.mobile_number) ? 1 : 0;
@@ -787,54 +787,6 @@ export default function ResultsPage() {
                   return bScore - aScore;
                 });
 
-                // DEDUPLICATE: By company, keeping most senior person with best contact info
-                const deduped = Object.values(
-                  prioritized.reduce((acc: any, prospect: any) => {
-                    const company = prospect.company || 'Unknown';
-                    
-                    // If company not seen yet, add it
-                    if (!acc[company]) {
-                      acc[company] = prospect;
-                    } else {
-                      // Calculate contact quality score
-                      const getContactScore = (p: any) => {
-                        if (p.email && p.mobile_number) return 4;
-                        if (p.email) return 3;
-                        if (p.mobile_number) return 2;
-                        return 1;
-                      };
-                      
-                      // Determine seniority
-                      const seniorityKeywords = ['owner', 'ceo', 'chief', 'president', 'vp', 'vice president', 'director', 'head', 'partner', 'operator', 'founder', 'managing', 'executive'];
-                      const getSeniorityScore = (p: any) => {
-                        const titleLower = (p.title || '').toLowerCase();
-                        if (titleLower.includes('ceo') || titleLower.includes('chief') || titleLower.includes('owner') || titleLower.includes('founder')) return 5;
-                        if (titleLower.includes('president') || titleLower.includes('partner')) return 4;
-                        if (titleLower.includes('vp') || titleLower.includes('vice president')) return 3;
-                        if (titleLower.includes('director') || titleLower.includes('head')) return 2;
-                        if (seniorityKeywords.some(k => titleLower.includes(k))) return 1;
-                        return 0;
-                      };
-                      
-                      const currentContactScore = getContactScore(acc[company]);
-                      const newContactScore = getContactScore(prospect);
-                      const currentSeniorityScore = getSeniorityScore(acc[company]);
-                      const newSeniorityScore = getSeniorityScore(prospect);
-                      
-                      // Keep the one with better contact info, or if tied, more senior
-                      if (newContactScore > currentContactScore || 
-                          (newContactScore === currentContactScore && newSeniorityScore > currentSeniorityScore)) {
-                        acc[company] = prospect;
-                      }
-                    }
-                    
-                    return acc;
-                  }, {})
-                );
-
-                // LIMIT: Show max 100 contacts (increased from 50 to show more prospects)
-                const finalList = deduped.slice(0, 100);
-                
                 return (
                   <>
                     <div className="space-y-3">
