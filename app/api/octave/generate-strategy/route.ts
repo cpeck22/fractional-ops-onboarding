@@ -104,6 +104,59 @@ Return ONLY a JSON object with this structure:
   }
 }
 
+/**
+ * Generate Smart Fallback Titles using OpenAI GPT-4
+ */
+async function generateSmartFallbackTitles(
+  jobTitles: string,
+  seniorityLevel: string,
+  unqualifiedPersons: string
+): Promise<string[]> {
+  const openaiApiKey = process.env.OPENAI_API_KEY;
+  if (!openaiApiKey) return ['Manager', 'Director', 'VP', 'Head of', 'Chief', 'President', 'Owner', 'Founder'];
+
+  const openai = new OpenAI({ apiKey: openaiApiKey });
+
+  const prompt = `You are a B2B data enrichment expert. Generate a list of 15 "Smart Fallback" job titles to search for when exact title matches fail.
+
+**Input Criteria:**
+- **Target Job Titles:** ${jobTitles}
+- **Target Seniority:** ${seniorityLevel}
+- **UNQUALIFIED (Avoid these):** ${unqualifiedPersons}
+
+**Goal:**
+If we can't find the exact target titles, who are the next best decision-makers or relevant contacts at these companies?
+Think broadly: Department Heads, C-Suite, VPs, Directors in relevant functions.
+
+**Requirements:**
+1. Return ONLY a JSON string array of job title keywords.
+2. EXCLUDE any titles related to the "UNQUALIFIED" list.
+3. Include generic but high-value titles like "Director of [Function]", "VP [Function]", "Head of [Function]", "Chief [Function] Officer".
+4. If "Owner" or "Founder" is appropriate for the size, include them.
+
+Example Output: ["Marketing Director", "VP of Sales", "Chief Operating Officer", "Head of Operations", "General Manager"]
+`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are a B2B prospecting expert. Return valid JSON only." },
+        { role: "user", content: prompt }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7
+    });
+
+    const result = JSON.parse(completion.choices[0].message.content || '{"titles":[]}');
+    // Handle both array response or object with key
+    return Array.isArray(result.titles) ? result.titles : (Array.isArray(result) ? result : []);
+  } catch (error) {
+    console.error('❌ AI fallback title generation failed:', error);
+    return ['Manager', 'Director', 'VP', 'Head of', 'Chief', 'President', 'Owner', 'Founder'];
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -362,6 +415,9 @@ export async function POST(request: NextRequest) {
     let geographicMarkets = '';
     let industry = '';
     let whatYouDo = '';
+    let rawJobTitles = '';
+    let seniorityLevel = '';
+    let unqualifiedPersons = '';
     
     try {
       console.log('📋 Fetching ICP data from questionnaire_responses...');
@@ -369,7 +425,15 @@ export async function POST(request: NextRequest) {
         .from('questionnaire_responses')
         .select('section, field_key, field_value')
         .eq('user_id', userId)
-        .in('field_key', ['companySize', 'geographicMarkets', 'industry', 'whatYouDo']);
+        .in('field_key', [
+          'companySize', 
+          'geographicMarkets', 
+          'industry', 
+          'whatYouDo',
+          'jobTitles',         // Q6.2
+          'seniorityLevel',    // Q6.1
+          'unqualifiedPersons' // Q19
+        ]);
       
       if (icpError) {
         console.error('❌ Failed to load ICP data:', icpError);
@@ -379,6 +443,9 @@ export async function POST(request: NextRequest) {
           if (row.field_key === 'geographicMarkets') geographicMarkets = row.field_value;
           if (row.field_key === 'industry') industry = row.field_value;
           if (row.field_key === 'whatYouDo') whatYouDo = row.field_value;
+          if (row.field_key === 'jobTitles') rawJobTitles = row.field_value;
+          if (row.field_key === 'seniorityLevel') seniorityLevel = JSON.stringify(row.field_value);
+          if (row.field_key === 'unqualifiedPersons') unqualifiedPersons = row.field_value;
         });
         
         console.log('✅ ICP Data loaded:');
@@ -389,6 +456,28 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.error('❌ Error loading ICP data:', error);
     }
+    
+    // ============================================
+    // STEP 3.5: GENERATE SMART FALLBACK TITLES
+    // ============================================
+    updateProgress('Generating smart fallback titles...', 3, 15);
+    
+    // Combine explicit titles with smart fallbacks
+    let smartFallbacks: string[] = [];
+    if (rawJobTitles || seniorityLevel) {
+      smartFallbacks = await generateSmartFallbackTitles(rawJobTitles, seniorityLevel, unqualifiedPersons);
+    }
+    
+    // Merge and deduplicate titles
+    // Priority: 1. Fuzzy Titles (from Personas), 2. Smart Fallbacks (AI)
+    const allTargetTitles = Array.from(new Set([...fuzzyTitles, ...smartFallbacks]));
+    
+    // Ensure we have at least SOME titles
+    if (allTargetTitles.length === 0) {
+      allTargetTitles.push('Manager', 'Director', 'VP', 'Head of', 'Chief', 'President', 'Owner', 'Founder');
+    }
+    
+    console.log(`🎯 Target Titles: ${allTargetTitles.length} (incl. ${smartFallbacks.length} smart fallbacks)`);
     
     // ============================================
     // STEP 4: GENERATE ICP-MATCHING COMPANIES WITH AI
@@ -484,7 +573,7 @@ export async function POST(request: NextRequest) {
       try {
         console.log('👥 Running Prospector Agent...');
         console.log(`🎯 Searching across ${icpCompanyDomains.length} ICP-matching companies`);
-        console.log(`🎯 Using ${fuzzyTitles.length} job titles for search`);
+        console.log(`🎯 Using ${allTargetTitles.length} job titles for search (Smart Fallback Enabled)`);
         console.log(`🎯 Personas: ${personas.slice(0, 3).map((p: any) => p.name).join(', ')}...`);
         
         // Run prospector for EACH ICP company domain
@@ -493,21 +582,21 @@ export async function POST(request: NextRequest) {
             console.log(`   🔍 Prospecting: ${domain}`);
             
             const response = await axios.post(
-          `${OCTAVE_BASE_URL}/prospector/run`,
-          {
+              `${OCTAVE_BASE_URL}/prospector/run`,
+              {
                 companyDomain: domain.startsWith('http') ? domain : `https://${domain}`,
-            agentOId: newAgentIds.prospector,
+                agentOId: newAgentIds.prospector,
                 limit: 20, // Limit per company to get variety
-            minimal: true,
-            searchContext: {
-              personaOIds: personas.map((p: any) => p.oId),
-              fuzzyTitles: fuzzyTitles
-            }
-          },
-          {
-            headers: {
-              'api_key': workspaceApiKey,
-              'Content-Type': 'application/json'
+                minimal: true,
+                searchContext: {
+                  personaOIds: personas.map((p: any) => p.oId),
+                  fuzzyTitles: allTargetTitles // Use our enhanced list!
+                }
+              },
+              {
+                headers: {
+                  'api_key': workspaceApiKey,
+                  'Content-Type': 'application/json'
                 },
                 timeout: 30000 // 30 second timeout per domain
               }
@@ -534,19 +623,19 @@ export async function POST(request: NextRequest) {
         prospects = allProspectsArrays
           .flat()
           .map((p: any) => ({
-          name: `${p.contact?.firstName || ''} ${p.contact?.lastName || ''}`.trim(),
-          firstName: p.contact?.firstName,
-          lastName: p.contact?.lastName,
-          title: p.contact?.title,
-          company: p.contact?.companyName,
-          companyDomain: p.contact?.companyDomain,
-          linkedIn: p.contact?.profileUrl,
-          location: p.contact?.location,
-          headline: p.contact?.headline,
-          // Keep original nested structure for agent use
-          contact: p.contact,
-          personas: p.personas
-        }));
+            name: `${p.contact?.firstName || ''} ${p.contact?.lastName || ''}`.trim(),
+            firstName: p.contact?.firstName,
+            lastName: p.contact?.lastName,
+            title: p.contact?.title,
+            company: p.contact?.companyName,
+            companyDomain: p.contact?.companyDomain,
+            linkedIn: p.contact?.profileUrl,
+            location: p.contact?.location,
+            headline: p.contact?.headline,
+            // Keep original nested structure for agent use
+            contact: p.contact,
+            personas: p.personas
+          }));
         
         // Deduplicate by name+company (in case of duplicates across domains)
         const uniqueProspects = new Map();
@@ -711,4 +800,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
