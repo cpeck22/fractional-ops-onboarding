@@ -42,7 +42,7 @@ async function generateICPCompanies(
     ? `\n7. **CRITICAL**: EXCLUDE these competitor domains from results:\n   ${competitorDomains.map(d => `- ${d}`).join('\n   ')}`
     : '';
 
-  const prompt = `You are a B2B prospecting expert. Generate a list of 50 real company domains that match this Ideal Customer Profile (ICP):
+  const prompt = `You are a B2B prospecting expert. Generate a list of 100 real company domains that match this Ideal Customer Profile (ICP):
 
 **Target Company Profile:**
 - Company Size/Revenue: ${companySize}
@@ -576,52 +576,82 @@ export async function POST(request: NextRequest) {
         console.log(`🎯 Using ${allTargetTitles.length} job titles for search (Smart Fallback Enabled)`);
         console.log(`🎯 Personas: ${personas.slice(0, 3).map((p: any) => p.name).join(', ')}...`);
         
-        // Run prospector for EACH ICP company domain
-        const prospectorPromises = icpCompanyDomains.map(async (domain) => {
-          try {
-            console.log(`   🔍 Prospecting: ${domain}`);
-            
-            const response = await axios.post(
-              `${OCTAVE_BASE_URL}/prospector/run`,
-              {
-                companyDomain: domain.startsWith('http') ? domain : `https://${domain}`,
-                agentOId: newAgentIds.prospector,
-                limit: 20, // Limit per company to get variety
-                minimal: true,
-                searchContext: {
-                  personaOIds: personas.map((p: any) => p.oId),
-                  fuzzyTitles: allTargetTitles // Use our enhanced list!
-                }
-              },
-              {
-                headers: {
-                  'api_key': workspaceApiKey,
-                  'Content-Type': 'application/json'
-                },
-                timeout: 30000 // 30 second timeout per domain
-              }
-            );
+        // Run prospector for EACH ICP company domain in batches
+        const BATCH_SIZE = 10;
+        const startTime = Date.now();
+        const TIME_LIMIT_MS = 240000; // 4 minutes (safe buffer before Vercel 5m timeout)
+        const allRawContacts: any[] = [];
 
-            const data = response.data;
-            const contacts = data.found && data.data?.contacts 
-              ? data.data.contacts 
-              : (data.contacts || []);
-            
-            console.log(`   ✅ ${domain}: Found ${contacts.length} prospects`);
-            return contacts;
-            
-          } catch (error: any) {
-            console.warn(`   ⚠️ ${domain}: Prospecting failed -`, error.message);
-            return [];
+        console.log(`⚡ Processing ${icpCompanyDomains.length} domains in batches of ${BATCH_SIZE}...`);
+
+        for (let i = 0; i < icpCompanyDomains.length; i += BATCH_SIZE) {
+          // Check for timeout safety
+          if (Date.now() - startTime > TIME_LIMIT_MS) {
+            console.warn(`⚠️ Prospecting time limit reached (${Math.round((Date.now() - startTime)/1000)}s), stopping early to ensure data save.`);
+            break;
           }
-        });
 
-        // Wait for all prospector calls to complete
-        const allProspectsArrays = await Promise.all(prospectorPromises);
+          const batch = icpCompanyDomains.slice(i, i + BATCH_SIZE);
+          const batchIndex = Math.floor(i / BATCH_SIZE) + 1;
+          const totalBatches = Math.ceil(icpCompanyDomains.length / BATCH_SIZE);
+          
+          console.log(`📦 Prospecting Batch ${batchIndex}/${totalBatches}: ${batch.length} domains...`);
+
+          const batchPromises = batch.map(async (domain) => {
+            try {
+              console.log(`   🔍 Prospecting: ${domain}`);
+              
+              const response = await axios.post(
+                `${OCTAVE_BASE_URL}/prospector/run`,
+                {
+                  companyDomain: domain.startsWith('http') ? domain : `https://${domain}`,
+                  agentOId: newAgentIds.prospector,
+                  limit: 20, // Limit per company to get variety
+                  minimal: true,
+                  searchContext: {
+                    personaOIds: personas.map((p: any) => p.oId),
+                    fuzzyTitles: allTargetTitles // Use our enhanced list!
+                  }
+                },
+                {
+                  headers: {
+                    'api_key': workspaceApiKey,
+                    'Content-Type': 'application/json'
+                  },
+                  timeout: 30000 // 30 second timeout per domain
+                }
+              );
+
+              const data = response.data;
+              const contacts = data.found && data.data?.contacts 
+                ? data.data.contacts 
+                : (data.contacts || []);
+              
+              console.log(`   ✅ ${domain}: Found ${contacts.length} prospects`);
+              return contacts;
+              
+            } catch (error: any) {
+              console.warn(`   ⚠️ ${domain}: Prospecting failed -`, error.message);
+              return [];
+            }
+          });
+
+          // Wait for batch to complete
+          const batchResults = await Promise.all(batchPromises);
+          
+          // Collect results
+          batchResults.forEach(contacts => {
+            if (Array.isArray(contacts)) {
+              allRawContacts.push(...contacts);
+            }
+          });
+          
+          // Small delay to prevent rate limiting
+          await new Promise(r => setTimeout(r, 200));
+        }
         
-        // Flatten and structure prospects
-        prospects = allProspectsArrays
-          .flat()
+        // Structure prospects
+        prospects = allRawContacts
           .map((p: any) => ({
             name: `${p.contact?.firstName || ''} ${p.contact?.lastName || ''}`.trim(),
             firstName: p.contact?.firstName,
