@@ -173,21 +173,28 @@ export async function enrichProspect(prospect: any): Promise<any> {
   const firstName = nameParts[0] || '';
   const lastName = nameParts.slice(1).join(' ') || null;
   
-  // Try to extract domain from company website or LinkedIn
-  let domain = '';
-  if (prospect.company_website) {
+  // IMPROVED DOMAIN LOGIC:
+  // 1. Use direct companyDomain from prospect (Octave usually provides this)
+  // 2. Fallback to extracting from website
+  // 3. Fallback to empty (which forces company_name usage)
+  let domain = prospect.companyDomain || '';
+  
+  if (!domain && prospect.company_website) {
     domain = prospect.company_website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
-  } else if (prospect.company_linkedin) {
-    // Fallback: use company name as domain search
-    domain = '';
+  }
+
+  // Clean domain just in case
+  if (domain) {
+    domain = domain.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
   }
   
   // Step 1: Find email
+  // If we have a domain, prefer it over company_name for accuracy
   const emailData = await findEmail({
     first_name: firstName,
     last_name: lastName,
     domain: domain || undefined,
-    company_name: prospect.company
+    company_name: domain ? undefined : prospect.company // Only send company_name if domain is missing
   });
 
   // Step 2: Find mobile (if we found a valid email)
