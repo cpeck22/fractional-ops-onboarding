@@ -37,6 +37,72 @@ export const signUpWithEmail = async (email: string, password: string, options?:
   return { data, error }
 }
 
+// NEW: Shared function to track signup
+export const trackVerifiedSignup = async (user: any) => {
+  try {
+    console.log('📝 Checking if user has questionnaire entry:', user.id);
+    
+    // Check if user already has any questionnaire data
+    const { data: existingData, error: checkError } = await supabase
+      .from('questionnaire_responses')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .limit(1);
+    
+    const isFirstLogin = !existingData || existingData.length === 0;
+    
+    if (isFirstLogin) {
+      console.log('🎉 First login detected for verified user:', user.email);
+      
+      // Send to signup tracking webhook (non-blocking, fire and forget)
+      fetch('/api/webhooks/signup-tracking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.email,
+          userId: user.id,
+          timestamp: new Date().toISOString()
+        })
+      }).catch(trackingError => {
+        // Don't fail login if tracking fails
+        console.error('⚠️ Signup tracking failed (non-critical):', trackingError);
+      });
+    }
+    
+    if (checkError) {
+      console.error('📝 Error checking existing questionnaire data:', checkError);
+    } else if (isFirstLogin) {
+      console.log('📝 No existing data found, creating initial questionnaire entry...');
+      
+      // Create initial empty entries for all sections
+      const initialEntries = [
+        { user_id: user.id, section: 'companyInfo', field_key: 'companyName', field_value: '' },
+        { user_id: user.id, section: 'companyInfo', field_key: 'companyDomain', field_value: '' }
+      ];
+      
+      const { error: insertError } = await supabase
+        .from('questionnaire_responses')
+        .insert(initialEntries);
+      
+      if (insertError) {
+        console.error('📝 Failed to create initial questionnaire entries:', insertError);
+        console.error('📝 Insert error details:', {
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint,
+          code: insertError.code
+        });
+      } else {
+        console.log('📝 Initial questionnaire entries created successfully');
+      }
+    } else {
+      console.log('📝 User already has questionnaire data, skipping initialization');
+    }
+  } catch (err) {
+    console.error('📝 Error in questionnaire initialization:', err);
+  }
+};
+
 export const signInWithEmail = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -45,69 +111,8 @@ export const signInWithEmail = async (email: string, password: string) => {
   
   // Create initial questionnaire entry for verified user (if it doesn't exist)
   if (data?.user && !error) {
-    console.log('📝 Checking if user has questionnaire entry:', data.user.id);
-    
-    // Track verified signup (only once on first login)
-    try {
-      // Check if user already has any questionnaire data
-      const { data: existingData, error: checkError } = await supabase
-        .from('questionnaire_responses')
-        .select('user_id')
-        .eq('user_id', data.user.id)
-        .limit(1);
-      
-      const isFirstLogin = !existingData || existingData.length === 0;
-      
-      if (isFirstLogin) {
-        console.log('🎉 First login detected for verified user:', data.user.email);
-        
-        // Send to signup tracking webhook (non-blocking, fire and forget)
-        fetch('/api/webhooks/signup-tracking', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: data.user.email,
-            userId: data.user.id,
-            timestamp: new Date().toISOString()
-          })
-        }).catch(trackingError => {
-          // Don't fail login if tracking fails
-          console.error('⚠️ Signup tracking failed (non-critical):', trackingError);
-        });
-      }
-      
-      if (checkError) {
-        console.error('📝 Error checking existing questionnaire data:', checkError);
-      } else if (isFirstLogin) {
-        console.log('📝 No existing data found, creating initial questionnaire entry...');
-        
-        // Create initial empty entries for all sections
-        const initialEntries = [
-          { user_id: data.user.id, section: 'companyInfo', field_key: 'companyName', field_value: '' },
-          { user_id: data.user.id, section: 'companyInfo', field_key: 'companyDomain', field_value: '' }
-        ];
-        
-        const { error: insertError } = await supabase
-          .from('questionnaire_responses')
-          .insert(initialEntries);
-        
-        if (insertError) {
-          console.error('📝 Failed to create initial questionnaire entries:', insertError);
-          console.error('📝 Insert error details:', {
-            message: insertError.message,
-            details: insertError.details,
-            hint: insertError.hint,
-            code: insertError.code
-          });
-        } else {
-          console.log('📝 Initial questionnaire entries created successfully');
-        }
-      } else {
-        console.log('📝 User already has questionnaire data, skipping initialization');
-      }
-    } catch (err) {
-      console.error('📝 Error in questionnaire initialization:', err);
-    }
+    // REPLACED: Call the shared function
+    await trackVerifiedSignup(data.user);
   }
   
   return { data, error }
