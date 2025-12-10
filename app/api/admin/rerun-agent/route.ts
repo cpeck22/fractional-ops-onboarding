@@ -172,7 +172,6 @@ export async function POST(request: NextRequest) {
 
     const updatePayload: any = {};
     updatePayload[resultKey] = newOutput;
-    updatePayload['agents_regenerated_at'] = new Date().toISOString();
 
     const { error: updateError } = await supabaseAdmin
       .from('octave_outputs')
