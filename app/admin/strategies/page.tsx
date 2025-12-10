@@ -11,9 +11,9 @@ export const dynamic = 'force-dynamic';
 
 // Admin emails that can access this page
 const ADMIN_EMAILS = [
-  'ali@fractionalops.com',
+  'ali.hassan@fractionalops.com',
+  'sharifali1000@gmail.com',
   'corey@fractionalops.com',
-  'coreypeck@gmail.com',
   // Add more admin emails as needed
 ];
 
