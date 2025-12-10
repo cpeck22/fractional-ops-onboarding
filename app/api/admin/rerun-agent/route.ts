@@ -104,8 +104,11 @@ export async function POST(request: NextRequest) {
     if (agentType === 'callPrep') {
       try {
         // List all agents in the workspace
-        const agentsResponse = await axios.get('https://app.octavehq.com/api/v2/agents', {
-          headers: { 'api_key': workspaceApiKey },
+        const agentsResponse = await axios.get('https://app.octavehq.com/api/v2/agents/list', {
+          headers: { 
+            'api_key': workspaceApiKey,
+            'Content-Type': 'application/json'
+          },
           params: { limit: 100 }
         });
         
