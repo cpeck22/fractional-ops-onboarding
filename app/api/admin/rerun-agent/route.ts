@@ -219,22 +219,37 @@ export async function POST(request: NextRequest) {
     
     console.log('💾 Updating database with new output...');
 
+    // First, get the specific record ID to update (most recent for this user)
+    const { data: recordToUpdate, error: selectError } = await supabaseAdmin
+      .from('octave_outputs')
+      .select('id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (selectError || !recordToUpdate) {
+      console.error('❌ Could not find record to update:', selectError);
+      return NextResponse.json({ error: 'Could not find strategy record to update' }, { status: 404 });
+    }
+
+    console.log('📍 Found record to update:', recordToUpdate.id);
+
     const updatePayload: any = {};
     updatePayload[resultKey] = newOutput;
 
+    // Update by specific record ID (not user_id which might match multiple rows)
     const { error: updateError } = await supabaseAdmin
       .from('octave_outputs')
       .update(updatePayload)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .eq('id', recordToUpdate.id);
 
     if (updateError) {
       console.error('❌ Database update failed:', updateError);
       return NextResponse.json({ error: 'Failed to save new output' }, { status: 500 });
     }
 
-    console.log('✅ Database updated successfully');
+    console.log('✅ Database updated successfully (record ID:', recordToUpdate.id, ')');
     console.log('🎯 ===== RERUN COMPLETE =====');
 
     return NextResponse.json({
