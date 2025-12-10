@@ -109,11 +109,9 @@ export const signInWithEmail = async (email: string, password: string) => {
     password
   })
   
-  // Create initial questionnaire entry for verified user (if it doesn't exist)
-  if (data?.user && !error) {
-    // REPLACED: Call the shared function
-    await trackVerifiedSignup(data.user);
-  }
+  // NOTE: trackVerifiedSignup is now called from AuthForm's onAuthStateChange listener
+  // to handle both manual sign-in AND email verification auto-login flows
+  // The AuthForm uses a session flag to prevent duplicate Zapier webhook triggers
   
   return { data, error }
 }

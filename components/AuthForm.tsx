@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase, signInWithEmail, signUpWithEmail, signOut, getCurrentUser, checkEmailExists } from '@/lib/supabase';
+import { useState, useEffect, useRef } from 'react';
+import { supabase, signInWithEmail, signUpWithEmail, signOut, getCurrentUser, checkEmailExists, trackVerifiedSignup } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import toast from 'react-hot-toast';
 import TermsAndConditionsModal from './TermsAndConditionsModal';
+
+// Track if we've already triggered signup tracking for this session to prevent duplicates
+let signupTrackingTriggered = false;
 
 interface AuthFormProps {
   onAuthSuccess: () => void;
@@ -54,8 +57,15 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
         if (session?.user) {
           console.log('🔐 AuthForm: ✅ User authenticated, setting user state and calling onAuthSuccess');
           
-          // NOTE: trackVerifiedSignup is called in signInWithEmail() - don't call it here
-          // to avoid duplicate Zapier webhook triggers
+          // Track signup for email verification flow (when user clicks confirmation link)
+          // Use module-level flag to prevent duplicate triggers within the same session
+          if (!signupTrackingTriggered) {
+            signupTrackingTriggered = true;
+            console.log('🔐 AuthForm: Triggering signup tracking (first auth event this session)');
+            trackVerifiedSignup(session.user);
+          } else {
+            console.log('🔐 AuthForm: Skipping signup tracking (already triggered this session)');
+          }
           
           setUser(session.user);
           onAuthSuccess();
