@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-export const maxDuration = 60; // Set timeout to 60 seconds (allow time for multiple requests)
+export const maxDuration = 300; // Vercel Pro allows up to 300 seconds (5 min)
 export const dynamic = 'force-dynamic';
 
 interface PlaybookData {

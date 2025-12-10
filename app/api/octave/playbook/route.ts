@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-// Set maximum duration to 60 seconds (Vercel Pro limit) to allow time for playbook generation
-export const maxDuration = 60;
+// Vercel Pro allows up to 300 seconds (5 min) - NOT 60 seconds
+export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 
 const OCTAVE_PLAYBOOK_API_URL = 'https://app.octavehq.com/api/v2/playbook/create';
@@ -24,6 +24,16 @@ interface PlaybookPersona {
 
 interface PlaybookUseCase {
   oId: string;
+}
+
+interface PlaybookResult {
+  index: number;
+  segmentName: string;
+  playbookName: string;
+  oId: string;
+  referencesIncluded: number;
+  referenceNames: string[];
+  data: any;
 }
 
 export async function POST(request: NextRequest) {
@@ -62,141 +72,135 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const createdPlaybooks = [];
-    const errors = [];
-
     // Extract persona and use case oIds
     const personaOIds = personas.map(p => p.oId);
     const useCaseOIds = useCases.map(uc => uc.oId);
 
-    // Create one playbook per segment
-    for (let i = 0; i < segments.length; i++) {
-      const segment = segments[i];
+    // Helper function to create a single playbook
+    const createSinglePlaybook = async (segment: PlaybookSegment, index: number): Promise<PlaybookResult> => {
+      console.log(`📚 Creating playbook ${index + 1}/${segments.length} for segment: ${segment.name}`);
+
+      // Filter references that match this segment's industry AND have valid oIds
+      const matchingReferences = references.filter(ref => ref.industry === segment.name && ref.oId);
+      const referenceOIds = matchingReferences.map(ref => ref.oId).filter(oId => oId);
+      const referenceNames = matchingReferences.map(ref => ref.companyName);
+
+      console.log(`📚 Found ${matchingReferences.length} matching references for ${segment.name}:`, referenceNames);
+      console.log(`📚 Valid reference oIds:`, referenceOIds);
+
+      // Generate key insight
+      const keyInsight = matchingReferences.length > 0
+        ? `Target ${segment.name} companies through ${personaOIds.length} key personas, addressing ${useCaseOIds.length} critical use cases. Proven success with ${referenceNames.join(', ')} in this market.`
+        : `Target ${segment.name} companies through ${personaOIds.length} key personas, addressing ${useCaseOIds.length} critical use cases.`;
+
+      const playbookRequest = {
+        name: `${segment.name} Sales Playbook`,
+        description: `Comprehensive sales playbook targeting ${segment.name} market segment`,
+        keyInsight: keyInsight,
+        type: 'SECTOR',
+        productOId: productOId,
+        segmentOId: segment.oId,
+        personaOIds: personaOIds,
+        useCaseOIds: useCaseOIds,
+        referenceOIds: referenceOIds.length > 0 ? referenceOIds : undefined,
+        createTemplates: true,
+        status: 'active',
+        referenceMode: referenceOIds.length > 0 ? 'specific' : 'none',
+        proofPointMode: 'none'
+      };
+
+      console.log('📚 Playbook request:', JSON.stringify(playbookRequest, null, 2));
+
+      // Retry logic for creation
+      let response;
+      const MAX_RETRIES = 3;
+
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          if (attempt > 1) console.log(`📚 Attempt ${attempt}/${MAX_RETRIES} to create playbook ${segment.name}...`);
+          
+          response = await axios.post(OCTAVE_PLAYBOOK_API_URL, playbookRequest, {
+            headers: {
+              'Content-Type': 'application/json',
+              'api_key': workspaceApiKey
+            },
+            timeout: 55000 // 55 second timeout per request
+          });
+          break; // Success
+        } catch (err: any) {
+          console.warn(`⚠️ Playbook creation attempt ${attempt} for ${segment.name} failed:`, err.message);
+          
+          const isRetryable = !err.response || (err.response.status >= 500) || err.code === 'ECONNABORTED' || err.code === 'ETIMEDOUT';
+          
+          if (!isRetryable || attempt === MAX_RETRIES) {
+            throw err;
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
+        }
+      }
+
+      const playbookOId = response?.data?.playbook?.oId || response?.data?.oId;
+      console.log(`✅ Created playbook: ${segment.name} Sales Playbook (${playbookOId})`);
+
+      // Fetch full playbook details
+      let fullPlaybookData = response?.data;
       
-      try {
-        console.log(`📚 Creating playbook ${i + 1}/${segments.length} for segment: ${segment.name}`);
-
-        // Filter references that match this segment's industry AND have valid oIds
-        const matchingReferences = references.filter(ref => ref.industry === segment.name && ref.oId);
-        const referenceOIds = matchingReferences.map(ref => ref.oId).filter(oId => oId); // Filter out nulls/undefined
-        const referenceNames = matchingReferences.map(ref => ref.companyName);
-
-        console.log(`📚 Found ${matchingReferences.length} matching references for ${segment.name}:`, referenceNames);
-        console.log(`📚 Valid reference oIds:`, referenceOIds);
-
-        // Generate key insight
-        const keyInsight = matchingReferences.length > 0
-          ? `Target ${segment.name} companies through ${personaOIds.length} key personas, addressing ${useCaseOIds.length} critical use cases. Proven success with ${referenceNames.join(', ')} in this market.`
-          : `Target ${segment.name} companies through ${personaOIds.length} key personas, addressing ${useCaseOIds.length} critical use cases.`;
-
-        const playbookRequest = {
-          name: `${segment.name} Sales Playbook`,
-          description: `Comprehensive sales playbook targeting ${segment.name} market segment`,
-          keyInsight: keyInsight,
-          type: 'SECTOR',
-          productOId: productOId,
-          segmentOId: segment.oId,
-          personaOIds: personaOIds,
-          useCaseOIds: useCaseOIds,
-          referenceOIds: referenceOIds.length > 0 ? referenceOIds : undefined,
-          createTemplates: true,
-          status: 'active',
-          referenceMode: referenceOIds.length > 0 ? 'specific' : 'none',
-          proofPointMode: 'none'
-        };
-
-        console.log('📚 Playbook request:', JSON.stringify(playbookRequest, null, 2));
-
-        // Use workspace API key with retry logic for creation
-        let response;
-        let lastError;
-        const MAX_RETRIES = 3;
-
-        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-          try {
-            if (attempt > 1) console.log(`📚 Attempt ${attempt}/${MAX_RETRIES} to create playbook...`);
-            
-            response = await axios.post(OCTAVE_PLAYBOOK_API_URL, playbookRequest, {
+      if (playbookOId) {
+        try {
+          console.log(`📖 Fetching full playbook details for ${playbookOId}...`);
+          const getResponse = await axios.get(
+            `https://app.octavehq.com/api/v2/playbook/get?oId=${playbookOId}`,
+            {
               headers: {
                 'Content-Type': 'application/json',
                 'api_key': workspaceApiKey
               },
-              timeout: 50000 // 50 second timeout (slightly less than maxDuration)
-            });
-            
-            // If we get here, it succeeded
-            break; 
-          } catch (err: any) {
-            lastError = err;
-            console.warn(`⚠️ Playbook creation attempt ${attempt} failed:`, err.message);
-            
-            // Only retry on network errors or 5xx errors
-            const isRetryable = !err.response || (err.response.status >= 500 && err.response.status < 600) || err.code === 'ECONNABORTED' || err.code === 'ETIMEDOUT';
-            
-            if (!isRetryable || attempt === MAX_RETRIES) {
-              throw err;
+              timeout: 30000
             }
-            
-            // Exponential backoff: 1s, 2s, 4s
-            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
-          }
+          );
+          fullPlaybookData = getResponse.data;
+          console.log(`✅ Fetched full playbook data for ${segment.name}`);
+        } catch (fetchError: any) {
+          console.warn(`⚠️ Could not fetch full playbook details for ${segment.name}, using creation response.`);
         }
+      }
 
-        const playbookOId = response?.data?.playbook?.oId || response?.data?.oId;
-        
-        console.log(`✅ Created playbook ${i + 1}: ${segment.name} Sales Playbook (${playbookOId})`);
-        
-        // Fetch full playbook details to get all fields (executive summary, approach angle, etc.)
-        let fullPlaybookData = response?.data;
-        
-        if (playbookOId) {
-          // Also retry the fetch if it fails
-          for (let attempt = 1; attempt <= 3; attempt++) {
-            try {
-              console.log(`📖 Fetching full playbook details for ${playbookOId}...`);
-              const getResponse = await axios.get(
-                `https://app.octavehq.com/api/v2/playbook/get?oId=${playbookOId}`,
-                {
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'api_key': workspaceApiKey
-                  },
-                  timeout: 30000 // 30 second timeout for fetch
-                }
-              );
-              fullPlaybookData = getResponse.data;
-              console.log(`✅ Fetched full playbook data with all fields`);
-              break; // Success
-            } catch (fetchError: any) {
-              console.warn(`⚠️ Attempt ${attempt} to fetch playbook details failed:`, fetchError.message);
-              if (attempt === 3) {
-                console.warn(`⚠️ Could not fetch full playbook details, using creation response.`);
-              } else {
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Simple 1s wait
-              }
-            }
-          }
-        }
-        
-        createdPlaybooks.push({
-          index: i,
-          segmentName: segment.name,
-          playbookName: `${segment.name} Sales Playbook`,
-          oId: playbookOId,
-          referencesIncluded: matchingReferences.length,
-          referenceNames: referenceNames,
-          data: fullPlaybookData
-        });
+      return {
+        index,
+        segmentName: segment.name,
+        playbookName: `${segment.name} Sales Playbook`,
+        oId: playbookOId,
+        referencesIncluded: matchingReferences.length,
+        referenceNames: referenceNames,
+        data: fullPlaybookData
+      };
+    };
 
-      } catch (error: any) {
-        console.error(`❌ Error creating playbook ${i + 1}:`, error.response?.data || error.message);
+    // Create all playbooks in PARALLEL using Promise.allSettled
+    console.log(`🚀 Creating ${segments.length} playbooks in parallel...`);
+    
+    const results = await Promise.allSettled(
+      segments.map((segment, index) => createSinglePlaybook(segment, index))
+    );
+
+    // Process results
+    const createdPlaybooks: PlaybookResult[] = [];
+    const errors: { index: number; segmentName: string; error: string }[] = [];
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        createdPlaybooks.push(result.value);
+      } else {
+        const reason = result.reason as any;
+        console.error(`❌ Error creating playbook ${index + 1}:`, reason?.response?.data || reason?.message);
         errors.push({
-          index: i,
-          segmentName: segment.name,
-          error: error.response?.data?.message || error.message
+          index,
+          segmentName: segments[index].name,
+          error: reason?.response?.data?.message || reason?.message || 'Unknown error'
         });
       }
-    }
+    });
 
     console.log(`✅ Successfully created ${createdPlaybooks.length} / ${segments.length} playbooks`);
     if (errors.length > 0) {

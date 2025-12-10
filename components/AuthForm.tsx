@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase, signInWithEmail, signUpWithEmail, signOut, getCurrentUser, checkEmailExists, trackVerifiedSignup } from '@/lib/supabase';
+import { supabase, signInWithEmail, signUpWithEmail, signOut, getCurrentUser, checkEmailExists } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import toast from 'react-hot-toast';
 import TermsAndConditionsModal from './TermsAndConditionsModal';
@@ -54,8 +54,8 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
         if (session?.user) {
           console.log('🔐 AuthForm: ✅ User authenticated, setting user state and calling onAuthSuccess');
           
-          // ADDED: Track signup on auto-login
-          trackVerifiedSignup(session.user);
+          // NOTE: trackVerifiedSignup is called in signInWithEmail() - don't call it here
+          // to avoid duplicate Zapier webhook triggers
           
           setUser(session.user);
           onAuthSuccess();
