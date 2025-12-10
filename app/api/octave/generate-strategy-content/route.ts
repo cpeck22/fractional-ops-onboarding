@@ -72,15 +72,40 @@ export async function POST(request: NextRequest) {
     console.log(`   Agent IDs: ${Object.keys(agentIds).length} categories`);
     console.log(`   Company: ${companyName} (${companyDomain})`);
 
-    if (prospects.length === 0) {
-      console.warn('⚠️ No prospects found in Phase 1 data');
+    // ============================================
+    // FALLBACK: Sample prospect when no real prospects found
+    // ============================================
+    // Octave agents require a valid LinkedIn profile to generate content.
+    // When prospecting yields 0 results (rare edge case ~1-5%), we use a 
+    // sample profile so all content agents can still run successfully.
+    // The sample prospect is NOT saved to the database - prospect_list stays empty.
+    
+    const FALLBACK_SAMPLE_PROSPECT = {
+      contact: {
+        firstName: 'Corey',
+        lastName: 'Peck',
+        title: 'Chief Executive Officer',
+        company: 'Sample Corporation',
+        companyDomain: 'example.com',
+        profileUrl: 'https://www.linkedin.com/in/coreypeck/'
+      }
+    };
+
+    // Use fallback if no real prospects found
+    const agentProspects = prospects.length > 0 ? prospects : [FALLBACK_SAMPLE_PROSPECT];
+    const usingFallback = prospects.length === 0;
+
+    if (usingFallback) {
+      console.log('⚠️ ===== FALLBACK MODE: No real prospects found =====');
+      console.log('📋 Using sample profile for content generation:', FALLBACK_SAMPLE_PROSPECT.contact.profileUrl);
+      console.log('📋 Note: Sample prospect will NOT be saved to database');
     }
 
     // ============================================
     // STEP 2-14: RUN ALL CONTENT AGENTS (PARALLEL)
     // ============================================
     
-    console.log('🚀 Starting content generation for', prospects.length, 'prospects');
+    console.log('🚀 Starting content generation for', agentProspects.length, 'prospects', usingFallback ? '(FALLBACK MODE)' : '');
 
     // Initialize agent results
     const agentResults = {
@@ -124,10 +149,8 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        // Handle case where no prospects found - use company context only
-        const prospect = prospects.length > 0 
-          ? prospects[prospectIndex % prospects.length] 
-          : null;
+        // Use agentProspects (which includes fallback if no real prospects)
+        const prospect = agentProspects[prospectIndex % agentProspects.length];
         
         let endpoint = '';
         let requestBody: any = {
@@ -207,8 +230,8 @@ export async function POST(request: NextRequest) {
     const promises: Promise<void>[] = [];
 
     // --- Cold Email Agents ---
-    if (prospects.length === 0) {
-      console.warn('⚠️ No qualified prospects found - Cold Email agents will use company context only');
+    if (usingFallback) {
+      console.log('📧 Cold Email agents will use fallback sample profile');
     }
 
     if (agentIds.coldEmails?.leadMagnetLong) {

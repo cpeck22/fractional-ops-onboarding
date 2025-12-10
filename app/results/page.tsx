@@ -892,7 +892,48 @@ export default function ResultsPage() {
               })()}
             </>
           ) : (
-            <ErrorPlaceholder assetType="Prospect List" />
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-6">
+              <div className="flex items-start gap-4">
+                <div className="text-3xl">📋</div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-amber-900 text-lg mb-2">
+                    Prospect List Unavailable for Your Niche
+                  </h3>
+                  <p className="text-amber-800 text-sm mb-4">
+                    Our prospecting database didn&apos;t find contacts matching your specific ICP criteria. 
+                    This can happen with highly localized or niche markets.
+                  </p>
+                  <div className="bg-white/60 rounded-lg p-4 border border-amber-200">
+                    <p className="font-semibold text-gray-800 text-sm mb-2">✨ Good news!</p>
+                    <p className="text-gray-700 text-sm">
+                      All the sales assets below (emails, LinkedIn content, call scripts, etc.) have been 
+                      generated using your strategic elements and are ready to use with any prospects you source yourself.
+                    </p>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <a
+                      href="https://meetings.hubspot.com/corey-peck/claire-roi-roadmap-call"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg text-sm font-semibold hover:bg-fo-primary/90 transition-colors"
+                    >
+                      💬 Discuss Prospecting Strategies
+                    </a>
+                    <a
+                      href="https://www.linkedin.com/sales/search/people"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/>
+                      </svg>
+                      Find Prospects on LinkedIn
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </section>
 

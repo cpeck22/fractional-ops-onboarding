@@ -731,7 +731,27 @@ export default function AdminViewStrategyPage() {
               })()}
             </>
           ) : (
-            <ErrorPlaceholder assetType="Prospect List" />
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-6">
+              <div className="flex items-start gap-4">
+                <div className="text-3xl">📋</div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-amber-900 text-lg mb-2">
+                    Prospect List Unavailable for This Niche
+                  </h3>
+                  <p className="text-amber-800 text-sm mb-4">
+                    Our prospecting database didn&apos;t find contacts matching this client&apos;s specific ICP criteria. 
+                    This can happen with highly localized or niche markets.
+                  </p>
+                  <div className="bg-white/60 rounded-lg p-4 border border-amber-200">
+                    <p className="font-semibold text-gray-800 text-sm mb-2">✨ Content was still generated!</p>
+                    <p className="text-gray-700 text-sm">
+                      All the sales assets below (emails, LinkedIn content, call scripts, etc.) were 
+                      generated using a fallback sample profile and the client&apos;s strategic elements.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </section>
 
