@@ -314,8 +314,14 @@ export async function POST(request: NextRequest) {
             console.log(`  ✅ MAPPED as COLD_EMAIL: Lead Magnet Long`);
           }
         } else if (agentType === 'CALL_PREP') {
-          newAgentIds.callPrep = agentOId;
-          console.log(`  ✅ MAPPED as CALL_PREP`);
+          // Prefer custom "1st Meeting" call prep agent over generic out-of-box one
+          const isCustomCallPrep = agentName.includes('1st meeting') || agentName.includes('1st');
+          if (!newAgentIds.callPrep || isCustomCallPrep) {
+            newAgentIds.callPrep = agentOId;
+            console.log(`  ✅ MAPPED as CALL_PREP${isCustomCallPrep ? ' (Custom 1st Meeting)' : ''}`);
+          } else {
+            console.log(`  ⏭️ Skipping generic Call Prep (already have custom one)`);
+          }
         } else if (agentType === 'CONTENT') {
           if (agentName.includes('linkedin post') || agentName.includes('linkedin:')) {
             if (agentName.includes('inspiring') || agentName.includes('challenges overcome')) {

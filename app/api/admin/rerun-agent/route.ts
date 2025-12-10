@@ -91,8 +91,68 @@ export async function POST(request: NextRequest) {
     console.log(`   Prospects: ${prospects.length}`);
 
     // ============================================
-    // STEP 3: Determine which agent to run
+    // STEP 3: Find the correct agent (fetch fresh from Octave)
     // ============================================
+    
+    // For Call Prep, we need to find the CUSTOM "1st Meeting" agent, not the generic one
+    // This fixes issues where the wrong agent ID was stored in the database
+    
+    console.log('🔍 Fetching agents from Octave to find correct custom agent...');
+    
+    let correctAgentOId: string | null = null;
+    
+    if (agentType === 'callPrep') {
+      try {
+        // List all agents in the workspace
+        const agentsResponse = await axios.get('https://app.octavehq.com/api/v2/agents', {
+          headers: { 'api_key': workspaceApiKey },
+          params: { limit: 100 }
+        });
+        
+        const allAgents = agentsResponse.data?.agents || [];
+        console.log(`📋 Found ${allAgents.length} agents in workspace`);
+        
+        // Find Call Prep agents and prefer the custom "1st Meeting" one
+        let genericCallPrep: string | null = null;
+        let customCallPrep: string | null = null;
+        
+        for (const agent of allAgents) {
+          if (agent.type === 'CALL_PREP') {
+            const agentName = agent.name?.toLowerCase() || '';
+            const agentOId = agent.oId || agent.agentOId;
+            
+            if (agentName.includes('1st meeting') || agentName.includes('1st')) {
+              customCallPrep = agentOId;
+              console.log(`✅ Found CUSTOM Call Prep: ${agent.name} (${agentOId})`);
+            } else {
+              genericCallPrep = agentOId;
+              console.log(`📋 Found generic Call Prep: ${agent.name} (${agentOId})`);
+            }
+          }
+        }
+        
+        // Prefer custom, fall back to generic, then fall back to stored ID
+        correctAgentOId = customCallPrep || genericCallPrep || agentIds.callPrep;
+        
+        if (customCallPrep) {
+          console.log('🎯 Using CUSTOM Call Prep Agent (1st Meeting):', correctAgentOId);
+        } else if (genericCallPrep) {
+          console.log('⚠️ No custom Call Prep found, using generic:', correctAgentOId);
+        } else {
+          console.log('⚠️ Using stored agent ID:', correctAgentOId);
+        }
+        
+      } catch (listError: any) {
+        console.error('⚠️ Failed to list agents, using stored ID:', listError.message);
+        correctAgentOId = agentIds.callPrep;
+      }
+    } else {
+      return NextResponse.json({ error: `Unknown agent type: ${agentType}` }, { status: 400 });
+    }
+
+    if (!correctAgentOId) {
+      return NextResponse.json({ error: `No agent ID found for: ${agentType}` }, { status: 404 });
+    }
 
     // Fallback sample prospect (same as in generate-strategy-content)
     const FALLBACK_SAMPLE_PROSPECT = {
@@ -109,22 +169,8 @@ export async function POST(request: NextRequest) {
     const agentProspects = prospects.length > 0 ? prospects : [FALLBACK_SAMPLE_PROSPECT];
     const prospect = agentProspects[0];
 
-    let agentOId: string | null = null;
-    let endpoint = '';
-    let resultKey = '';
-
-    if (agentType === 'callPrep') {
-      agentOId = agentIds.callPrep;
-      endpoint = `${OCTAVE_BASE_URL}/call-prep/run`;
-      resultKey = 'call_prep';
-      console.log('🎯 Running Call Prep Agent:', agentOId);
-    } else {
-      return NextResponse.json({ error: `Unknown agent type: ${agentType}` }, { status: 400 });
-    }
-
-    if (!agentOId) {
-      return NextResponse.json({ error: `No agent ID found for: ${agentType}` }, { status: 404 });
-    }
+    const endpoint = `${OCTAVE_BASE_URL}/call-prep/run`;
+    const resultKey = 'call_prep';
 
     // ============================================
     // STEP 4: Run the Octave agent
@@ -133,7 +179,7 @@ export async function POST(request: NextRequest) {
     console.log('🚀 Calling Octave API...');
     
     const requestBody = {
-      agentOId: agentOId,
+      agentOId: correctAgentOId,
       email: prospect?.contact?.companyDomain || companyDomain || null,
       companyDomain: prospect?.contact?.companyDomain || companyDomain || null,
       companyName: prospect?.contact?.company || companyName || null,

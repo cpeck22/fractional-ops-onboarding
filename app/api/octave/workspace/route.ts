@@ -298,8 +298,14 @@ export async function POST(request: NextRequest) {
               }
             }
           } else if (agentType === 'CALL_PREP') {
-            newAgentIds.callPrep = agentOId;
-            console.log(`    ✅ MAPPED as CALL_PREP`);
+            // Prefer custom "1st Meeting" call prep agent over generic out-of-box one
+            const isCustomCallPrep = agentName.includes('1st meeting') || agentName.includes('1st');
+            if (!newAgentIds.callPrep || isCustomCallPrep) {
+              newAgentIds.callPrep = agentOId;
+              console.log(`    ✅ MAPPED as CALL_PREP${isCustomCallPrep ? ' (Custom 1st Meeting)' : ''}`);
+            } else {
+              console.log(`    ⏭️ Skipping generic Call Prep (already have custom one)`);
+            }
           } else if (agentType === 'CONTENT') {
             // Differentiate content agents by name
             if (agentName.includes('linkedin') && agentName.includes('post')) {
