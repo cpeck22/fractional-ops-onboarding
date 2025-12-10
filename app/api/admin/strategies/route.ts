@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user emails for each strategy
-    const userIds = [...new Set(strategies?.map(s => s.user_id) || [])];
+    const userIds = Array.from(new Set(strategies?.map(s => s.user_id) || []));
     
     // Fetch user details
     const { data: { users }, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
