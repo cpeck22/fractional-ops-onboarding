@@ -3,9 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 
 // Admin emails that can access the admin panel
 const ADMIN_EMAILS = [
-  'ali@fractionalops.com',
+  'ali.hassan@fractionalops.com',
+  'sharifali1000@gmail.com',
   'corey@fractionalops.com',
-  'coreypeck@gmail.com',
   // Add more admin emails as needed
 ];
 
