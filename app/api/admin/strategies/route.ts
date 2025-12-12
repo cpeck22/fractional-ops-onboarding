@@ -22,7 +22,8 @@ export async function GET(request: NextRequest) {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get all octave_outputs with user info
+    // Get all octave_outputs with user info - fetch ALL records
+    console.log('🔍 Fetching all strategies from octave_outputs...');
     const { data: strategies, error: strategiesError } = await supabaseAdmin
       .from('octave_outputs')
       .select('id, user_id, company_name, company_domain, created_at')
@@ -31,6 +32,15 @@ export async function GET(request: NextRequest) {
     if (strategiesError) {
       console.error('❌ Error fetching strategies:', strategiesError);
       return NextResponse.json({ error: 'Failed to fetch strategies' }, { status: 500 });
+    }
+
+    console.log(`📊 Raw query returned ${strategies?.length || 0} strategies`);
+    if (strategies && strategies.length > 0) {
+      console.log('📋 Sample strategy:', {
+        id: strategies[0].id,
+        company_name: strategies[0].company_name,
+        created_at: strategies[0].created_at
+      });
     }
 
     // Get user emails for each strategy
@@ -56,11 +66,19 @@ export async function GET(request: NextRequest) {
     }));
 
     console.log(`✅ Fetched ${enrichedStrategies?.length || 0} strategies for admin view`);
+    console.log(`📧 Mapped ${Object.keys(userEmailMap).length} user emails`);
 
+    // Add cache-busting headers to ensure fresh data
     return NextResponse.json({
       success: true,
       strategies: enrichedStrategies || [],
       adminEmails: ADMIN_EMAILS
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
 
   } catch (error: any) {

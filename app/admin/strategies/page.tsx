@@ -74,10 +74,14 @@ export default function AdminStrategiesPage() {
 
   const loadStrategies = async () => {
     try {
-      const response = await fetch('/api/admin/strategies');
+      // Add cache-busting query parameter
+      const response = await fetch(`/api/admin/strategies?t=${Date.now()}`, {
+        cache: 'no-store'
+      });
       const data = await response.json();
 
       if (data.success) {
+        console.log(`📊 API returned ${data.strategies.length} strategies`);
         setStrategies(data.strategies);
         console.log(`✅ Loaded ${data.strategies.length} strategies`);
       } else {
@@ -90,13 +94,14 @@ export default function AdminStrategiesPage() {
     }
   };
 
-  // Filter strategies by search term
+  // Filter strategies by search term (handle null/undefined values)
   const filteredStrategies = strategies.filter(strategy => {
+    if (!searchTerm) return true; // Show all if no search term
     const searchLower = searchTerm.toLowerCase();
     return (
-      strategy.company_name?.toLowerCase().includes(searchLower) ||
-      strategy.user_email?.toLowerCase().includes(searchLower) ||
-      strategy.company_domain?.toLowerCase().includes(searchLower)
+      (strategy.company_name || '').toLowerCase().includes(searchLower) ||
+      (strategy.user_email || '').toLowerCase().includes(searchLower) ||
+      (strategy.company_domain || '').toLowerCase().includes(searchLower)
     );
   });
 
@@ -154,6 +159,16 @@ export default function AdminStrategiesPage() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  loadStrategies();
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors flex items-center gap-2"
+                disabled={loading}
+              >
+                {loading ? '⏳' : '🔄'} Refresh
+              </button>
               <button
                 onClick={() => router.push('/admin/rerun-agent')}
                 className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold hover:bg-orange-600 transition-colors flex items-center gap-2"
