@@ -6,8 +6,10 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import toast from 'react-hot-toast';
 import ClaireImage from '../../../Claire_v2.png';
 import SectionIntro from '@/components/SectionIntro';
+import StrategyTimer from '@/components/StrategyTimer';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -92,6 +94,8 @@ export default function AdminViewStrategyPage() {
   const [activeNewsletterTab, setActiveNewsletterTab] = useState('tactical');
   const [activeSection, setActiveSection] = useState('campaign-workflows');
   const [refreshing, setRefreshing] = useState(false);
+  const [shareLink, setShareLink] = useState<{ shareId: string; expiresAt: string } | null>(null);
+  const [creatingShare, setCreatingShare] = useState(false);
 
   // Table of Contents sections (same as results page)
   const tocSections = [
@@ -160,6 +164,7 @@ export default function AdminViewStrategyPage() {
 
   useEffect(() => {
     checkAdminAndLoadStrategy();
+    checkExistingShare();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
@@ -304,6 +309,74 @@ export default function AdminViewStrategyPage() {
     setLoading(true);
     await checkAdminAndLoadStrategy();
     setRefreshing(false);
+  };
+
+  const checkExistingShare = async () => {
+    try {
+      if (!userId) return;
+
+      // Call API to check for existing share link (uses admin client on server)
+      const response = await fetch(`/api/share-strategy?userId=${userId}`, {
+        method: 'GET',
+        cache: 'no-store'
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.exists && result.shareId) {
+          console.log('✅ Existing share link found for client:', result.shareId);
+          setShareLink({
+            shareId: result.shareId,
+            expiresAt: result.expiresAt
+          });
+        }
+      }
+    } catch (error) {
+      console.log('No existing share link found for client');
+    }
+  };
+
+  const handleShareStrategy = async () => {
+    try {
+      if (!userId) {
+        toast.error('User ID not found');
+        return;
+      }
+
+      setCreatingShare(true);
+
+      const response = await fetch('/api/share-strategy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setShareLink({
+          shareId: result.shareId,
+          expiresAt: result.expiresAt
+        });
+
+        // Copy link to clipboard
+        const shareUrl = `${window.location.origin}/share-claire-strategy/${result.shareId}`;
+        await navigator.clipboard.writeText(shareUrl);
+        
+        if (result.alreadyExists) {
+          toast.success('Share link copied to clipboard!');
+        } else {
+          toast.success('Share link created and copied to clipboard!');
+        }
+      } else {
+        toast.error('Failed to create share link');
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+      toast.error('Failed to create share link');
+    } finally {
+      setCreatingShare(false);
+    }
   };
 
   if (loading) {
@@ -505,6 +578,49 @@ export default function AdminViewStrategyPage() {
                 </>
               )}
             </button>
+            {shareLink ? (
+              <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200 shadow-sm">
+                <input
+                  type="text"
+                  readOnly
+                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/share-claire-strategy/${shareLink.shareId}`}
+                  className="bg-transparent text-sm text-gray-700 outline-none flex-1 min-w-[300px]"
+                />
+                <button
+                  onClick={async () => {
+                    const url = `${window.location.origin}/share-claire-strategy/${shareLink.shareId}`;
+                    await navigator.clipboard.writeText(url);
+                    toast.success('Link copied to clipboard!');
+                  }}
+                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  title="Copy link"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleShareStrategy}
+                disabled={creatingShare || !outputs}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-bold hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {creatingShare ? (
+                  <>
+                    <span className="animate-spin">⏳</span>
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                    Share Strategy
+                  </>
+                )}
+              </button>
+            )}
             <span className="text-gray-300 text-sm">
               Client: <span className="text-white font-medium">{userEmail}</span>
             </span>
@@ -605,13 +721,22 @@ export default function AdminViewStrategyPage() {
               <div className="flex items-center gap-2 text-orange-800">
                 <span className="text-lg">👁️</span>
                 <div>
-                  <p className="font-bold text-sm">Admin View Only</p>
-                  <p className="text-xs text-orange-600">No timer triggered</p>
+                  <p className="font-bold text-sm">Admin View</p>
+                  <p className="text-xs text-orange-600">
+                    {shareLink ? 'Timer active - Share link created' : 'Can create share link below'}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Timer Section - Positioned below header (only shown if shared) */}
+        {shareLink && (
+          <div className="mb-8">
+            <StrategyTimer expiresAt={shareLink.expiresAt} showCTA={true} />
+          </div>
+        )}
 
         {/* Campaign Ideas */}
         <section id="campaign-workflows" className="bg-white rounded-lg shadow-lg p-8 mb-8 scroll-mt-24">
@@ -1605,3 +1730,4 @@ export default function AdminViewStrategyPage() {
     </div>
   );
 }
+

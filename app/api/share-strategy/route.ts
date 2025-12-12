@@ -1,6 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID required' }, { status: 400 });
+    }
+
+    console.log('🔍 Checking for existing share link for user:', userId);
+    
+    // Initialize Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('❌ Missing Supabase credentials');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+    
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Check if user already has a share link
+    const { data: existing, error: existingError } = await supabaseAdmin
+      .from('shared_strategies')
+      .select('share_id, expires_at')
+      .eq('user_id', userId)
+      .single();
+
+    if (existing && !existingError) {
+      console.log('✅ Found existing share link:', existing.share_id);
+      return NextResponse.json({
+        success: true,
+        shareId: existing.share_id,
+        expiresAt: existing.expires_at,
+        exists: true
+      });
+    }
+
+    return NextResponse.json({
+      success: false,
+      exists: false
+    });
+
+  } catch (error: any) {
+    console.error('❌ Check share link error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await request.json();
