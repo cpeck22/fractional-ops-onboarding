@@ -32,6 +32,9 @@ export default function AdminStrategiesPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [regenerateEmail, setRegenerateEmail] = useState('');
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [regenerateStatus, setRegenerateStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -91,6 +94,60 @@ export default function AdminStrategiesPage() {
       console.error('❌ Error loading strategies:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRegenerateStrategy = async () => {
+    if (!regenerateEmail.trim()) {
+      setRegenerateStatus({ type: 'error', message: 'Please enter an email address' });
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(regenerateEmail.trim())) {
+      setRegenerateStatus({ type: 'error', message: 'Please enter a valid email address' });
+      return;
+    }
+
+    setIsRegenerating(true);
+    setRegenerateStatus(null);
+
+    try {
+      console.log('🔄 Regenerating strategy for:', regenerateEmail.trim());
+      
+      const response = await fetch('/api/admin/regenerate-strategy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: regenerateEmail.trim() })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setRegenerateStatus({ 
+          type: 'success', 
+          message: `✅ Strategy successfully regenerated for ${data.companyName || regenerateEmail.trim()}` 
+        });
+        setRegenerateEmail('');
+        // Refresh the strategies list after a short delay
+        setTimeout(() => {
+          loadStrategies();
+        }, 2000);
+      } else {
+        setRegenerateStatus({ 
+          type: 'error', 
+          message: `❌ ${data.error || 'Failed to regenerate strategy'}` 
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Regenerate strategy error:', error);
+      setRegenerateStatus({ 
+        type: 'error', 
+        message: `❌ Error: ${error.message || 'Unknown error occurred'}` 
+      });
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -216,6 +273,70 @@ export default function AdminStrategiesPage() {
             </div>
             <div className="text-gray-500 text-sm">Today</div>
           </div>
+        </div>
+
+        {/* Regenerate Strategy Section */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">🔄 Regenerate Claire Strategy</h2>
+              <p className="text-gray-600 text-sm">
+                Enter a user&apos;s email address to regenerate their complete strategy (Phase 1 + Phase 2).
+                This will create fresh prospects and content. <strong>This process takes 3-5 minutes.</strong>
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-4">
+            <input
+              type="email"
+              placeholder="Enter user email address (e.g., ceo@company.com)..."
+              value={regenerateEmail}
+              onChange={(e) => {
+                setRegenerateEmail(e.target.value);
+                setRegenerateStatus(null); // Clear status when typing
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !isRegenerating && regenerateEmail.trim()) {
+                  handleRegenerateStrategy();
+                }
+              }}
+              className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+              disabled={isRegenerating}
+            />
+            <button
+              onClick={handleRegenerateStrategy}
+              disabled={isRegenerating || !regenerateEmail.trim()}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[200px]"
+            >
+              {isRegenerating ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  <span>Regenerating...</span>
+                </>
+              ) : (
+                <>
+                  <span>🔄</span>
+                  <span>Regenerate Strategy</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {regenerateStatus && (
+            <div className={`mt-4 p-4 rounded-lg ${
+              regenerateStatus.type === 'success' 
+                ? 'bg-green-50 border border-green-200 text-green-800' 
+                : 'bg-red-50 border border-red-200 text-red-800'
+            }`}>
+              <p className="font-medium">{regenerateStatus.message}</p>
+              {regenerateStatus.type === 'success' && (
+                <p className="text-sm mt-2 text-green-700">
+                  The strategy list will refresh automatically. You can also click &quot;Refresh&quot; to see the updated list.
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Search */}
