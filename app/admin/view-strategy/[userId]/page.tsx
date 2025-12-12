@@ -89,6 +89,7 @@ export default function AdminViewStrategyPage() {
   const [activeDMTab, setActiveDMTab] = useState('newsletter');
   const [activeNewsletterTab, setActiveNewsletterTab] = useState('tactical');
   const [activeSection, setActiveSection] = useState('campaign-workflows');
+  const [refreshing, setRefreshing] = useState(false);
 
   // Table of Contents sections (same as results page)
   const tocSections = [
@@ -184,8 +185,10 @@ export default function AdminViewStrategyPage() {
 
       setIsAdmin(true);
 
-      // Load strategy via API
-      const response = await fetch(`/api/admin/strategy/${userId}`);
+      // Load strategy via API with cache-busting
+      const response = await fetch(`/api/admin/strategy/${userId}?t=${Date.now()}`, {
+        cache: 'no-store'
+      });
       const data = await response.json();
 
       if (data.success) {
@@ -293,6 +296,13 @@ export default function AdminViewStrategyPage() {
     
     enrichPlaybooks();
   }, [outputs]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setLoading(true);
+    await checkAdminAndLoadStrategy();
+    setRefreshing(false);
+  };
 
   if (loading) {
     return (
@@ -476,12 +486,34 @@ export default function AdminViewStrategyPage() {
             </span>
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing || loading}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {refreshing ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  <span>Refreshing...</span>
+                </>
+              ) : (
+                <>
+                  <span>🔄</span>
+                  <span>Refresh</span>
+                </>
+              )}
+            </button>
             <span className="text-gray-300 text-sm">
               Client: <span className="text-white font-medium">{userEmail}</span>
             </span>
             <span className="text-gray-300 text-sm">
               Created: {new Date(outputs.created_at).toLocaleDateString()}
             </span>
+            {outputs.agents_generated_at && (
+              <span className="text-gray-300 text-sm">
+                Regenerated: {new Date(outputs.agents_generated_at).toLocaleDateString()}
+              </span>
+            )}
           </div>
         </div>
       </div>

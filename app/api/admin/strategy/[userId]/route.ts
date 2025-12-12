@@ -26,11 +26,13 @@ export async function GET(
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch the strategy for this user
+    // Order by updated_at to get the most recently regenerated content
+    // Since regeneration updates the existing record, this ensures we get the latest version
     const { data: strategy, error: strategyError } = await supabaseAdmin
       .from('octave_outputs')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+      .order('updated_at', { ascending: false })
       .limit(1)
       .single();
 
@@ -44,11 +46,21 @@ export async function GET(
     const user = users?.find(u => u.id === userId);
 
     console.log('✅ Strategy loaded for admin view:', strategy.company_name);
+    console.log(`   Agents generated at: ${strategy.agents_generated_at || 'Not set'}`);
+    console.log(`   Updated at: ${strategy.updated_at || 'Not set'}`);
+    console.log(`   Created at: ${strategy.created_at || 'Not set'}`);
 
+    // Add cache-busting headers to ensure fresh data
     return NextResponse.json({
       success: true,
       strategy,
       userEmail: user?.email || 'Unknown'
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
 
   } catch (error: any) {
