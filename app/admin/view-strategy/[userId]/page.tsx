@@ -58,6 +58,8 @@ interface OctaveOutputs {
   segments?: any[];
   competitors?: any[];
   created_at: string;
+  updated_at?: string;
+  agents_generated_at?: string;
   workspace_api_key?: string;
 }
 
