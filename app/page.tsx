@@ -58,7 +58,7 @@ export default function Home() {
         {/* Claire's Greeting Video */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold text-blue-600 mb-4 text-center">
-            Watch this first!
+            👇 Watch this first!
           </h2>
           <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md relative">
             <iframe
