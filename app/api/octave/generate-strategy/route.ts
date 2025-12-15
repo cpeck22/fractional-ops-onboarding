@@ -41,16 +41,16 @@ async function generateICPCompanies(
     ? `\n7. **CRITICAL**: EXCLUDE these competitor domains from results:\n   ${competitorDomains.map(d => `- ${d}`).join('\n   ')}`
     : '';
 
-  const referenceIndustriesText = referenceIndustries.length > 0
-    ? referenceIndustries.join(', ')
-    : '';
+  const industryContextText = referenceIndustries.length > 0
+    ? `We've worked with these industries in the past on real engagement: ${referenceIndustries.join(', ')}`
+    : 'Focus on companies that match the size, revenue, and geographic criteria specified.';
 
   const prompt = `You are a B2B prospecting expert. Generate a list of 100 real company domains that match this Ideal Customer Profile (ICP):
 
 **Target Company Profile:**
 - Company Size/Revenue: ${companySize}
 - Geographic Markets: ${geographicMarkets}
-- Industry Context: We've worked with these industries in the past on real engagement: ${referenceIndustriesText}
+- Industry Context: ${industryContextText}
 
 **Requirements:**
 1. Return ONLY real, established companies (they must be real and existing, if they have a real published website, that would suffice this criteria).
@@ -92,21 +92,63 @@ Return ONLY a JSON object with this structure:
       ],
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: 2000
+      max_tokens: 4000 // Increased to handle larger responses
     });
 
-    const result = JSON.parse(completion.choices[0].message.content || '{"companies":[]}');
-    const domains = result.companies.map((c: any) => c.domain);
+    const rawContent = completion.choices[0].message.content || '{"companies":[]}';
+    
+    // Log raw response for debugging (truncated if too long)
+    if (rawContent.length > 500) {
+      console.log('📄 Raw AI response (first 500 chars):', rawContent.substring(0, 500));
+    } else {
+      console.log('📄 Raw AI response:', rawContent);
+    }
+    
+    let result;
+    try {
+      result = JSON.parse(rawContent);
+    } catch (parseError: any) {
+      console.error('❌ JSON parsing failed. Raw content length:', rawContent.length);
+      console.error('❌ Parse error:', parseError.message);
+      // Try to extract JSON from the response if it's wrapped in markdown or text
+      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          result = JSON.parse(jsonMatch[0]);
+          console.log('✅ Successfully extracted JSON from response');
+        } catch (retryError) {
+          console.error('❌ Failed to parse extracted JSON:', retryError);
+          return [];
+        }
+      } else {
+        return [];
+      }
+    }
+    
+    // Validate result structure
+    if (!result || !Array.isArray(result.companies)) {
+      console.error('❌ Invalid response structure. Expected {companies: []}');
+      console.error('❌ Actual structure:', Object.keys(result || {}));
+      return [];
+    }
+    
+    const domains = result.companies
+      .filter((c: any) => c && c.domain && typeof c.domain === 'string')
+      .map((c: any) => c.domain);
     
     console.log(`✅ AI Generated ${domains.length} ICP-matching companies:`);
-    result.companies.forEach((c: any) => {
-      console.log(`   ${c.domain} - ${c.reason}`);
+    result.companies.slice(0, 10).forEach((c: any) => {
+      console.log(`   ${c.domain} - ${c.reason || 'No reason provided'}`);
     });
+    if (result.companies.length > 10) {
+      console.log(`   ... and ${result.companies.length - 10} more`);
+    }
     
     return domains;
     
   } catch (error: any) {
     console.error('❌ AI company generation failed:', error.message);
+    console.error('❌ Error stack:', error.stack);
     return [];
   }
 }
@@ -464,19 +506,66 @@ export async function POST(request: NextRequest) {
     }
     
     // Extract reference industries from client references (Q21)
+    // Try both: database client_references (if populated) and questionnaire_responses
     let referenceIndustries: string[] = [];
+    const industriesSet = new Set<string>();
+    
+    // First, try from octave_outputs.client_references (if populated in Phase 2)
     if (clientReferences && Array.isArray(clientReferences) && clientReferences.length > 0) {
-      const industriesSet = new Set<string>();
+      console.log(`🔍 Found ${clientReferences.length} client references in octave_outputs`);
       clientReferences.forEach((ref: any) => {
-        if (ref.industry && typeof ref.industry === 'string' && ref.industry.trim()) {
+        if (ref && ref.industry && typeof ref.industry === 'string' && ref.industry.trim()) {
           industriesSet.add(ref.industry.trim());
         }
       });
-      // Convert set to array
-      referenceIndustries = Array.from(industriesSet);
-      console.log(`✅ Extracted ${referenceIndustries.length} unique reference industries from client references:`, referenceIndustries);
+    }
+    
+    // Also fetch from questionnaire_responses (Q21 - clientReferences field)
+    try {
+      console.log('🔍 Fetching client references from questionnaire_responses (Q21)...');
+      const { data: refData, error: refError } = await supabase
+        .from('questionnaire_responses')
+        .select('field_value')
+        .eq('user_id', userId)
+        .eq('field_key', 'clientReferences')
+        .single();
+      
+      if (!refError && refData?.field_value) {
+        let questionnaireRefs: any[] = [];
+        
+        // Parse the JSON string
+        if (typeof refData.field_value === 'string') {
+          try {
+            questionnaireRefs = JSON.parse(refData.field_value);
+          } catch (parseError) {
+            console.warn('⚠️ Failed to parse clientReferences from questionnaire:', parseError);
+          }
+        } else if (Array.isArray(refData.field_value)) {
+          questionnaireRefs = refData.field_value;
+        }
+        
+        if (Array.isArray(questionnaireRefs) && questionnaireRefs.length > 0) {
+          console.log(`✅ Found ${questionnaireRefs.length} client references in questionnaire`);
+          questionnaireRefs.forEach((ref: any) => {
+            if (ref && ref.industry && typeof ref.industry === 'string' && ref.industry.trim()) {
+              industriesSet.add(ref.industry.trim());
+            }
+          });
+        }
+      } else {
+        console.log('⚠️ No clientReferences found in questionnaire_responses');
+      }
+    } catch (error) {
+      console.error('⚠️ Error fetching client references from questionnaire (non-critical):', error);
+    }
+    
+    // Convert set to array
+    referenceIndustries = Array.from(industriesSet);
+    
+    if (referenceIndustries.length > 0) {
+      console.log(`✅ Extracted ${referenceIndustries.length} unique reference industries:`, referenceIndustries);
     } else {
-      console.log('⚠️ No client references found, reference industries will be empty');
+      console.log('⚠️ No reference industries found. Will use generic industry context in prompt.');
     }
     
     // ============================================
