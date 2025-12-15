@@ -423,16 +423,15 @@ export async function POST(request: NextRequest) {
     }
 
     // ============================================
-    // STEP 2: LIST PERSONAS TO GET JOB TITLES FOR PROSPECTOR
+    // STEP 2: LIST PERSONAS FOR PROSPECTOR
     // ============================================
     
-    updateProgress('Extracting persona job titles...', 2, 15);
+    updateProgress('Fetching personas from workspace...', 2, 15);
     
-    let fuzzyTitles: string[] = [];
     let personas: any[] = [];
 
     try {
-      console.log('📋 Listing personas to extract job titles for Prospector...');
+      console.log('📋 Listing personas from workspace for Prospector...');
       const listPersonasResponse = await axios.get(
         'https://app.octavehq.com/api/v2/persona/list',
         {
@@ -444,20 +443,15 @@ export async function POST(request: NextRequest) {
       if (listPersonasResponse.data?.data) {
         personas = listPersonasResponse.data.data;
         console.log(`📋 Found ${personas.length} personas in workspace`);
-        
-        // Extract all commonJobTitles from all personas
-        personas.forEach((persona: any) => {
-          const jobTitles = persona.data?.commonJobTitles || [];
-          fuzzyTitles.push(...jobTitles);
-        });
-        
-        // Remove duplicates
-        fuzzyTitles = Array.from(new Set(fuzzyTitles));
-        console.log(`✅ Extracted ${fuzzyTitles.length} unique job titles from personas`);
-        console.log('Sample titles:', fuzzyTitles.slice(0, 5).join(', '), '...');
+        console.log(`✅ Personas: ${personas.slice(0, 5).map((p: any) => p.name || p.oId).join(', ')}${personas.length > 5 ? '...' : ''}`);
       }
     } catch (error) {
-      console.error('⚠️ Failed to list personas (non-critical):', error);
+      console.error('⚠️ Failed to list personas:', error);
+    }
+    
+    // Fallback: If no personas found, log warning but continue (Octave will use agent's default config)
+    if (personas.length === 0) {
+      console.warn('⚠️ No personas found in workspace. Prospector will use agent\'s default configuration.');
     }
 
     // ============================================
@@ -468,9 +462,6 @@ export async function POST(request: NextRequest) {
     
     let companySize = '';
     let geographicMarkets = '';
-    let rawJobTitles = '';
-    let seniorityLevel = '';
-    let unqualifiedPersons = '';
     
     try {
       console.log('📋 Fetching ICP data from questionnaire_responses...');
@@ -480,10 +471,7 @@ export async function POST(request: NextRequest) {
         .eq('user_id', userId)
         .in('field_key', [
           'companySize', 
-          'geographicMarkets', 
-          'jobTitles',         // Q6.2
-          'seniorityLevel',    // Q6.1
-          'unqualifiedPersons' // Q19
+          'geographicMarkets'
         ]);
       
       if (icpError) {
@@ -492,9 +480,6 @@ export async function POST(request: NextRequest) {
         icpData.forEach((row: any) => {
           if (row.field_key === 'companySize') companySize = row.field_value;
           if (row.field_key === 'geographicMarkets') geographicMarkets = row.field_value;
-          if (row.field_key === 'jobTitles') rawJobTitles = row.field_value;
-          if (row.field_key === 'seniorityLevel') seniorityLevel = JSON.stringify(row.field_value);
-          if (row.field_key === 'unqualifiedPersons') unqualifiedPersons = row.field_value;
         });
         
         console.log('✅ ICP Data loaded:');
@@ -567,28 +552,6 @@ export async function POST(request: NextRequest) {
     } else {
       console.log('⚠️ No reference industries found. Will use generic industry context in prompt.');
     }
-    
-    // ============================================
-    // STEP 3.5: GENERATE SMART FALLBACK TITLES
-    // ============================================
-    updateProgress('Generating smart fallback titles...', 3, 15);
-    
-    // Combine explicit titles with smart fallbacks
-    let smartFallbacks: string[] = [];
-    if (rawJobTitles || seniorityLevel) {
-      smartFallbacks = await generateSmartFallbackTitles(rawJobTitles, seniorityLevel, unqualifiedPersons);
-    }
-    
-    // Merge and deduplicate titles
-    // Priority: 1. Fuzzy Titles (from Personas), 2. Smart Fallbacks (AI)
-    const allTargetTitles = Array.from(new Set([...fuzzyTitles, ...smartFallbacks]));
-    
-    // Ensure we have at least SOME titles
-    if (allTargetTitles.length === 0) {
-      allTargetTitles.push('Manager', 'Director', 'VP', 'Head of', 'Chief', 'President', 'Owner', 'Founder');
-    }
-    
-    console.log(`🎯 Target Titles: ${allTargetTitles.length} (incl. ${smartFallbacks.length} smart fallbacks)`);
     
     // ============================================
     // STEP 4: GENERATE ICP-MATCHING COMPANIES WITH AI
@@ -683,8 +646,12 @@ export async function POST(request: NextRequest) {
       try {
         console.log('👥 Running Prospector Agent...');
         console.log(`🎯 Searching across ${icpCompanyDomains.length} ICP-matching companies`);
-        console.log(`🎯 Using ${allTargetTitles.length} job titles for search (Smart Fallback Enabled)`);
-        console.log(`🎯 Personas: ${personas.slice(0, 3).map((p: any) => p.name).join(', ')}...`);
+        console.log(`🎯 Using ${personas.length} personas from workspace`);
+        if (personas.length > 0) {
+          console.log(`🎯 Personas: ${personas.slice(0, 5).map((p: any) => p.name || p.oId).join(', ')}${personas.length > 5 ? '...' : ''}`);
+        } else {
+          console.log(`⚠️ No personas found - Prospector will use agent's default configuration`);
+        }
         
         // Run prospector for EACH ICP company domain in batches
         const BATCH_SIZE = 10;
@@ -711,6 +678,12 @@ export async function POST(request: NextRequest) {
             try {
               console.log(`   🔍 Prospecting: ${domain}`);
               
+              // Build searchContext with only personas (no titles)
+              const searchContext: any = {};
+              if (personas.length > 0) {
+                searchContext.personaOIds = personas.map((p: any) => p.oId).filter((id: any) => id); // Filter out any null/undefined IDs
+              }
+              
               const response = await axios.post(
                 `${OCTAVE_BASE_URL}/prospector/run`,
                 {
@@ -718,10 +691,7 @@ export async function POST(request: NextRequest) {
                   agentOId: newAgentIds.prospector,
                   limit: 20, // Limit per company to get variety
                   minimal: true,
-                  searchContext: {
-                    personaOIds: personas.map((p: any) => p.oId),
-                    fuzzyTitles: allTargetTitles // Use our enhanced list!
-                  }
+                  searchContext: Object.keys(searchContext).length > 0 ? searchContext : undefined // Only include if we have personas
                 },
                 {
                   headers: {
