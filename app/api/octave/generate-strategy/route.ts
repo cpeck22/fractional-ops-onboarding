@@ -23,8 +23,7 @@ const OCTAVE_BASE_URL = 'https://app.octavehq.com/api/v2/agents';
 async function generateICPCompanies(
   companySize: string,
   geographicMarkets: string,
-  industry: string,
-  whatYouDo: string,
+  referenceIndustries: string[],
   competitorDomains: string[] = []
 ): Promise<string[]> {
   const openaiApiKey = process.env.OPENAI_API_KEY;
@@ -42,20 +41,27 @@ async function generateICPCompanies(
     ? `\n7. **CRITICAL**: EXCLUDE these competitor domains from results:\n   ${competitorDomains.map(d => `- ${d}`).join('\n   ')}`
     : '';
 
+  const referenceIndustriesText = referenceIndustries.length > 0
+    ? referenceIndustries.join(', ')
+    : '';
+
   const prompt = `You are a B2B prospecting expert. Generate a list of 100 real company domains that match this Ideal Customer Profile (ICP):
 
 **Target Company Profile:**
 - Company Size/Revenue: ${companySize}
 - Geographic Markets: ${geographicMarkets}
-- Industry Context: ${industry}
-- Service We Provide: ${whatYouDo}
+- Industry Context: We've worked with these industries in the past on real engagement: ${referenceIndustriesText}
 
 **Requirements:**
-1. Return ONLY real, established companies (not startups unless funding info provided)
+1. Return ONLY real, established companies (they must be real and existing, if they have a real published website, that would suffice this criteria).
+
 2. Companies should be active and have public websites
+
 3. Include a mix of well-known and mid-market companies
+
 4. Domains should be clean (example.com, not www.example.com or https://)
-5. Prioritize companies that would benefit from the service described
+
+5. Prioritize companies that best fit the Target Company Profile
 6. Ensure companies match the size, revenue, and geographic criteria${excludeCompetitorsText}
 
 Return ONLY a JSON object with this structure:
@@ -70,6 +76,7 @@ Return ONLY a JSON object with this structure:
     console.log('🤖 Calling OpenAI to generate ICP-matching companies...');
     console.log('   ICP: Size:', companySize);
     console.log('   ICP: Geography:', geographicMarkets);
+    console.log('   Reference Industries:', referenceIndustries.length > 0 ? referenceIndustries.join(', ') : '(none)');
     
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -419,8 +426,6 @@ export async function POST(request: NextRequest) {
     
     let companySize = '';
     let geographicMarkets = '';
-    let industry = '';
-    let whatYouDo = '';
     let rawJobTitles = '';
     let seniorityLevel = '';
     let unqualifiedPersons = '';
@@ -434,8 +439,6 @@ export async function POST(request: NextRequest) {
         .in('field_key', [
           'companySize', 
           'geographicMarkets', 
-          'industry', 
-          'whatYouDo',
           'jobTitles',         // Q6.2
           'seniorityLevel',    // Q6.1
           'unqualifiedPersons' // Q19
@@ -447,8 +450,6 @@ export async function POST(request: NextRequest) {
         icpData.forEach((row: any) => {
           if (row.field_key === 'companySize') companySize = row.field_value;
           if (row.field_key === 'geographicMarkets') geographicMarkets = row.field_value;
-          if (row.field_key === 'industry') industry = row.field_value;
-          if (row.field_key === 'whatYouDo') whatYouDo = row.field_value;
           if (row.field_key === 'jobTitles') rawJobTitles = row.field_value;
           if (row.field_key === 'seniorityLevel') seniorityLevel = JSON.stringify(row.field_value);
           if (row.field_key === 'unqualifiedPersons') unqualifiedPersons = row.field_value;
@@ -457,10 +458,25 @@ export async function POST(request: NextRequest) {
         console.log('✅ ICP Data loaded:');
         console.log('   Company Size:', companySize || '(not provided)');
         console.log('   Geographic Markets:', geographicMarkets || '(not provided)');
-        console.log('   Industry:', industry || '(not provided)');
       }
     } catch (error) {
       console.error('❌ Error loading ICP data:', error);
+    }
+    
+    // Extract reference industries from client references (Q21)
+    let referenceIndustries: string[] = [];
+    if (clientReferences && Array.isArray(clientReferences) && clientReferences.length > 0) {
+      const industriesSet = new Set<string>();
+      clientReferences.forEach((ref: any) => {
+        if (ref.industry && typeof ref.industry === 'string' && ref.industry.trim()) {
+          industriesSet.add(ref.industry.trim());
+        }
+      });
+      // Convert set to array
+      referenceIndustries = Array.from(industriesSet);
+      console.log(`✅ Extracted ${referenceIndustries.length} unique reference industries from client references:`, referenceIndustries);
+    } else {
+      console.log('⚠️ No client references found, reference industries will be empty');
     }
     
     // ============================================
@@ -533,8 +549,7 @@ export async function POST(request: NextRequest) {
         icpCompanyDomains = await generateICPCompanies(
           companySize,
           geographicMarkets,
-          industry,
-          whatYouDo,
+          referenceIndustries,
           competitorDomains
         );
         
