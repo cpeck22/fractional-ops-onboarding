@@ -319,6 +319,22 @@ export async function POST(request: NextRequest) {
     
     console.log('💾 Saving Phase 2 content to database...');
     
+    // First, fetch the most recent record ID to ensure we update the correct record
+    // This prevents updating multiple records if user has multiple workspace records
+    const { data: latestRecord, error: fetchRecordError } = await supabaseAdmin
+      .from('octave_outputs')
+      .select('id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (fetchRecordError || !latestRecord) {
+      console.error('❌ Failed to fetch latest record for Phase 2 update:', fetchRecordError);
+      return NextResponse.json({ error: 'Failed to find record to update' }, { status: 500 });
+    }
+
+    // Now update the specific record by ID (not user_id which might match multiple rows)
     const { error: phase2Error } = await supabaseAdmin
       .from('octave_outputs')
       .update({
@@ -330,15 +346,14 @@ export async function POST(request: NextRequest) {
         youtube_scripts: agentResults.youtube,
         agents_generated_at: new Date().toISOString()
       })
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .eq('id', latestRecord.id);
 
     if (phase2Error) {
       console.error('❌ Failed to save Phase 2 content:', phase2Error);
       return NextResponse.json({ error: 'Failed to save content', details: phase2Error }, { status: 500 });
     }
 
+    console.log(`✅ Updated record ID: ${latestRecord.id}`);
     console.log('✅ Phase 2 content saved to database');
     console.log('🎯 ===== PHASE 2 COMPLETE =====');
     

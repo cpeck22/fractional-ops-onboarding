@@ -903,6 +903,22 @@ export async function POST(request: NextRequest) {
     console.log(`   Prospects found: ${enrichedProspects.length}`);
     console.log(`   Agent IDs mapped: ${Object.keys(newAgentIds).length}`);
     
+    // First, fetch the most recent record ID to ensure we update the correct record
+    // This prevents updating multiple records if user has multiple workspace records
+    const { data: latestRecord, error: fetchRecordError } = await supabase
+      .from('octave_outputs')
+      .select('id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (fetchRecordError || !latestRecord) {
+      console.error('❌ Failed to fetch latest record for update:', fetchRecordError);
+      return NextResponse.json({ error: 'Failed to find record to update' }, { status: 500 });
+    }
+
+    // Now update the specific record by ID (not user_id which might match multiple rows)
     const { error: updateError } = await supabase
       .from('octave_outputs')
       .update({
@@ -911,15 +927,14 @@ export async function POST(request: NextRequest) {
         _agent_ids: JSON.stringify(newAgentIds),
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .eq('id', latestRecord.id);
 
     if (updateError) {
       console.error('❌ Failed to save Phase 1 data:', updateError);
       return NextResponse.json({ error: 'Failed to save prospects' }, { status: 500 });
     }
 
+    console.log(`✅ Updated record ID: ${latestRecord.id}`);
     console.log('✅ Phase 1 data saved to database');
     console.log('🎯 ===== PHASE 1 COMPLETE =====');
     console.log('   Next: Frontend will call Phase 2 for content generation');
