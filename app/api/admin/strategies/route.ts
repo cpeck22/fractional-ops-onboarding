@@ -24,11 +24,13 @@ export async function GET(request: NextRequest) {
 
     // Get all octave_outputs with user info - fetch ALL records
     // Using service role key bypasses RLS, so we get all records regardless of user
+    // CRITICAL: Order by updated_at DESC (not created_at) to show most recently updated strategies first
+    // This ensures newly generated/regenerated strategies appear at the top of the list
     console.log('🔍 Fetching all strategies from octave_outputs...');
     const { data: strategies, error: strategiesError } = await supabaseAdmin
       .from('octave_outputs')
       .select('id, user_id, company_name, company_domain, created_at, updated_at')
-      .order('created_at', { ascending: false });
+      .order('updated_at', { ascending: false });
 
     if (strategiesError) {
       console.error('❌ Error fetching strategies:', strategiesError);
