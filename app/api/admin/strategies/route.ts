@@ -23,24 +23,35 @@ export async function GET(request: NextRequest) {
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get all octave_outputs with user info - fetch ALL records
+    // Using service role key bypasses RLS, so we get all records regardless of user
     console.log('🔍 Fetching all strategies from octave_outputs...');
     const { data: strategies, error: strategiesError } = await supabaseAdmin
       .from('octave_outputs')
-      .select('id, user_id, company_name, company_domain, created_at')
+      .select('id, user_id, company_name, company_domain, created_at, updated_at')
       .order('created_at', { ascending: false });
 
     if (strategiesError) {
       console.error('❌ Error fetching strategies:', strategiesError);
-      return NextResponse.json({ error: 'Failed to fetch strategies' }, { status: 500 });
+      console.error('❌ Error details:', JSON.stringify(strategiesError, null, 2));
+      return NextResponse.json({ error: 'Failed to fetch strategies', details: strategiesError }, { status: 500 });
     }
 
     console.log(`📊 Raw query returned ${strategies?.length || 0} strategies`);
+    
+    // Log detailed info about all strategies for debugging
     if (strategies && strategies.length > 0) {
-      console.log('📋 Sample strategy:', {
-        id: strategies[0].id,
-        company_name: strategies[0].company_name,
-        created_at: strategies[0].created_at
+      console.log('📋 All strategies found:');
+      strategies.forEach((strategy, index) => {
+        console.log(`   [${index + 1}] ID: ${strategy.id}, User: ${strategy.user_id}, Company: ${strategy.company_name || '(no name)'}, Created: ${strategy.created_at}`);
       });
+      
+      // Check for strategies with null company_name
+      const nullNameCount = strategies.filter(s => !s.company_name || s.company_name.trim() === '').length;
+      if (nullNameCount > 0) {
+        console.warn(`⚠️ Found ${nullNameCount} strategies with null/empty company_name`);
+      }
+    } else {
+      console.warn('⚠️ No strategies found in database');
     }
 
     // Get user emails for each strategy
@@ -60,9 +71,12 @@ export async function GET(request: NextRequest) {
     });
 
     // Enrich strategies with email
+    // Include all strategies, even if company_name is null (they might still be valid)
     const enrichedStrategies = strategies?.map(strategy => ({
       ...strategy,
-      user_email: userEmailMap[strategy.user_id] || 'Unknown'
+      user_email: userEmailMap[strategy.user_id] || 'Unknown',
+      company_name: strategy.company_name || '(No Company Name)',
+      company_domain: strategy.company_domain || '(No Domain)'
     }));
 
     console.log(`✅ Fetched ${enrichedStrategies?.length || 0} strategies for admin view`);
