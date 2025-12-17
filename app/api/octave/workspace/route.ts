@@ -108,7 +108,11 @@ export async function POST(request: NextRequest) {
           
           // Newsletter Agents (2)
           'ca_e4UYXGTMitLjwZEgzsNc1', // NEWSLETTER - Tactical Writing Agent
-          'ca_gilixBObzhALpK7LO7Nr9'  // NEWSLETTER - Leadership Writing Agent
+          'ca_gilixBObzhALpK7LO7Nr9',  // NEWSLETTER - Leadership Writing Agent
+          
+          // Additional agents to duplicate (but not run in Generate-Strategy)
+          'ca_GMFhrclZrKlLenspxmf62',
+          'ca_uMdv2bkfb0KoOAyIA5llW'
         ]
       },
       offering: generateOffering(questionnaireData),
