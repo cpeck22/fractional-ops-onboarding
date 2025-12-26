@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// CRITICAL: Force dynamic rendering - prevents Next.js/Vercel from caching this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Admin emails that can access the admin panel
 const ADMIN_EMAILS = [
   'ali.hassan@fractionalops.com',

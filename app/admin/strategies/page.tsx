@@ -1,13 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 import Logo from '../../Fractional-Ops_Symbol_Main.png';
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
 
 // Admin emails that can access this page
 const ADMIN_EMAILS = [
@@ -36,13 +33,35 @@ export default function AdminStrategiesPage() {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regenerateStatus, setRegenerateStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const router = useRouter();
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    checkAdminAccess();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const loadStrategies = useCallback(async () => {
+    try {
+      // Always fetch fresh data with cache-busting query parameter and no-store cache
+      const response = await fetch(`/api/admin/strategies?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        console.log(`📊 API returned ${data.strategies.length} strategies`);
+        setStrategies(data.strategies);
+        console.log(`✅ Loaded ${data.strategies.length} strategies`);
+      } else {
+        console.error('❌ Failed to load strategies:', data.error);
+      }
+    } catch (error) {
+      console.error('❌ Error loading strategies:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -73,29 +92,56 @@ export default function AdminStrategiesPage() {
       console.error('❌ Error checking admin access:', error);
       setLoading(false);
     }
-  };
+  }, [router, loadStrategies]);
 
-  const loadStrategies = async () => {
-    try {
-      // Add cache-busting query parameter
-      const response = await fetch(`/api/admin/strategies?t=${Date.now()}`, {
-        cache: 'no-store'
-      });
-      const data = await response.json();
+  useEffect(() => {
+    checkAdminAccess();
+  }, [checkAdminAccess]);
 
-      if (data.success) {
-        console.log(`📊 API returned ${data.strategies.length} strategies`);
-        setStrategies(data.strategies);
-        console.log(`✅ Loaded ${data.strategies.length} strategies`);
-      } else {
-        console.error('❌ Failed to load strategies:', data.error);
-      }
-    } catch (error) {
-      console.error('❌ Error loading strategies:', error);
-    } finally {
-      setLoading(false);
+  // Set up automatic refresh when admin is logged in
+  useEffect(() => {
+    if (!isAdmin) return;
+    
+    // Clear any existing interval
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
     }
-  };
+    
+    // Set up automatic refresh every 15 seconds
+    refreshIntervalRef.current = setInterval(() => {
+      if (!loading) {
+        console.log('🔄 Auto-refreshing strategies (every 15s)...');
+        loadStrategies();
+      }
+    }, 15000); // Refresh every 15 seconds
+    
+    // Refresh when user returns to the tab
+    const handleFocus = () => {
+      if (!loading) {
+        console.log('🔄 Tab focused - refreshing strategies...');
+        loadStrategies();
+      }
+    };
+    
+    // Refresh when page becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !loading) {
+        console.log('🔄 Page visible - refreshing strategies...');
+        loadStrategies();
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isAdmin, loading, loadStrategies]);
 
   const handleRegenerateStrategy = async () => {
     if (!regenerateEmail.trim()) {
