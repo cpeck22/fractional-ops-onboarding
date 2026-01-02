@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -10,9 +10,6 @@ import toast from 'react-hot-toast';
 import ClaireImage from '../../../Claire_v2.png';
 import SectionIntro from '@/components/SectionIntro';
 import StrategyTimer from '@/components/StrategyTimer';
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
 
 // Admin emails that can access this page
 const ADMIN_EMAILS = [
@@ -96,6 +93,7 @@ export default function AdminViewStrategyPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [shareLink, setShareLink] = useState<{ shareId: string; expiresAt: string } | null>(null);
   const [creatingShare, setCreatingShare] = useState(false);
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Table of Contents sections (same as results page)
   const tocSections = [
@@ -162,13 +160,7 @@ export default function AdminViewStrategyPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    checkAdminAndLoadStrategy();
-    checkExistingShare();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
-
-  const checkAdminAndLoadStrategy = async () => {
+  const checkAdminAndLoadStrategy = useCallback(async () => {
     try {
       // Check admin access
       const { data: { user } } = await supabase.auth.getUser();
@@ -192,9 +184,13 @@ export default function AdminViewStrategyPage() {
 
       setIsAdmin(true);
 
-      // Load strategy via API with cache-busting
+      // Load strategy via API with cache-busting - always fetch fresh data
       const response = await fetch(`/api/admin/strategy/${userId}?t=${Date.now()}`, {
-        cache: 'no-store'
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
       });
       const data = await response.json();
 
@@ -249,7 +245,57 @@ export default function AdminViewStrategyPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, router]);
+
+  useEffect(() => {
+    checkAdminAndLoadStrategy();
+    checkExistingShare();
+  }, [checkAdminAndLoadStrategy]);
+
+  // Set up automatic refresh when admin is logged in
+  useEffect(() => {
+    if (!isAdmin) return;
+    
+    // Clear any existing interval
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+    }
+    
+    // Set up automatic refresh every 15 seconds
+    refreshIntervalRef.current = setInterval(() => {
+      if (!loading) {
+        console.log('🔄 Auto-refreshing strategy (every 15s)...');
+        checkAdminAndLoadStrategy();
+      }
+    }, 15000); // Refresh every 15 seconds
+    
+    // Refresh when user returns to the tab
+    const handleFocus = () => {
+      if (!loading) {
+        console.log('🔄 Tab focused - refreshing strategy...');
+        checkAdminAndLoadStrategy();
+      }
+    };
+    
+    // Refresh when page becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !loading) {
+        console.log('🔄 Page visible - refreshing strategy...');
+        checkAdminAndLoadStrategy();
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isAdmin, loading, checkAdminAndLoadStrategy]);
 
   // Fetch fresh playbook data when outputs are loaded
   useEffect(() => {
@@ -307,8 +353,12 @@ export default function AdminViewStrategyPage() {
   const handleRefresh = async () => {
     setRefreshing(true);
     setLoading(true);
-    await checkAdminAndLoadStrategy();
-    setRefreshing(false);
+    try {
+      await checkAdminAndLoadStrategy();
+    } finally {
+      setRefreshing(false);
+      setLoading(false);
+    }
   };
 
   const checkExistingShare = async () => {
