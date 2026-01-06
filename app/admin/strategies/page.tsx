@@ -34,6 +34,7 @@ export default function AdminStrategiesPage() {
   const [regenerateStatus, setRegenerateStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [confirmRegenerate, setConfirmRegenerate] = useState<{ email: string; companyName: string; userId: string } | null>(null);
   const [regeneratingRowId, setRegeneratingRowId] = useState<string | null>(null);
+  const [regeneratingEmail, setRegeneratingEmail] = useState<string>('');
   const router = useRouter();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -161,6 +162,7 @@ export default function AdminStrategiesPage() {
     }
 
     setIsRegenerating(true);
+    setRegeneratingEmail(emailToUse); // Store email for loading overlay
     setRegenerateStatus(null);
     setConfirmRegenerate(null); // Close confirmation modal
 
@@ -185,6 +187,7 @@ export default function AdminStrategiesPage() {
         setTimeout(() => {
           loadStrategies();
           setRegeneratingRowId(null);
+          setRegeneratingEmail('');
         }, 2000);
       } else {
         setRegenerateStatus({ 
@@ -192,6 +195,7 @@ export default function AdminStrategiesPage() {
           message: `❌ ${data.error || 'Failed to regenerate strategy'}` 
         });
         setRegeneratingRowId(null);
+        setRegeneratingEmail('');
       }
     } catch (error: any) {
       console.error('❌ Regenerate strategy error:', error);
@@ -200,6 +204,7 @@ export default function AdminStrategiesPage() {
         message: `❌ Error: ${error.message || 'Unknown error occurred'}` 
       });
       setRegeneratingRowId(null);
+      setRegeneratingEmail('');
     } finally {
       setIsRegenerating(false);
     }
@@ -272,7 +277,7 @@ export default function AdminStrategiesPage() {
                 This process takes 3-5 minutes. Please don&apos;t close this page.
               </p>
               <p className="text-sm text-gray-500">
-                Email: {confirmRegenerate?.email || regenerateEmail}
+                Email: {regeneratingEmail || confirmRegenerate?.email || regenerateEmail}
               </p>
             </div>
           </div>
