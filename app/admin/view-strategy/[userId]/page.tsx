@@ -247,6 +247,31 @@ export default function AdminViewStrategyPage() {
     }
   }, [userId, router]);
 
+  const checkExistingShare = useCallback(async () => {
+    try {
+      if (!userId) return;
+
+      // Call API to check for existing share link (uses admin client on server)
+      const response = await fetch(`/api/share-strategy?userId=${userId}`, {
+        method: 'GET',
+        cache: 'no-store'
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.exists && result.shareId) {
+          console.log('✅ Existing share link found for client:', result.shareId);
+          setShareLink({
+            shareId: result.shareId,
+            expiresAt: result.expiresAt
+          });
+        }
+      }
+    } catch (error) {
+      console.log('No existing share link found for client');
+    }
+  }, [userId]);
+
   useEffect(() => {
     checkAdminAndLoadStrategy();
     checkExistingShare();
@@ -360,31 +385,6 @@ export default function AdminViewStrategyPage() {
       setLoading(false);
     }
   };
-
-  const checkExistingShare = useCallback(async () => {
-    try {
-      if (!userId) return;
-
-      // Call API to check for existing share link (uses admin client on server)
-      const response = await fetch(`/api/share-strategy?userId=${userId}`, {
-        method: 'GET',
-        cache: 'no-store'
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.exists && result.shareId) {
-          console.log('✅ Existing share link found for client:', result.shareId);
-          setShareLink({
-            shareId: result.shareId,
-            expiresAt: result.expiresAt
-          });
-        }
-      }
-    } catch (error) {
-      console.log('No existing share link found for client');
-    }
-  }, [userId]);
 
   const handleShareStrategy = async () => {
     try {
