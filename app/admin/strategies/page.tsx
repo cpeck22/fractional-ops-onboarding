@@ -434,7 +434,7 @@ export default function AdminStrategiesPage() {
               disabled={isRegenerating}
             />
             <button
-              onClick={handleRegenerateStrategy}
+              onClick={() => handleRegenerateStrategy()}
               disabled={isRegenerating || !regenerateEmail.trim()}
               className="px-6 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[200px]"
             >
