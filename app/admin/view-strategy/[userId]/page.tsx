@@ -250,7 +250,7 @@ export default function AdminViewStrategyPage() {
   useEffect(() => {
     checkAdminAndLoadStrategy();
     checkExistingShare();
-  }, [checkAdminAndLoadStrategy]);
+  }, [checkAdminAndLoadStrategy, checkExistingShare]);
 
   // Set up automatic refresh when admin is logged in
   useEffect(() => {
@@ -361,7 +361,7 @@ export default function AdminViewStrategyPage() {
     }
   };
 
-  const checkExistingShare = async () => {
+  const checkExistingShare = useCallback(async () => {
     try {
       if (!userId) return;
 
@@ -384,7 +384,7 @@ export default function AdminViewStrategyPage() {
     } catch (error) {
       console.log('No existing share link found for client');
     }
-  };
+  }, [userId]);
 
   const handleShareStrategy = async () => {
     try {
