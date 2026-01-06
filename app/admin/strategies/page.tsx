@@ -32,6 +32,8 @@ export default function AdminStrategiesPage() {
   const [regenerateEmail, setRegenerateEmail] = useState('');
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regenerateStatus, setRegenerateStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [confirmRegenerate, setConfirmRegenerate] = useState<{ email: string; companyName: string; userId: string } | null>(null);
+  const [regeneratingRowId, setRegeneratingRowId] = useState<string | null>(null);
   const router = useRouter();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -143,29 +145,32 @@ export default function AdminStrategiesPage() {
     };
   }, [isAdmin, loading, loadStrategies]);
 
-  const handleRegenerateStrategy = async () => {
-    if (!regenerateEmail.trim()) {
+  const handleRegenerateStrategy = async (email?: string) => {
+    const emailToUse = email || regenerateEmail.trim();
+    
+    if (!emailToUse) {
       setRegenerateStatus({ type: 'error', message: 'Please enter an email address' });
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(regenerateEmail.trim())) {
+    if (!emailRegex.test(emailToUse)) {
       setRegenerateStatus({ type: 'error', message: 'Please enter a valid email address' });
       return;
     }
 
     setIsRegenerating(true);
     setRegenerateStatus(null);
+    setConfirmRegenerate(null); // Close confirmation modal
 
     try {
-      console.log('🔄 Regenerating strategy for:', regenerateEmail.trim());
+      console.log('🔄 Regenerating strategy for:', emailToUse);
       
       const response = await fetch('/api/admin/regenerate-strategy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: regenerateEmail.trim() })
+        body: JSON.stringify({ email: emailToUse })
       });
 
       const data = await response.json();
@@ -173,18 +178,20 @@ export default function AdminStrategiesPage() {
       if (data.success) {
         setRegenerateStatus({ 
           type: 'success', 
-          message: `✅ Strategy successfully regenerated for ${data.companyName || regenerateEmail.trim()}` 
+          message: `✅ Strategy successfully regenerated for ${data.companyName || emailToUse}` 
         });
         setRegenerateEmail('');
         // Refresh the strategies list after a short delay
         setTimeout(() => {
           loadStrategies();
+          setRegeneratingRowId(null);
         }, 2000);
       } else {
         setRegenerateStatus({ 
           type: 'error', 
           message: `❌ ${data.error || 'Failed to regenerate strategy'}` 
         });
+        setRegeneratingRowId(null);
       }
     } catch (error: any) {
       console.error('❌ Regenerate strategy error:', error);
@@ -192,9 +199,19 @@ export default function AdminStrategiesPage() {
         type: 'error', 
         message: `❌ Error: ${error.message || 'Unknown error occurred'}` 
       });
+      setRegeneratingRowId(null);
     } finally {
       setIsRegenerating(false);
     }
+  };
+
+  const handleRowRegenerateClick = (strategy: Strategy) => {
+    setConfirmRegenerate({
+      email: strategy.user_email,
+      companyName: strategy.company_name || 'Unknown Company',
+      userId: strategy.user_id
+    });
+    setRegeneratingRowId(strategy.user_id);
   };
 
   // Filter strategies by search term (handle null/undefined values)
@@ -244,6 +261,67 @@ export default function AdminStrategiesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Loading Overlay */}
+      {isRegenerating && regeneratingRowId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md mx-4 shadow-xl">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Regenerating Strategy</h3>
+              <p className="text-gray-600 mb-4">
+                This process takes 3-5 minutes. Please don&apos;t close this page.
+              </p>
+              <p className="text-sm text-gray-500">
+                Email: {confirmRegenerate?.email || regenerateEmail}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmRegenerate && !isRegenerating && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Confirm Regeneration</h3>
+            <div className="mb-6">
+              <p className="text-gray-700 mb-2">
+                <strong>Company:</strong> {confirmRegenerate.companyName}
+              </p>
+              <p className="text-gray-700 mb-4">
+                <strong>Email:</strong> {confirmRegenerate.email}
+              </p>
+              <p className="text-sm text-gray-600">
+                This will regenerate the complete strategy (Phase 1 + Phase 2) and create fresh prospects and content. This process takes 3-5 minutes.
+              </p>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setConfirmRegenerate(null);
+                  setRegeneratingRowId(null);
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
+                disabled={isRegenerating}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (confirmRegenerate) {
+                    handleRegenerateStrategy(confirmRegenerate.email);
+                  }
+                }}
+                disabled={isRegenerating}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed inline-flex items-center gap-2"
+              >
+                <span>🔄</span>
+                <span>Confirm Regenerate</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -453,13 +531,33 @@ export default function AdminStrategiesPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => router.push(`/admin/view-strategy/${strategy.user_id}`)}
-                          className="px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-medium text-sm transition-all inline-flex items-center gap-2"
-                        >
-                          <span>View Strategy</span>
-                          <span>→</span>
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => router.push(`/admin/view-strategy/${strategy.user_id}`)}
+                            className="px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-medium text-sm transition-all inline-flex items-center gap-2"
+                          >
+                            <span>View Strategy</span>
+                            <span>→</span>
+                          </button>
+                          <button
+                            onClick={() => handleRowRegenerateClick(strategy)}
+                            disabled={isRegenerating || regeneratingRowId === strategy.user_id}
+                            className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-medium text-sm inline-flex items-center gap-2"
+                            title="Regenerate Strategy"
+                          >
+                            {regeneratingRowId === strategy.user_id ? (
+                              <>
+                                <span className="animate-spin">⏳</span>
+                                <span>Regenerating...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>🔄</span>
+                                <span>Regenerate</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

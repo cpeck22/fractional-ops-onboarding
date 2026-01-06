@@ -1756,11 +1756,6 @@ export default function AdminViewStrategyPage() {
                           </div>
                         </details>
                       )}
-                      {playbook.oId && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <p className="text-xs text-gray-500"><span className="font-semibold">Octave ID:</span> {playbook.oId}</p>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>

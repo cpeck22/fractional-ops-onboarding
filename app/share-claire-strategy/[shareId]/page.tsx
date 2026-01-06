@@ -540,8 +540,20 @@ export default function SharedStrategyPage() {
                 {outputs.prospect_list && outputs.prospect_list.length > 0 ? (
                   <>
                     {(() => {
+                      // FILTER: First try to get prospects with BOTH email AND phone
+                      const prospectsWithBoth = outputs.prospect_list.filter((p: any) => {
+                        return p.email && p.mobile_number;
+                      });
+
+                      // If we have prospects with both, use those. Otherwise, fallback to at least one
+                      const filteredList = prospectsWithBoth.length > 0 
+                        ? prospectsWithBoth 
+                        : outputs.prospect_list.filter((p: any) => {
+                            return p.email || p.mobile_number;
+                          });
+
                       // Prioritize prospects by contact information availability
-                      const prioritizedList = [...outputs.prospect_list].sort((a: any, b: any) => {
+                      const prioritizedList = [...filteredList].sort((a: any, b: any) => {
                         // Priority 1: Both email and phone
                         const aPriority1 = (a.email && a.mobile_number) ? 1 : 0;
                         const bPriority1 = (b.email && b.mobile_number) ? 1 : 0;
@@ -1810,14 +1822,6 @@ export default function SharedStrategyPage() {
                                 ))}
                               </div>
                             </details>
-                          )}
-                          
-                          {playbook.oId && (
-                            <div className="mt-3 pt-3 border-t border-gray-200">
-                              <p className="text-xs text-gray-500">
-                                <span className="font-semibold">Octave ID:</span> {playbook.oId}
-                              </p>
-                            </div>
                           )}
                         </div>
                       ))}
