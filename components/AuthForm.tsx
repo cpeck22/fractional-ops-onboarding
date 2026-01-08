@@ -122,8 +122,30 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
       }
 
       // 3. Validate email domain (block personal emails)
-      if (isPersonalEmail(email)) {
-        toast.error(getPersonalEmailErrorMessage(email));
+      if (!email || email.trim() === '') {
+        toast.error('Please enter your work email address.');
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        console.log('🔍 Email validation check:', { email, isLogin, emailLength: email.length });
+        const isPersonal = isPersonalEmail(email.trim().toLowerCase());
+        console.log('🔍 isPersonalEmail result:', isPersonal);
+        
+        if (isPersonal) {
+          console.log('🚫 Personal email detected, blocking signup:', email);
+          const errorMsg = getPersonalEmailErrorMessage(email);
+          console.log('🚫 Error message:', errorMsg);
+          toast.error(errorMsg);
+          setLoading(false);
+          return;
+        }
+        console.log('✅ Email validation passed, proceeding with signup');
+      } catch (error) {
+        console.error('❌ Error in email validation:', error);
+        // If validation fails, block signup to be safe
+        toast.error('Email validation error. Please use your work email address.');
         setLoading(false);
         return;
       }
