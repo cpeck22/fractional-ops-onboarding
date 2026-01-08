@@ -5,6 +5,7 @@ import { supabase, signInWithEmail, signUpWithEmail, signOut, getCurrentUser, ch
 import type { User } from '@supabase/supabase-js';
 import toast from 'react-hot-toast';
 import TermsAndConditionsModal from './TermsAndConditionsModal';
+import { isPersonalEmail, getPersonalEmailErrorMessage } from '@/lib/emailValidation';
 
 // Track if we've already triggered signup tracking for this session to prevent duplicates
 let signupTrackingTriggered = false;
@@ -24,6 +25,7 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
   const [user, setUser] = useState<User | null>(null);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [emailExists, setEmailExists] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   
@@ -82,12 +84,23 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
     };
   }, [onAuthSuccess]);
 
-  // Simple email change handler - no real-time checking to prevent unwanted account creation
+  // Email change handler with real-time validation for personal emails
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
     // Reset email exists state when user changes email
     setEmailExists(false);
+    
+    // Real-time validation for personal emails (only during signup)
+    if (!isLogin && newEmail) {
+      if (isPersonalEmail(newEmail)) {
+        setEmailError(getPersonalEmailErrorMessage(newEmail));
+      } else {
+        setEmailError(null);
+      }
+    } else {
+      setEmailError(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,6 +118,13 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
       // 2. Check Time Threshold (must be > 2 seconds)
       if (Date.now() - formStartTime < 2000) {
         console.warn('Bot detected: Submitted too fast');
+        return;
+      }
+
+      // 3. Validate email domain (block personal emails)
+      if (isPersonalEmail(email)) {
+        toast.error(getPersonalEmailErrorMessage(email));
+        setLoading(false);
         return;
       }
     }
@@ -281,10 +301,19 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
             value={email}
             onChange={handleEmailChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Enter your email"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+              emailError 
+                ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+            }`}
+            placeholder={isLogin ? "Enter your email" : "Enter your work email"}
           />
-          {emailExists && !isLogin && (
+          {emailError && !isLogin && (
+            <p className="mt-1 text-sm text-red-600">
+              {emailError}
+            </p>
+          )}
+          {emailExists && !isLogin && !emailError && (
             <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
               <p className="text-sm text-green-800 font-medium">
                 Good News, you already have an account!
@@ -364,7 +393,7 @@ export default function AuthForm({ onAuthSuccess, showSignup = true, onSwitchToL
 
         <button
           type="submit"
-          disabled={loading || (!isLogin && (password !== confirmPassword || !termsAccepted))}
+          disabled={loading || (!isLogin && (password !== confirmPassword || !termsAccepted || !!emailError))}
           className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors mb-4"
         >
           {loading ? 'Please wait...' : (isLogin ? 'Sign In' : (emailExists ? 'Sign In Instead' : 'Start Now'))}
