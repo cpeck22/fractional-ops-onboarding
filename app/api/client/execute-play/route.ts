@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       playCode,
-      runtimeContext, // { personas: [], useCases: [], clientReferences: [], customInput: "" }
+      runtimeContext, // { personas: [], useCases: [], clientReferences: [] }
       refinementPrompt // Optional: if refining existing execution
     } = body;
     
@@ -201,9 +201,9 @@ export async function POST(request: NextRequest) {
       selectedPersonas: runtimeContext.personas || [],
       selectedUseCases: runtimeContext.useCases || [],
       selectedReferences: runtimeContext.clientReferences || [],
-      // For refinement, use the refinement prompt. For initial execution, provide default instruction
-      // The agent needs customInput to know what to generate - we provide a default that tells it to use the play's purpose
-      customInput: refinementPrompt || 'Please generate the content for this play based on the selected personas, use cases, and client references.',
+      // Only include customInput if this is a refinement (refinementPrompt provided)
+      // For initial execution, the agent uses personas/useCases/references to generate content
+      ...(refinementPrompt && { customInput: refinementPrompt }),
       // Flag to indicate this is a refinement
       isRefinement: !!refinementPrompt
     };

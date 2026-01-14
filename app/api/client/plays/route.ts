@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
           personas: { required: true, multiSelect: false },
           useCases: { required: true, multiSelect: true },
           clientReferences: { required: false, multiSelect: true },
-          customInput: { required: true, placeholder: 'Describe your idea or thought on this play (2-3 sentences)...' }
+          // customInput removed - not used in play execution
         }
       });
     });

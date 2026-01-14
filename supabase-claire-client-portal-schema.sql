@@ -31,9 +31,9 @@ CREATE TABLE IF NOT EXISTS claire_plays (
   -- {
   --   "personas": { "required": true, "multiSelect": false },
   --   "useCases": { "required": true, "multiSelect": true },
-  --   "clientReferences": { "required": false, "multiSelect": true },
-  --   "customInput": { "required": true, "placeholder": "Describe your idea..." }
+  --   "clientReferences": { "required": false, "multiSelect": true }
   -- }
+  -- Note: customInput removed - not used in play execution
   
   -- Status tracking
   is_active BOOLEAN DEFAULT true,
@@ -69,9 +69,9 @@ CREATE TABLE IF NOT EXISTS play_executions (
   -- {
   --   "personas": [{ "oId": "...", "name": "..." }],
   --   "useCases": [{ "oId": "...", "name": "..." }],
-  --   "clientReferences": [{ "oId": "...", "name": "..." }],
-  --   "customInput": "2-3 sentences from CEO"
+  --   "clientReferences": [{ "oId": "...", "name": "..." }]
   -- }
+  -- Note: customInput removed - refinement uses separate refinementPrompt parameter
   
   -- Agent execution details
   agent_o_id TEXT, -- The actual agent ID found in workspace (by name matching)
