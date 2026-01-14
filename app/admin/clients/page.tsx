@@ -57,9 +57,16 @@ export default function AdminClientsPage() {
 
       setIsAdmin(true);
 
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
       // Load clients
       const response = await fetch('/api/admin/claire-clients', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        }
       });
 
       if (!response.ok) {
