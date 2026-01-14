@@ -290,10 +290,7 @@ export default function PlayExecutionPage() {
         setEditing(false);
         toast.success('Draft saved successfully!');
         
-        // Update URL to include execution ID if not already there
-        if (!executionId && result.execution.id) {
-          router.replace(`/client/${category}/${code}/${result.execution.id}`);
-        }
+        // URL already includes executionId, no need to update
       } else {
         toast.error(result.error || 'Failed to save draft');
       }

@@ -29,7 +29,7 @@ export default function PlayExecutionPage() {
   const router = useRouter();
   const category = params.category as string;
   const code = params.code as string;
-  const executionId = params.executionId as string | undefined;
+  // This route doesn't have executionId in params - it's for new executions only
 
   const [play, setPlay] = useState<Play | null>(null);
   const [workspaceData, setWorkspaceData] = useState<WorkspaceData | null>(null);
@@ -83,44 +83,7 @@ export default function PlayExecutionPage() {
         toast.error(workspaceResult.error || 'Failed to load workspace data');
       }
 
-      // If executionId is provided, load that execution
-      if (executionId) {
-        const executionResponse = await fetch(`/api/client/executions/${executionId}`, {
-          credentials: 'include',
-          headers: {
-            ...(authToken && { Authorization: `Bearer ${authToken}` })
-          }
-        });
-        const executionResult = await executionResponse.json();
-        
-        if (executionResult.success && executionResult.execution) {
-          setExecution({
-            id: executionResult.execution.id,
-            output: executionResult.execution.output,
-            status: executionResult.execution.status
-          });
-          setEditedOutput(executionResult.execution.output?.content || JSON.stringify(executionResult.execution.output, null, 2));
-          
-          // Pre-fill form with runtime context if available
-          if (executionResult.execution.runtime_context) {
-            const rc = executionResult.execution.runtime_context;
-            if (rc.personas && rc.personas.length > 0) {
-              setSelectedPersona(rc.personas[0].oId);
-            }
-            if (rc.useCases && rc.useCases.length > 0) {
-              setSelectedUseCases(rc.useCases.map((uc: any) => uc.oId));
-            }
-            if (rc.clientReferences && rc.clientReferences.length > 0) {
-              setSelectedReferences(rc.clientReferences.map((r: any) => r.oId));
-            }
-            if (rc.customInput) {
-              setCustomInput(rc.customInput);
-            }
-          }
-        } else {
-          toast.error('Failed to load execution');
-        }
-      }
+      // This route is for new executions only - existing executions use [executionId] route
 
       setLoading(false);
     } catch (error) {
@@ -128,7 +91,7 @@ export default function PlayExecutionPage() {
       toast.error('Failed to load play data');
       setLoading(false);
     }
-  }, [code, category, executionId]);
+  }, [code, category]);
 
   useEffect(() => {
     loadPlayAndWorkspaceData();
@@ -234,10 +197,8 @@ export default function PlayExecutionPage() {
         setEditedOutput(result.execution.output.content || JSON.stringify(result.execution.output, null, 2));
         toast.success('Output refined successfully!');
         
-        // Update URL to include execution ID if not already there
-        if (!executionId) {
-          router.replace(`/client/${category}/${code}/${result.execution.id}`);
-        }
+        // Update URL to include execution ID for future edits
+        router.replace(`/client/${category}/${code}/${result.execution.id}`);
       } else {
         toast.error(result.error || 'Failed to refine output');
       }
