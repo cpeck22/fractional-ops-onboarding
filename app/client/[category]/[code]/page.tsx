@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -44,11 +44,7 @@ export default function PlayExecutionPage() {
   const [customInput, setCustomInput] = useState('');
   const [editedOutput, setEditedOutput] = useState('');
 
-  useEffect(() => {
-    loadPlayAndWorkspaceData();
-  }, [code, category]);
-
-  const loadPlayAndWorkspaceData = async () => {
+  const loadPlayAndWorkspaceData = useCallback(async () => {
     try {
       // Load play details
       const playResponse = await fetch(`/api/client/plays?category=${category}`);
@@ -76,7 +72,11 @@ export default function PlayExecutionPage() {
       toast.error('Failed to load play data');
       setLoading(false);
     }
-  };
+  }, [code, category]);
+
+  useEffect(() => {
+    loadPlayAndWorkspaceData();
+  }, [loadPlayAndWorkspaceData]);
 
   const handleExecute = async () => {
     if (!selectedPersona || selectedUseCases.length === 0 || !customInput.trim()) {

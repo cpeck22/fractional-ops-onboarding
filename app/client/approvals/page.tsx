@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -41,11 +41,7 @@ export default function ApprovalsPage() {
     draft: 0
   });
 
-  useEffect(() => {
-    loadApprovals();
-  }, [statusFilter, categoryFilter]);
-
-  const loadApprovals = async () => {
+  const loadApprovals = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (statusFilter !== 'all') params.append('status', statusFilter);
@@ -73,7 +69,11 @@ export default function ApprovalsPage() {
       toast.error('Failed to load approvals');
       setLoading(false);
     }
-  };
+  }, [statusFilter, categoryFilter]);
+
+  useEffect(() => {
+    loadApprovals();
+  }, [loadApprovals]);
 
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { color: string; label: string }> = {
@@ -285,7 +285,7 @@ export default function ApprovalsPage() {
                       
                       {approval?.comments && (
                         <p className="text-sm text-fo-text-secondary mt-2 italic">
-                          "{approval.comments}"
+                          &ldquo;{approval.comments}&rdquo;
                         </p>
                       )}
                     </div>

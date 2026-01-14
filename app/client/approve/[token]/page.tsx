@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
@@ -39,11 +39,7 @@ export default function ApprovalPage() {
   const [rejecting, setRejecting] = useState(false);
   const [comments, setComments] = useState('');
 
-  useEffect(() => {
-    loadApproval();
-  }, [token]);
-
-  const loadApproval = async () => {
+  const loadApproval = useCallback(async () => {
     try {
       // First, verify user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
@@ -69,7 +65,11 @@ export default function ApprovalPage() {
       toast.error('Failed to load approval');
       setLoading(false);
     }
-  };
+  }, [token, router]);
+
+  useEffect(() => {
+    loadApproval();
+  }, [loadApproval]);
 
   const handleApprove = async () => {
     if (!approval) return;
@@ -298,7 +298,7 @@ export default function ApprovalPage() {
           <p className="text-fo-text-secondary text-center">
             This approval has already been {approval.status}.
             {approval.comments && (
-              <span className="block mt-2 italic">"{approval.comments}"</span>
+              <span className="block mt-2 italic">&ldquo;{approval.comments}&rdquo;</span>
             )}
           </p>
         </div>
