@@ -47,7 +47,9 @@ export default function ApprovalsPage() {
       if (statusFilter !== 'all') params.append('status', statusFilter);
       if (categoryFilter !== 'all') params.append('category', categoryFilter);
 
-      const response = await fetch(`/api/client/approvals?${params.toString()}`);
+      const response = await fetch(`/api/client/approvals?${params.toString()}`, {
+        credentials: 'include'
+      });
       const data = await response.json();
 
       if (data.success) {

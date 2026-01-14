@@ -17,13 +17,17 @@ export async function POST(request: NextRequest) {
 
     // Get authenticated user
     const cookieStore = await cookies();
+    const cookieHeader = cookieStore.getAll()
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join('; ');
+    
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         global: {
           headers: {
-            cookie: cookieStore.toString()
+            cookie: cookieHeader || cookieStore.toString()
           }
         }
       }
@@ -162,13 +166,17 @@ export async function PUT(request: NextRequest) {
 
     // Get authenticated user
     const cookieStore = await cookies();
+    const cookieHeader = cookieStore.getAll()
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join('; ');
+    
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         global: {
           headers: {
-            cookie: cookieStore.toString()
+            cookie: cookieHeader || cookieStore.toString()
           }
         }
       }

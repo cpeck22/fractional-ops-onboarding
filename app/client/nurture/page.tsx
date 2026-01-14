@@ -23,7 +23,9 @@ export default function NurturePlaysPage() {
 
   const loadPlays = async () => {
     try {
-      const response = await fetch('/api/client/plays?category=nurture');
+      const response = await fetch('/api/client/plays?category=nurture', {
+        credentials: 'include'
+      });
       const data = await response.json();
       
       if (data.success) {

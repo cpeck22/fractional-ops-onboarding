@@ -23,7 +23,9 @@ export default function AllboundPlaysPage() {
 
   const loadPlays = async () => {
     try {
-      const response = await fetch('/api/client/plays?category=allbound');
+      const response = await fetch('/api/client/plays?category=allbound', {
+        credentials: 'include'
+      });
       const data = await response.json();
       
       if (data.success) {

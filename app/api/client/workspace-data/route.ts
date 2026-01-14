@@ -7,13 +7,19 @@ export async function GET(request: NextRequest) {
   try {
     // Get authenticated user
     const cookieStore = await cookies();
+    
+    // Build proper cookie header from all cookies (Next.js App Router format)
+    const cookieHeader = cookieStore.getAll()
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join('; ');
+    
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         global: {
           headers: {
-            cookie: cookieStore.toString()
+            cookie: cookieHeader || cookieStore.toString()
           }
         }
       }
@@ -22,8 +28,10 @@ export async function GET(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
+      console.error('❌ Auth error in workspace-data:', authError?.message);
+      console.error('❌ Available cookies:', cookieStore.getAll().map(c => c.name).join(', '));
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: 'Unauthorized', details: authError?.message },
         { status: 401 }
       );
     }

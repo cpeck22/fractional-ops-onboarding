@@ -47,13 +47,17 @@ export default function PlayExecutionPage() {
   const loadPlayAndWorkspaceData = useCallback(async () => {
     try {
       // Load play details
-      const playResponse = await fetch(`/api/client/plays?category=${category}`);
+      const playResponse = await fetch(`/api/client/plays?category=${category}`, {
+        credentials: 'include'
+      });
       const playData = await playResponse.json();
       const foundPlay = playData.plays?.find((p: Play) => p.code === code);
       setPlay(foundPlay || null);
 
       // Load workspace data
-      const workspaceResponse = await fetch('/api/client/workspace-data');
+      const workspaceResponse = await fetch('/api/client/workspace-data', {
+        credentials: 'include'
+      });
       const workspaceResult = await workspaceResponse.json();
       
       if (workspaceResult.success) {
@@ -96,6 +100,7 @@ export default function PlayExecutionPage() {
       const response = await fetch('/api/client/execute-play', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           playCode: code,
           runtimeContext
@@ -141,6 +146,7 @@ export default function PlayExecutionPage() {
       const response = await fetch('/api/client/execute-play', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           playCode: code,
           runtimeContext,
@@ -420,6 +426,7 @@ export default function PlayExecutionPage() {
                   const response = await fetch('/api/client/approve', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({
                       executionId: execution.id
                     })

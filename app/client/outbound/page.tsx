@@ -23,7 +23,9 @@ export default function OutboundPlaysPage() {
 
   const loadPlays = async () => {
     try {
-      const response = await fetch('/api/client/plays?category=outbound');
+      const response = await fetch('/api/client/plays?category=outbound', {
+        credentials: 'include'
+      });
       const data = await response.json();
       
       if (data.success) {

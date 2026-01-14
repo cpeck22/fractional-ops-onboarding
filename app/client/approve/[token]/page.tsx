@@ -49,7 +49,9 @@ export default function ApprovalPage() {
       }
 
       // Fetch approval by token
-      const response = await fetch(`/api/client/approve/${token}`);
+      const response = await fetch(`/api/client/approve/${token}`, {
+        credentials: 'include'
+      });
       const data = await response.json();
 
       if (data.success) {
@@ -79,6 +81,7 @@ export default function ApprovalPage() {
       const response = await fetch('/api/client/approve', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           approvalId: approval.id,
           status: 'approved',
@@ -115,6 +118,7 @@ export default function ApprovalPage() {
       const response = await fetch('/api/client/approve', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           approvalId: approval.id,
           status: 'rejected',
