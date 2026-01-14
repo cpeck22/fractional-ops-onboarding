@@ -98,8 +98,8 @@ export default function PlayExecutionPage() {
   }, [loadPlayAndWorkspaceData]);
 
   const handleExecute = async () => {
-    if (!selectedPersona || selectedUseCases.length === 0 || !customInput.trim()) {
-      toast.error('Please fill in all required fields');
+    if (!selectedPersona || selectedUseCases.length === 0) {
+      toast.error('Please select a persona and at least one use case');
       return;
     }
 
@@ -113,7 +113,7 @@ export default function PlayExecutionPage() {
         personas: workspaceData?.personas.filter(p => p.oId === selectedPersona) || [],
         useCases: workspaceData?.useCases.filter(uc => selectedUseCases.includes(uc.oId)) || [],
         clientReferences: workspaceData?.clientReferences.filter(r => selectedReferences.includes(r.oId)) || [],
-        customInput: customInput.trim()
+        customInput: '' // No longer required
       };
 
       const response = await fetch('/api/client/execute-play', {

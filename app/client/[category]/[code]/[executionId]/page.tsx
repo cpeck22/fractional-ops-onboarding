@@ -135,8 +135,8 @@ export default function PlayExecutionPage() {
   }, [loadPlayAndWorkspaceData]);
 
   const handleExecute = async () => {
-    if (!selectedPersona || selectedUseCases.length === 0 || !customInput.trim()) {
-      toast.error('Please fill in all required fields');
+    if (!selectedPersona || selectedUseCases.length === 0) {
+      toast.error('Please select a persona and at least one use case');
       return;
     }
 
@@ -150,7 +150,7 @@ export default function PlayExecutionPage() {
         personas: workspaceData?.personas.filter(p => p.oId === selectedPersona) || [],
         useCases: workspaceData?.useCases.filter(uc => selectedUseCases.includes(uc.oId)) || [],
         clientReferences: workspaceData?.clientReferences.filter(r => selectedReferences.includes(r.oId)) || [],
-        customInput: customInput.trim()
+        customInput: '' // No longer required
       };
 
       const response = await fetch('/api/client/execute-play', {
@@ -462,24 +462,10 @@ Please output the exact same output but take the feedback the CEO provided in th
               </div>
             </div>
 
-            {/* Custom Input */}
-            <div>
-              <label className="block text-sm font-semibold text-fo-dark mb-2">
-                Describe Your Idea <span className="text-fo-orange">*</span>
-              </label>
-              <textarea
-                value={customInput}
-                onChange={(e) => setCustomInput(e.target.value)}
-                placeholder="Describe your idea or thought on this play (2-3 sentences)..."
-                rows={4}
-                className="w-full px-4 py-2 border border-fo-light rounded-lg focus:outline-none focus:ring-2 focus:ring-fo-primary"
-              />
-            </div>
-
             {/* Execute Button */}
             <button
               onClick={handleExecute}
-              disabled={executing || !selectedPersona || selectedUseCases.length === 0 || !customInput.trim()}
+              disabled={executing || !selectedPersona || selectedUseCases.length === 0}
               className="w-full px-6 py-3 bg-fo-primary text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {executing ? 'Executing Play...' : 'Run Play'}
