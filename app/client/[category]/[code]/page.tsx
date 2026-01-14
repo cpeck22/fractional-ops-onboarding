@@ -251,8 +251,8 @@ export default function PlayExecutionPage() {
         setEditing(false);
         toast.success('Draft saved successfully!');
         
-        // Update URL to include execution ID if not already there
-        if (!executionId && result.execution.id) {
+        // Update URL to include execution ID
+        if (result.execution.id) {
           router.replace(`/client/${category}/${code}/${result.execution.id}`);
         }
       } else {
@@ -267,15 +267,27 @@ export default function PlayExecutionPage() {
   };
 
   const highlightVariables = (text: string) => {
-    // Octave elements (blue): {{persona}}, {{use_case}}, {{reference}}, {{competitor}}, {{lead_magnet}}, {{segment}}
-    // Assumptions/messaging (orange): {{problem}}, {{solution}}, {{pain_point}}, {{benefit}}, {{challenge}}
+    if (!text) return '';
     
-    const octavePattern = /\{\{(persona|use_case|reference|competitor|lead_magnet|segment)\}\}/gi;
-    const assumptionPattern = /\{\{(problem|solution|pain_point|benefit|challenge)\}\}/gi;
+    // Octave elements (blue): {{persona}}, {{use_case}}, {{reference}}, {{competitor}}, {{lead_magnet}}, {{segment}}
+    // Also match variations like {{persona_name}}, {{use_case_name}}, etc.
+    const octavePattern = /\{\{([^}]*?(?:persona|use_case|reference|competitor|lead_magnet|segment|persona_name|use_case_name|reference_name)[^}]*?)\}\}/gi;
+    
+    // Assumptions/messaging (orange): {{problem}}, {{solution}}, {{pain_point}}, {{benefit}}, {{challenge}}
+    // Also match variations
+    const assumptionPattern = /\{\{([^}]*?(?:problem|solution|pain_point|benefit|challenge|assumption|messaging)[^}]*?)\}\}/gi;
     
     let highlighted = text
       .replace(octavePattern, (match) => `<span class="bg-fo-primary/20 text-fo-primary font-semibold px-1 rounded">${match}</span>`)
       .replace(assumptionPattern, (match) => `<span class="bg-fo-orange/20 text-fo-orange font-semibold px-1 rounded">${match}</span>`);
+    
+    // Also handle markdown-style code blocks that might contain variables
+    highlighted = highlighted.replace(/`([^`]+)`/g, (match, content) => {
+      if (content.includes('{{')) {
+        return `<code class="bg-fo-light px-1 rounded">${content}</code>`;
+      }
+      return match;
+    });
     
     return highlighted;
   };

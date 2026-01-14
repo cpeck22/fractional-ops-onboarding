@@ -150,8 +150,10 @@ export async function POST(request: NextRequest) {
       selectedPersonas: runtimeContext.personas || [],
       selectedUseCases: runtimeContext.useCases || [],
       selectedReferences: runtimeContext.clientReferences || [],
-      customInput: runtimeContext.customInput || '',
-      refinementPrompt: refinementPrompt || null
+      // If refining, use the refinement prompt, otherwise use customInput
+      customInput: refinementPrompt || runtimeContext.customInput || '',
+      // Flag to indicate this is a refinement
+      isRefinement: !!refinementPrompt
     };
     
     // Build customContext for Content Agent (if we have specific IDs)
