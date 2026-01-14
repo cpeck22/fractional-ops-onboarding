@@ -224,8 +224,8 @@ Please output the exact same output but take the feedback the CEO provided in th
       const runtimeContext = {
         personas: workspaceData?.personas.filter(p => p.oId === selectedPersona) || [],
         useCases: workspaceData?.useCases.filter(uc => selectedUseCases.includes(uc.oId)) || [],
-        clientReferences: workspaceData?.clientReferences.filter(r => selectedReferences.includes(r.oId)) || [],
-        customInput: refinementPrompt // Send the structured refinement prompt
+        clientReferences: workspaceData?.clientReferences.filter(r => selectedReferences.includes(r.oId)) || []
+        // customInput removed - refinementPrompt is passed separately to API
       };
 
       const response = await fetch('/api/client/execute-play', {
