@@ -20,11 +20,7 @@ interface PlayExecution {
     code: string;
     name: string;
     category: string;
-  } | null | {
-    code: string;
-    name: string;
-    category: string;
-  }[];
+  } | null;
 }
 
 export default function ClairePlaysAdminPage() {
