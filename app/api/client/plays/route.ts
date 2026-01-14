@@ -52,6 +52,7 @@ const HARDCODED_PLAYS = [
   { code: '2003', name: 'Look-Alike Company Campaign', category: 'outbound', documentation_status: 'Not Started', content_agent_status: 'REQUIRED' },
   { code: '2004', name: 'Look-Alike Role Campaign', category: 'outbound', documentation_status: 'Not Started', content_agent_status: 'REQUIRED' },
   { code: '2005', name: 'Centres of Influence → Get Strategic or Referral Partners', category: 'outbound', documentation_status: 'Not Started', content_agent_status: 'REQUIRED' },
+  { code: '2007', name: 'Local/Same City In Common Focus', category: 'outbound', documentation_status: 'Completed', content_agent_status: 'Completed' },
 ];
 
 export async function GET(request: NextRequest) {
