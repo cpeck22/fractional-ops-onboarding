@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { supabase, signOut } from '@/lib/supabase';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Image from 'next/image';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 export default function ClientLayout({
   children,
@@ -96,10 +97,29 @@ export default function ClientLayout({
 
           {sidebarOpen && (
             <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-fo-light">
-              <div className="text-xs text-fo-text-secondary">
+              <div className="text-xs text-fo-text-secondary mb-3">
                 <p className="font-semibold mb-1">Logged in as:</p>
                 <p className="truncate">{user?.email || 'Loading...'}</p>
               </div>
+              <button
+                onClick={async () => {
+                  try {
+                    const { error } = await signOut();
+                    if (error) {
+                      toast.error('Failed to sign out');
+                    } else {
+                      toast.success('Signed out successfully');
+                      router.push('/signin');
+                    }
+                  } catch (error) {
+                    console.error('Error signing out:', error);
+                    toast.error('Failed to sign out');
+                  }
+                }}
+                className="w-full px-3 py-2 bg-fo-light hover:bg-fo-primary hover:text-white text-fo-text-secondary rounded-lg text-xs font-semibold transition-all"
+              >
+                Sign Out
+              </button>
             </div>
           )}
         </aside>
