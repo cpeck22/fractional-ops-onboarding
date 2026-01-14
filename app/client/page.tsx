@@ -179,7 +179,7 @@ export default function ClientDashboard() {
             {recentExecutions.map((execution) => (
               <Link
                 key={execution.id}
-                href={`/client/${execution.claire_plays?.category || 'allbound'}/${execution.claire_plays?.code || 'unknown'}`}
+                href={`/client/${execution.claire_plays?.category || 'allbound'}/${execution.claire_plays?.code || 'unknown'}/${execution.id}`}
                 className="flex items-center justify-between p-4 border border-fo-light rounded-lg hover:bg-fo-light transition-colors"
               >
                 <div>

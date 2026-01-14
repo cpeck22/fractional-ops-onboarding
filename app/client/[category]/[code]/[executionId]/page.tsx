@@ -29,6 +29,7 @@ export default function PlayExecutionPage() {
   const router = useRouter();
   const category = params.category as string;
   const code = params.code as string;
+  const executionId = params.executionId as string | undefined;
 
   const [play, setPlay] = useState<Play | null>(null);
   const [workspaceData, setWorkspaceData] = useState<WorkspaceData | null>(null);
@@ -37,6 +38,7 @@ export default function PlayExecutionPage() {
   const [executing, setExecuting] = useState(false);
   const [editing, setEditing] = useState(false);
   const [refining, setRefining] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Form state
   const [selectedPersona, setSelectedPersona] = useState<string>('');
@@ -81,13 +83,52 @@ export default function PlayExecutionPage() {
         toast.error(workspaceResult.error || 'Failed to load workspace data');
       }
 
+      // If executionId is provided, load that execution
+      if (executionId) {
+        const executionResponse = await fetch(`/api/client/executions/${executionId}`, {
+          credentials: 'include',
+          headers: {
+            ...(authToken && { Authorization: `Bearer ${authToken}` })
+          }
+        });
+        const executionResult = await executionResponse.json();
+        
+        if (executionResult.success && executionResult.execution) {
+          setExecution({
+            id: executionResult.execution.id,
+            output: executionResult.execution.output,
+            status: executionResult.execution.status
+          });
+          setEditedOutput(executionResult.execution.output?.content || JSON.stringify(executionResult.execution.output, null, 2));
+          
+          // Pre-fill form with runtime context if available
+          if (executionResult.execution.runtime_context) {
+            const rc = executionResult.execution.runtime_context;
+            if (rc.personas && rc.personas.length > 0) {
+              setSelectedPersona(rc.personas[0].oId);
+            }
+            if (rc.useCases && rc.useCases.length > 0) {
+              setSelectedUseCases(rc.useCases.map((uc: any) => uc.oId));
+            }
+            if (rc.clientReferences && rc.clientReferences.length > 0) {
+              setSelectedReferences(rc.clientReferences.map((r: any) => r.oId));
+            }
+            if (rc.customInput) {
+              setCustomInput(rc.customInput);
+            }
+          }
+        } else {
+          toast.error('Failed to load execution');
+        }
+      }
+
       setLoading(false);
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Failed to load play data');
       setLoading(false);
     }
-  }, [code, category]);
+  }, [code, category, executionId]);
 
   useEffect(() => {
     loadPlayAndWorkspaceData();
@@ -135,6 +176,9 @@ export default function PlayExecutionPage() {
         });
         setEditedOutput(result.execution.output.content || JSON.stringify(result.execution.output, null, 2));
         toast.success('Play executed successfully!');
+        
+        // Update URL to include execution ID
+        router.replace(`/client/${category}/${code}/${result.execution.id}`);
       } else {
         toast.error(result.error || 'Failed to execute play');
       }
@@ -189,6 +233,11 @@ export default function PlayExecutionPage() {
         });
         setEditedOutput(result.execution.output.content || JSON.stringify(result.execution.output, null, 2));
         toast.success('Output refined successfully!');
+        
+        // Update URL to include execution ID if not already there
+        if (!executionId) {
+          router.replace(`/client/${category}/${code}/${result.execution.id}`);
+        }
       } else {
         toast.error(result.error || 'Failed to refine output');
       }
@@ -201,8 +250,59 @@ export default function PlayExecutionPage() {
   };
 
   const handleSaveDraft = async () => {
-    // Save edited output as draft
-    toast.success('Draft saved');
+    if (!execution) {
+      toast.error('No execution to save');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
+      // Update execution output
+      const response = await fetch(`/api/client/executions/${execution.id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          output: {
+            content: editedOutput,
+            jsonContent: execution.output?.jsonContent || {}
+          },
+          status: 'draft'
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Update local execution state
+        setExecution({
+          ...execution,
+          output: result.execution.output,
+          status: result.execution.status
+        });
+        setEditing(false);
+        toast.success('Draft saved successfully!');
+        
+        // Update URL to include execution ID if not already there
+        if (!executionId && result.execution.id) {
+          router.replace(`/client/${category}/${code}/${result.execution.id}`);
+        }
+      } else {
+        toast.error(result.error || 'Failed to save draft');
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast.error('Failed to save draft');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const highlightVariables = (text: string) => {
@@ -394,13 +494,11 @@ export default function PlayExecutionPage() {
                 />
                 <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      setEditing(false);
-                      handleSaveDraft();
-                    }}
-                    className="px-4 py-2 bg-fo-light text-fo-dark rounded-lg hover:bg-fo-primary hover:text-white transition-all"
+                    onClick={handleSaveDraft}
+                    disabled={saving}
+                    className="px-4 py-2 bg-fo-light text-fo-dark rounded-lg hover:bg-fo-primary hover:text-white transition-all disabled:opacity-50"
                   >
-                    Save Draft
+                    {saving ? 'Saving...' : 'Save Draft'}
                   </button>
                   <button
                     onClick={() => setEditing(false)}
@@ -412,9 +510,9 @@ export default function PlayExecutionPage() {
               </div>
             ) : (
               <div 
-                className="prose max-w-none bg-fo-light/30 p-6 rounded-lg"
+                className="prose max-w-none bg-fo-light/30 p-6 rounded-lg whitespace-pre-wrap"
                 dangerouslySetInnerHTML={{ 
-                  __html: highlightVariables(execution.output.content || JSON.stringify(execution.output, null, 2))
+                  __html: highlightVariables(execution.output?.content || JSON.stringify(execution.output, null, 2))
                 }}
               />
             )}
