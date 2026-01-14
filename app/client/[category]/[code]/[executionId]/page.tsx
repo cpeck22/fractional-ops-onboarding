@@ -196,17 +196,38 @@ export default function PlayExecutionPage() {
       return;
     }
 
+    if (!execution) {
+      toast.error('No output to refine');
+      return;
+    }
+
     setRefining(true);
     try {
       // Get session token for authentication
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
 
+      // Get the current output content
+      const currentOutput = execution.output?.content || JSON.stringify(execution.output, null, 2);
+
+      // Build refinement prompt with structured message
+      const refinementPrompt = `Hi, we just ran this agent and got an output.
+
+Our CEO Client has the following changes they'd like made:
+
+${customInput.trim()}
+
+Here's the output the CEO received:
+
+${currentOutput}
+
+Please output the exact same output but take the feedback the CEO provided in the new output.`;
+
       const runtimeContext = {
         personas: workspaceData?.personas.filter(p => p.oId === selectedPersona) || [],
         useCases: workspaceData?.useCases.filter(uc => selectedUseCases.includes(uc.oId)) || [],
         clientReferences: workspaceData?.clientReferences.filter(r => selectedReferences.includes(r.oId)) || [],
-        customInput: customInput.trim()
+        customInput: refinementPrompt // Send the structured refinement prompt
       };
 
       const response = await fetch('/api/client/execute-play', {
@@ -219,7 +240,7 @@ export default function PlayExecutionPage() {
         body: JSON.stringify({
           playCode: code,
           runtimeContext,
-          refinementPrompt: customInput.trim()
+          refinementPrompt: refinementPrompt // Also pass as separate param for API
         })
       });
 
@@ -234,8 +255,8 @@ export default function PlayExecutionPage() {
         setEditedOutput(result.execution.output.content || JSON.stringify(result.execution.output, null, 2));
         toast.success('Output refined successfully!');
         
-        // Update URL to include execution ID if not already there
-        if (!executionId) {
+        // Update URL if execution ID changed (shouldn't happen, but just in case)
+        if (result.execution.id !== executionId) {
           router.replace(`/client/${category}/${code}/${result.execution.id}`);
         }
       } else {
