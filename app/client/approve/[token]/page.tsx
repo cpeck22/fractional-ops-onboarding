@@ -48,9 +48,16 @@ export default function ApprovalPage() {
         return;
       }
 
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
       // Fetch approval by token
       const response = await fetch(`/api/client/approve/${token}`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        }
       });
       const data = await response.json();
 
@@ -78,9 +85,16 @@ export default function ApprovalPage() {
 
     setApproving(true);
     try {
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
       const response = await fetch('/api/client/approve', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        },
         credentials: 'include',
         body: JSON.stringify({
           approvalId: approval.id,
@@ -115,9 +129,16 @@ export default function ApprovalPage() {
 
     setRejecting(true);
     try {
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
       const response = await fetch('/api/client/approve', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        },
         credentials: 'include',
         body: JSON.stringify({
           approvalId: approval.id,

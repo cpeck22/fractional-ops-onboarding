@@ -46,9 +46,16 @@ export default function PlayExecutionPage() {
 
   const loadPlayAndWorkspaceData = useCallback(async () => {
     try {
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
       // Load play details
       const playResponse = await fetch(`/api/client/plays?category=${category}`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        }
       });
       const playData = await playResponse.json();
       const foundPlay = playData.plays?.find((p: Play) => p.code === code);
@@ -56,7 +63,10 @@ export default function PlayExecutionPage() {
 
       // Load workspace data
       const workspaceResponse = await fetch('/api/client/workspace-data', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        }
       });
       const workspaceResult = await workspaceResponse.json();
       
@@ -90,6 +100,10 @@ export default function PlayExecutionPage() {
 
     setExecuting(true);
     try {
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
       const runtimeContext = {
         personas: workspaceData?.personas.filter(p => p.oId === selectedPersona) || [],
         useCases: workspaceData?.useCases.filter(uc => selectedUseCases.includes(uc.oId)) || [],
@@ -99,7 +113,10 @@ export default function PlayExecutionPage() {
 
       const response = await fetch('/api/client/execute-play', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        },
         credentials: 'include',
         body: JSON.stringify({
           playCode: code,
@@ -136,6 +153,10 @@ export default function PlayExecutionPage() {
 
     setRefining(true);
     try {
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
       const runtimeContext = {
         personas: workspaceData?.personas.filter(p => p.oId === selectedPersona) || [],
         useCases: workspaceData?.useCases.filter(uc => selectedUseCases.includes(uc.oId)) || [],
@@ -145,7 +166,10 @@ export default function PlayExecutionPage() {
 
       const response = await fetch('/api/client/execute-play', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        },
         credentials: 'include',
         body: JSON.stringify({
           playCode: code,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 import axios from 'axios';
+import { getAuthenticatedUser } from '@/lib/api-auth';
 
 const OCTAVE_BASE_URL = 'https://app.octavehq.com/api/v2/agents';
 
@@ -22,24 +22,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Get authenticated user
-    const cookieStore = await cookies();
-    const cookieHeader = cookieStore.getAll()
-      .map(cookie => `${cookie.name}=${cookie.value}`)
-      .join('; ');
-    
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            cookie: cookieHeader || cookieStore.toString()
-          }
-        }
-      }
-    );
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { user, error: authError } = await getAuthenticatedUser(request);
     
     if (authError || !user) {
       return NextResponse.json(

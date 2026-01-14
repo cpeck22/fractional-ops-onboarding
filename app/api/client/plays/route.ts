@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { getAuthenticatedUser } from '@/lib/api-auth';
 
 // Hardcoded play list - matches the requirements document
 const HARDCODED_PLAYS = [
@@ -68,21 +69,12 @@ export async function GET(request: NextRequest) {
     plays = plays.filter(p => p.documentation_status !== 'Blocked');
     
     // Get play details from database if they exist (for future admin-managed plays)
-    const cookieStore = await cookies();
-    const cookieHeader = cookieStore.getAll()
-      .map(cookie => `${cookie.name}=${cookie.value}`)
-      .join('; ');
+    // Note: Plays endpoint doesn't require auth, but we'll try to get user for RLS
+    const { user } = await getAuthenticatedUser(request);
     
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            cookie: cookieHeader || cookieStore.toString()
-          }
-        }
-      }
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
     
     // Try to fetch from database, but fallback to hardcoded list
