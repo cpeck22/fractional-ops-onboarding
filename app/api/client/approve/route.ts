@@ -148,24 +148,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get authenticated user
-    const cookieStore = await cookies();
-    const cookieHeader = cookieStore.getAll()
-      .map(cookie => `${cookie.name}=${cookie.value}`)
-      .join('; ');
-    
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            cookie: cookieHeader || cookieStore.toString()
-          }
-        }
-      }
-    );
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { user, error: authError } = await getAuthenticatedUser(request);
 
     if (authError || !user) {
       return NextResponse.json(
