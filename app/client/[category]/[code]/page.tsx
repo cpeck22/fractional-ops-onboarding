@@ -429,7 +429,7 @@ Please output the exact same output but take the feedback the CEO provided in th
             {/* Execute Button */}
             <button
               onClick={handleExecute}
-              disabled={executing || !selectedPersona || selectedUseCases.length === 0 || !customInput.trim()}
+              disabled={executing || !selectedPersona || selectedUseCases.length === 0}
               className="w-full px-6 py-3 bg-fo-primary text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {executing ? 'Executing Play...' : 'Run Play'}
