@@ -113,7 +113,6 @@ export function isPersonalEmail(email: string): boolean {
  * Gets a user-friendly error message for personal email domains
  */
 export function getPersonalEmailErrorMessage(email: string): string {
-  const domain = extractEmailDomain(email);
-  return `Please enter a different email address. This form does not accept addresses from ${domain}. Please use your work or business email address.`;
+  return `Please use your work or business email`;
 }
 

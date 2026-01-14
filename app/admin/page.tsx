@@ -38,6 +38,14 @@ const adminTools: AdminTool[] = [
     icon: '🔄',
     href: '/admin/rerun-agent',
     color: 'from-orange-500 to-orange-600'
+  },
+  {
+    id: 'claire-plays',
+    title: 'Claire Plays Management',
+    description: 'Manage the catalog of available plays for the client portal',
+    icon: '🎯',
+    href: '/admin/claire-plays',
+    color: 'from-purple-500 to-purple-600'
   }
 ];
 

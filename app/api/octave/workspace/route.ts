@@ -112,7 +112,24 @@ export async function POST(request: NextRequest) {
           
           // Additional agents to duplicate (but not run in Generate-Strategy)
           'ca_GMFhrclZrKlLenspxmf62',
-          'ca_uMdv2bkfb0KoOAyIA5llW'
+          'ca_uMdv2bkfb0KoOAyIA5llW',
+          
+          // New agents to duplicate (added from original Workspace)
+          'ca_c1qy7EuAXr8Z6TPujnycr',
+          'ca_Q2MtCQAuQCmHilPWUYpyr',
+          'ca_Udf2ldbDFTbhrNk0ZEbgR',
+          'ca_cOe6Ml9XvnsLzp2UU3wXY',
+          'ca_293ipaXQSPcGw6BNqLktN',
+          'ca_9QS0knPK30f3frXrJG5hP',
+          'ca_5Uri8yosNot38SOrvB7mM',
+          'ca_TuwbyP6Ky4eT1Rd9NiCOv',
+          'ca_d5o4UmytXj4n2Xf92Kj9S',
+          'ca_fMfG5nMQ0uvl3xOuEu10c',
+          'ca_2ihSlhWxvfDWltLI0euKA',
+          'ca_v9aP4t7Gtx9jSJxBypm0b',
+          'ca_vDfOaZUGV8p9M0G98ezcS',
+          'ca_TBAivqIcnNtBkEEawCZJr',
+          'ca_QLfXcw6DUR2GVmcf9Ke6z'
         ]
       },
       offering: generateOffering(questionnaireData),
