@@ -22,22 +22,38 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Get all executions to find unique clients
-    const { data: executions, error: execError } = await supabaseAdmin
-      .from('play_executions')
-      .select('user_id')
+    // Get all users who have workspaces (from octave_outputs)
+    const { data: workspaceData, error: workspaceError } = await supabaseAdmin
+      .from('octave_outputs')
+      .select('user_id, company_name, workspace_api_key, created_at')
       .order('created_at', { ascending: false });
 
-    if (execError) {
-      console.error('Error loading executions:', execError);
+    if (workspaceError) {
+      console.error('Error loading workspace data:', workspaceError);
       return NextResponse.json(
-        { success: false, error: 'Failed to load executions' },
+        { success: false, error: 'Failed to load workspace data' },
         { status: 500 }
       );
     }
 
-    // Get unique user IDs
-    const uniqueUserIds = Array.from(new Set(executions?.map(e => e.user_id) || []));
+    // Get unique user IDs from workspaces
+    const uniqueUserIds = Array.from(new Set(workspaceData?.map(w => w.user_id) || []));
+
+    // Get all executions to count play executions per user
+    const { data: executions, error: execError } = await supabaseAdmin
+      .from('play_executions')
+      .select('user_id');
+
+    if (execError) {
+      console.error('Error loading executions:', execError);
+      // Continue without execution counts if this fails
+    }
+
+    // Create execution count map
+    const executionCountMap: Record<string, number> = {};
+    executions?.forEach(e => {
+      executionCountMap[e.user_id] = (executionCountMap[e.user_id] || 0) + 1;
+    });
 
     // Get all user emails
     const { data: { users }, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
@@ -58,32 +74,32 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Get company info for each user
+    // Get company info for each user with workspace
     const clientsData = [];
     
     for (const userId of uniqueUserIds) {
-      // Get company info from octave_outputs
-      const { data: workspaceData } = await supabaseAdmin
-        .from('octave_outputs')
-        .select('company_name')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
+      // Get the most recent workspace data for this user
+      const userWorkspace = workspaceData?.find(w => w.user_id === userId);
+      
       // Count executions for this user
-      const executionsCount = executions?.filter(e => e.user_id === userId).length || 0;
+      const executionsCount = executionCountMap[userId] || 0;
 
       clientsData.push({
         user_id: userId,
         email: userEmailsMap[userId] || 'Unknown',
-        company_name: workspaceData?.company_name || null,
-        executions_count: executionsCount
+        company_name: userWorkspace?.company_name || null,
+        executions_count: executionsCount,
+        has_workspace: !!userWorkspace?.workspace_api_key
       });
     }
 
-    // Sort by execution count (most active first)
-    clientsData.sort((a, b) => b.executions_count - a.executions_count);
+    // Sort by execution count (most active first), then by company name
+    clientsData.sort((a, b) => {
+      if (b.executions_count !== a.executions_count) {
+        return b.executions_count - a.executions_count;
+      }
+      return (a.company_name || '').localeCompare(b.company_name || '');
+    });
 
     return NextResponse.json({
       success: true,
