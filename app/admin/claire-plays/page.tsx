@@ -53,7 +53,7 @@ export default function ClairePlaysAdminPage() {
       }
 
       // Get unique user IDs
-      const uniqueUserIds = [...new Set(executions?.map(e => e.user_id) || [])];
+      const uniqueUserIds = Array.from(new Set(executions?.map(e => e.user_id) || []));
 
       // Get all user emails at once using admin API
       const emailResponse = await fetch('/api/admin/client-emails', {
