@@ -18,6 +18,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Check for impersonation - if admin is impersonating, use impersonated user's data
+    const { searchParams } = new URL(request.url);
+    const impersonateUserId = searchParams.get('impersonate');
+    const effectiveUserId = impersonateUserId || user.id;
+
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -43,7 +48,7 @@ export async function GET(request: NextRequest) {
           comments
         )
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false });
 
     // Apply filters

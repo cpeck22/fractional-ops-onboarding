@@ -29,6 +29,11 @@ export async function GET(
       );
     }
 
+    // Check for impersonation - if admin is impersonating, use impersonated user's data
+    const { searchParams } = new URL(request.url);
+    const impersonateUserId = searchParams.get('impersonate');
+    const effectiveUserId = impersonateUserId || user.id;
+
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -46,7 +51,7 @@ export async function GET(
         )
       `)
       .eq('id', executionId)
-      .eq('user_id', user.id)
+      .eq('user_id', effectiveUserId)
       .single();
 
     if (executionError || !execution) {
@@ -119,12 +124,17 @@ export async function PUT(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Verify execution belongs to user
+    // Check for impersonation - if admin is impersonating, use impersonated user's data
+    const { searchParams } = new URL(request.url);
+    const impersonateUserId = searchParams.get('impersonate');
+    const effectiveUserId = impersonateUserId || user.id;
+
+    // Verify execution belongs to user (or impersonated user)
     const { data: existingExecution, error: verifyError } = await supabaseAdmin
       .from('play_executions')
       .select('id, user_id')
       .eq('id', executionId)
-      .eq('user_id', user.id)
+      .eq('user_id', effectiveUserId)
       .single();
 
     if (verifyError || !existingExecution) {
