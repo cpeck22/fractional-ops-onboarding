@@ -16,17 +16,34 @@ export default function ClientLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [companyName, setCompanyName] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    // Check auth
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    // Check auth and load company name
+    const loadUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         router.push('/signin');
       } else {
         setUser(user);
+        
+        // Load company name from octave_outputs
+        const { data: workspaceData } = await supabase
+          .from('octave_outputs')
+          .select('company_name')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (workspaceData?.company_name) {
+          setCompanyName(workspaceData.company_name);
+        }
       }
-    });
+    };
+    
+    loadUserData();
   }, [router]);
 
   const navItems = [
@@ -59,7 +76,9 @@ export default function ClientLayout({
                   />
                   <div>
                     <h1 className="text-lg font-bold text-fo-dark">Claire Portal</h1>
-                    <p className="text-xs text-fo-text-secondary">CEO Dashboard</p>
+                    <p className="text-xs text-fo-text-secondary">
+                      {companyName || 'CEO Dashboard'}
+                    </p>
                   </div>
                 </div>
               )}
