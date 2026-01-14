@@ -310,11 +310,11 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Save execution to database
+    // Save execution to database (use effectiveUserId for impersonation)
     const { data: execution, error: executionError } = await supabaseAdmin
       .from('play_executions')
       .insert({
-        user_id: user.id,
+        user_id: effectiveUserId, // Use impersonated user's ID if admin is impersonating
         play_id: playId,
         workspace_api_key: workspaceApiKey,
         workspace_oid: workspaceData.workspace_oid,

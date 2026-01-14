@@ -46,6 +46,14 @@ const adminTools: AdminTool[] = [
     icon: '🎯',
     href: '/admin/claire-plays',
     color: 'from-purple-500 to-purple-600'
+  },
+  {
+    id: 'clients',
+    title: 'Client Portal Access',
+    description: 'Access client Claire portals as an admin',
+    icon: '👥',
+    href: '/admin/clients',
+    color: 'from-green-500 to-green-600'
   }
 ];
 

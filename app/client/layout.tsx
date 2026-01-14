@@ -1,12 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { supabase, signOut } from '@/lib/supabase';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Image from 'next/image';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+
+// Admin emails that can impersonate clients
+const ADMIN_EMAILS = [
+  'ali.hassan@fractionalops.com',
+  'sharifali1000@gmail.com',
+  'corey@fractionalops.com',
+];
 
 export default function ClientLayout({
   children,
@@ -15,19 +22,63 @@ export default function ClientLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
+  const [impersonatedUserId, setImpersonatedUserId] = useState<string | null>(null);
+  const [impersonatedUser, setImpersonatedUser] = useState<any>(null);
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [hasWorkspace, setHasWorkspace] = useState<boolean | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Check auth and load company name
+    // Check auth and handle impersonation
     const loadUserData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         router.push('/signin');
+        return;
+      }
+
+      setUser(user);
+      
+      // Check if user is admin
+      const isAdminUser = ADMIN_EMAILS.some(
+        email => email.toLowerCase() === user.email?.toLowerCase()
+      );
+      setIsAdmin(isAdminUser);
+
+      // Check for impersonation parameter
+      const impersonateUserId = searchParams.get('impersonate');
+      
+      if (impersonateUserId && isAdminUser) {
+        // Admin is impersonating a client
+        setImpersonatedUserId(impersonateUserId);
+        
+        // Load impersonated user's data
+        const { data: impersonatedUserData } = await supabase.auth.admin.getUserById(impersonateUserId);
+        if (impersonatedUserData?.user) {
+          setImpersonatedUser(impersonatedUserData.user);
+        }
+
+        // Load company name and workspace for impersonated user
+        const { data: workspaceData } = await supabase
+          .from('octave_outputs')
+          .select('company_name, workspace_api_key')
+          .eq('user_id', impersonateUserId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (workspaceData) {
+          setCompanyName(workspaceData.company_name);
+          setHasWorkspace(!!workspaceData.workspace_api_key);
+        } else {
+          setHasWorkspace(false);
+        }
       } else {
-        setUser(user);
+        // Normal user access
+        setImpersonatedUserId(null);
         
         // Load company name and check for workspace from octave_outputs
         const { data: workspaceData, error } = await supabase
@@ -48,7 +99,7 @@ export default function ClientLayout({
     };
     
     loadUserData();
-  }, [router]);
+  }, [router, searchParams]);
 
   const navItems = [
     { href: '/client', label: 'Dashboard', icon: '📊' },

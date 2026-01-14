@@ -16,6 +16,11 @@ export async function GET(request: NextRequest) {
       );
     }
     
+    // Check for impersonation - if admin is impersonating, use impersonated user's workspace
+    const { searchParams } = new URL(request.url);
+    const impersonateUserId = searchParams.get('impersonate');
+    const effectiveUserId = impersonateUserId || user.id;
+
     // Get workspace API key from octave_outputs
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,7 +30,7 @@ export async function GET(request: NextRequest) {
     const { data: workspaceData, error: workspaceError } = await supabaseAdmin
       .from('octave_outputs')
       .select('workspace_api_key, workspace_oid, company_name')
-      .eq('user_id', user.id)
+      .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
