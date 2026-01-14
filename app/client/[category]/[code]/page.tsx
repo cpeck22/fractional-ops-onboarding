@@ -426,20 +426,6 @@ Please output the exact same output but take the feedback the CEO provided in th
               </div>
             </div>
 
-            {/* Custom Input */}
-            <div>
-              <label className="block text-sm font-semibold text-fo-dark mb-2">
-                Describe Your Idea <span className="text-fo-orange">*</span>
-              </label>
-              <textarea
-                value={customInput}
-                onChange={(e) => setCustomInput(e.target.value)}
-                placeholder="Describe your idea or thought on this play (2-3 sentences)..."
-                rows={4}
-                className="w-full px-4 py-2 border border-fo-light rounded-lg focus:outline-none focus:ring-2 focus:ring-fo-primary"
-              />
-            </div>
-
             {/* Execute Button */}
             <button
               onClick={handleExecute}
