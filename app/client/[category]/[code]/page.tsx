@@ -447,9 +447,16 @@ export default function PlayExecutionPage() {
             <button
               onClick={async () => {
                 try {
+                  // Get session token for authentication
+                  const { data: { session } } = await supabase.auth.getSession();
+                  const authToken = session?.access_token;
+
                   const response = await fetch('/api/client/approve', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                      'Content-Type': 'application/json',
+                      ...(authToken && { Authorization: `Bearer ${authToken}` })
+                    },
                     credentials: 'include',
                     body: JSON.stringify({
                       executionId: execution.id

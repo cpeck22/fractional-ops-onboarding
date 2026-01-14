@@ -1,77 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 import axios from 'axios';
+import { getAuthenticatedUser } from '@/lib/api-auth';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get authenticated user - try Authorization header first (from client-side session)
-    const authHeader = request.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '');
+    // Get authenticated user
+    const { user, error: authError } = await getAuthenticatedUser(request);
     
-    let user;
-    
-    if (token) {
-      // Use token from Authorization header
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          global: {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-        }
+    if (authError || !user) {
+      console.error('❌ Auth error in workspace-data:', authError?.message);
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized', details: authError?.message },
+        { status: 401 }
       );
-      
-      const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token);
-      
-      if (tokenError || !tokenUser) {
-        console.error('❌ Token auth error:', tokenError?.message);
-        return NextResponse.json(
-          { success: false, error: 'Unauthorized', details: tokenError?.message },
-          { status: 401 }
-        );
-      }
-      
-      user = tokenUser;
-    } else {
-      // Fallback to cookie-based auth
-      const cookieStore = await cookies();
-      const cookieHeader = cookieStore.getAll()
-        .map(cookie => `${cookie.name}=${cookie.value}`)
-        .join('; ');
-      
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          global: {
-            headers: {
-              cookie: cookieHeader || cookieStore.toString()
-            }
-          }
-        }
-      );
-      
-      // Try to get session first (works better with cookies), then fallback to getUser
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      user = session?.user || undefined;
-      
-      if (!user) {
-        const { data: { user: fetchedUser }, error: authError } = await supabase.auth.getUser();
-        user = fetchedUser || undefined;
-        
-        if (authError || !user) {
-          console.error('❌ Auth error in workspace-data:', authError?.message || sessionError?.message);
-          console.error('❌ Available cookies:', cookieStore.getAll().map(c => c.name).join(', '));
-          return NextResponse.json(
-            { success: false, error: 'Unauthorized', details: authError?.message || sessionError?.message },
-            { status: 401 }
-          );
-        }
-      }
     }
     
     // Get workspace API key from octave_outputs
@@ -153,4 +95,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
