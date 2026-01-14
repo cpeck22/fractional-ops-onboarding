@@ -4,77 +4,132 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 
-interface Play {
-  id?: string;
-  code: string;
-  name: string;
-  category: string;
-  description?: string;
-  agent_name_pattern?: string;
-  is_active: boolean;
-  documentation_status?: string;
-  content_agent_status?: string;
+interface Client {
+  user_id: string;
+  email: string;
+  company_name: string | null;
+  executions_count: number;
+}
+
+interface PlayExecution {
+  id: string;
+  play_id: string;
+  status: string;
+  created_at: string;
+  claire_plays: {
+    code: string;
+    name: string;
+    category: string;
+  } | null;
 }
 
 export default function ClairePlaysAdminPage() {
-  const [plays, setPlays] = useState<Play[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [selectedClient, setSelectedClient] = useState<string | null>(null);
+  const [clientPlays, setClientPlays] = useState<PlayExecution[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingPlay, setEditingPlay] = useState<Play | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [loadingPlays, setLoadingPlays] = useState(false);
 
   useEffect(() => {
-    loadPlays();
+    loadClients();
   }, []);
 
-  const loadPlays = async () => {
+  const loadClients = async () => {
     try {
-      const { data, error } = await supabase
-        .from('claire_plays')
-        .select('*')
-        .order('code', { ascending: true });
+      setLoading(true);
+      
+      // Get all unique clients who have executed plays
+      // We'll use the service role key to bypass RLS
+      const { data: executions, error: execError } = await supabase
+        .from('play_executions')
+        .select('user_id')
+        .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error loading plays:', error);
-        toast.error('Failed to load plays');
+      if (execError) {
+        console.error('Error loading executions:', execError);
+        toast.error('Failed to load clients');
+        setLoading(false);
         return;
       }
 
-      setPlays(data || []);
+      // Get unique user IDs
+      const uniqueUserIds = [...new Set(executions?.map(e => e.user_id) || [])];
+
+      // For each user, get their email and company info from octave_outputs
+      const clientsData: Client[] = [];
+      
+      for (const userId of uniqueUserIds) {
+        // Get company info from octave_outputs
+        const { data: workspaceData } = await supabase
+          .from('octave_outputs')
+          .select('company_name')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        // Count executions for this user
+        const executionsCount = executions?.filter(e => e.user_id === userId).length || 0;
+
+        // Get email - we'll need to create an API endpoint for this or use a different approach
+        // For now, we'll use a placeholder and fetch it via API
+        const emailResponse = await fetch(`/api/admin/client-email?userId=${userId}`).catch(() => null);
+        let email = 'Unknown';
+        if (emailResponse) {
+          const emailData = await emailResponse.json();
+          email = emailData.email || 'Unknown';
+        }
+
+        clientsData.push({
+          user_id: userId,
+          email: email,
+          company_name: workspaceData?.company_name || null,
+          executions_count: executionsCount
+        });
+      }
+
+      setClients(clientsData.sort((a, b) => b.executions_count - a.executions_count));
       setLoading(false);
     } catch (error) {
-      console.error('Error loading plays:', error);
-      toast.error('Failed to load plays');
+      console.error('Error loading clients:', error);
+      toast.error('Failed to load clients');
       setLoading(false);
     }
   };
 
-  const handleSave = async (play: Play) => {
+  const loadClientPlays = async (userId: string) => {
     try {
-      if (play.id) {
-        // Update existing
-        const { error } = await supabase
-          .from('claire_plays')
-          .update(play)
-          .eq('id', play.id);
+      setLoadingPlays(true);
+      setSelectedClient(userId);
 
-        if (error) throw error;
-        toast.success('Play updated successfully');
-      } else {
-        // Create new
-        const { error } = await supabase
-          .from('claire_plays')
-          .insert(play);
+      const { data: plays, error } = await supabase
+        .from('play_executions')
+        .select(`
+          id,
+          play_id,
+          status,
+          created_at,
+          claire_plays (
+            code,
+            name,
+            category
+          )
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        toast.success('Play created successfully');
+      if (error) {
+        console.error('Error loading client plays:', error);
+        toast.error('Failed to load plays');
+        return;
       }
 
-      setShowForm(false);
-      setEditingPlay(null);
-      loadPlays();
-    } catch (error: any) {
-      console.error('Error saving play:', error);
-      toast.error(error.message || 'Failed to save play');
+      setClientPlays(plays || []);
+      setLoadingPlays(false);
+    } catch (error) {
+      console.error('Error loading client plays:', error);
+      toast.error('Failed to load plays');
+      setLoadingPlays(false);
     }
   };
 
@@ -83,7 +138,7 @@ export default function ClairePlaysAdminPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-fo-primary mx-auto mb-4"></div>
-          <p className="text-fo-text-secondary">Loading plays...</p>
+          <p className="text-fo-text-secondary">Loading clients...</p>
         </div>
       </div>
     );
@@ -94,167 +149,130 @@ export default function ClairePlaysAdminPage() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-fo-dark mb-2">Claire Plays Management</h1>
-          <p className="text-fo-text-secondary">Manage the catalog of available plays</p>
+          <p className="text-fo-text-secondary">View all clients and their play executions</p>
         </div>
 
-        <div className="mb-6">
-          <button
-            onClick={() => {
-              setEditingPlay(null);
-              setShowForm(true);
-            }}
-            className="px-6 py-2 bg-fo-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all"
-          >
-            + Add New Play
-          </button>
-        </div>
+        {!selectedClient ? (
+          // Clients List View
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="p-6 border-b border-fo-light">
+              <h2 className="text-xl font-bold text-fo-dark">View All Clients</h2>
+              <p className="text-sm text-fo-text-secondary mt-1">Select a client to view their plays</p>
+            </div>
+            <div className="divide-y divide-fo-light">
+              {clients.length === 0 ? (
+                <div className="p-8 text-center text-fo-text-secondary">
+                  No clients found
+                </div>
+              ) : (
+                clients.map((client) => (
+                  <div
+                    key={client.user_id}
+                    onClick={() => loadClientPlays(client.user_id)}
+                    className="p-6 hover:bg-fo-light/50 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-fo-dark">
+                          {client.company_name || client.email}
+                        </h3>
+                        <p className="text-sm text-fo-text-secondary mt-1">{client.email}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-fo-primary">
+                          {client.executions_count} {client.executions_count === 1 ? 'Play' : 'Plays'}
+                        </p>
+                        <span className="text-xs text-fo-text-secondary">Click to view →</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        ) : (
+          // Client Plays View
+          <div>
+            <button
+              onClick={() => {
+                setSelectedClient(null);
+                setClientPlays([]);
+              }}
+              className="mb-4 text-fo-primary hover:underline flex items-center gap-2"
+            >
+              ← Back to Clients
+            </button>
 
-        {showForm && (
-          <PlayForm
-            play={editingPlay}
-            onSave={handleSave}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingPlay(null);
-            }}
-          />
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="p-6 border-b border-fo-light">
+                <h2 className="text-xl font-bold text-fo-dark">
+                  Plays for {clients.find(c => c.user_id === selectedClient)?.company_name || clients.find(c => c.user_id === selectedClient)?.email}
+                </h2>
+                <p className="text-sm text-fo-text-secondary mt-1">
+                  {clients.find(c => c.user_id === selectedClient)?.email}
+                </p>
+              </div>
+
+              {loadingPlays ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-fo-primary mx-auto mb-4"></div>
+                  <p className="text-fo-text-secondary">Loading plays...</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-fo-light">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Play Code</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Play Name</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Category</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Created</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-fo-light">
+                      {clientPlays.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-8 text-center text-fo-text-secondary">
+                            No plays executed yet
+                          </td>
+                        </tr>
+                      ) : (
+                        clientPlays.map((play) => (
+                          <tr key={play.id} className="hover:bg-fo-light/50">
+                            <td className="px-6 py-4 text-sm font-mono font-bold text-fo-primary">
+                              {play.claire_plays?.code || 'N/A'}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-fo-dark">
+                              {play.claire_plays?.name || 'Unknown Play'}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-fo-text-secondary capitalize">
+                              {play.claire_plays?.category || 'N/A'}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                play.status === 'approved' ? 'bg-fo-green/20 text-fo-green' :
+                                play.status === 'pending_approval' ? 'bg-fo-orange/20 text-fo-orange' :
+                                play.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                'bg-fo-light text-fo-text-secondary'
+                              }`}>
+                                {play.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-fo-text-secondary">
+                              {new Date(play.created_at).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
         )}
-
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-fo-light">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Code</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-fo-light">
-              {plays.map((play) => (
-                <tr key={play.id || play.code} className="hover:bg-fo-light/50">
-                  <td className="px-6 py-4 text-sm font-mono font-bold text-fo-primary">{play.code}</td>
-                  <td className="px-6 py-4 text-sm text-fo-dark">{play.name}</td>
-                  <td className="px-6 py-4 text-sm text-fo-text-secondary capitalize">{play.category}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                      play.is_active ? 'bg-fo-green/20 text-fo-green' : 'bg-fo-light text-fo-text-secondary'
-                    }`}>
-                      {play.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => {
-                        setEditingPlay(play);
-                        setShowForm(true);
-                      }}
-                      className="text-fo-primary hover:underline text-sm"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   );
 }
-
-function PlayForm({ play, onSave, onCancel }: { play: Play | null; onSave: (play: Play) => void; onCancel: () => void }) {
-  const [formData, setFormData] = useState<Play>(play || {
-    code: '',
-    name: '',
-    category: 'allbound',
-    is_active: true,
-    agent_name_pattern: ''
-  });
-
-  return (
-    <div className="bg-white rounded-lg shadow-md p-8 mb-6">
-      <h2 className="text-xl font-bold text-fo-dark mb-6">
-        {play ? 'Edit Play' : 'Create New Play'}
-      </h2>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-semibold text-fo-dark mb-2">Code *</label>
-          <input
-            type="text"
-            value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-            className="w-full px-4 py-2 border border-fo-light rounded-lg focus:outline-none focus:ring-2 focus:ring-fo-primary"
-            placeholder="e.g., 0001, 2001"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-fo-dark mb-2">Name *</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2 border border-fo-light rounded-lg focus:outline-none focus:ring-2 focus:ring-fo-primary"
-            placeholder="Play name"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-fo-dark mb-2">Category *</label>
-          <select
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-            className="w-full px-4 py-2 border border-fo-light rounded-lg focus:outline-none focus:ring-2 focus:ring-fo-primary"
-          >
-            <option value="allbound">Allbound</option>
-            <option value="outbound">Outbound</option>
-            <option value="nurture">Nurture</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-fo-dark mb-2">Agent Name Pattern</label>
-          <input
-            type="text"
-            value={formData.agent_name_pattern || ''}
-            onChange={(e) => setFormData({ ...formData, agent_name_pattern: e.target.value })}
-            className="w-full px-4 py-2 border border-fo-light rounded-lg focus:outline-none focus:ring-2 focus:ring-fo-primary"
-            placeholder="e.g., 0001 (usually same as code)"
-          />
-        </div>
-
-        <div>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={formData.is_active}
-              onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-              className="rounded"
-            />
-            <span className="text-sm font-semibold text-fo-dark">Active</span>
-          </label>
-        </div>
-
-        <div className="flex gap-4">
-          <button
-            onClick={() => onSave(formData)}
-            className="px-6 py-2 bg-fo-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all"
-          >
-            Save
-          </button>
-          <button
-            onClick={onCancel}
-            className="px-6 py-2 border border-fo-light text-fo-dark rounded-lg hover:bg-fo-light transition-all"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
