@@ -113,9 +113,7 @@ export default function PlayExecutionPage() {
             if (rc.clientReferences && rc.clientReferences.length > 0) {
               setSelectedReferences(rc.clientReferences.map((r: any) => r.oId));
             }
-            if (rc.customInput) {
-              setCustomInput(rc.customInput);
-            }
+            // Note: customInput removed from form, but keep state for refinement
           }
         } else {
           toast.error('Failed to load execution');
