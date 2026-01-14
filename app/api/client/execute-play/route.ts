@@ -201,8 +201,8 @@ export async function POST(request: NextRequest) {
       selectedPersonas: runtimeContext.personas || [],
       selectedUseCases: runtimeContext.useCases || [],
       selectedReferences: runtimeContext.clientReferences || [],
-      // If refining, use the refinement prompt, otherwise use customInput
-      customInput: refinementPrompt || runtimeContext.customInput || '',
+      // If refining, use the refinement prompt, otherwise use customInput or provide default
+      customInput: refinementPrompt || runtimeContext.customInput || 'Please generate the content for this play.',
       // Flag to indicate this is a refinement
       isRefinement: !!refinementPrompt
     };
