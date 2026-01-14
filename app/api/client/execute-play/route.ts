@@ -234,14 +234,19 @@ export async function POST(request: NextRequest) {
     if (playData) {
       playId = playData.id;
     } else {
-      // Create play record if it doesn't exist in DB
+      // Find hardcoded play data for this code
+      const hardcodedPlay = HARDCODED_PLAYS.find(p => p.code === playCode);
+      
+      // Create play record if it doesn't exist in DB, using hardcoded data if available
       const { data: newPlay, error: createPlayError } = await supabaseAdmin
         .from('claire_plays')
         .insert({
           code: playCode,
-          name: `Play ${playCode}`, // Will be updated by admin later
-          category: playCode.startsWith('0') ? 'allbound' : playCode.startsWith('1') ? 'nurture' : 'outbound',
+          name: hardcodedPlay?.name || `Play ${playCode}`,
+          category: hardcodedPlay?.category || (playCode.startsWith('0') ? 'allbound' : playCode.startsWith('1') ? 'nurture' : 'outbound'),
           agent_name_pattern: playCode,
+          documentation_status: hardcodedPlay?.documentation_status || null,
+          content_agent_status: hardcodedPlay?.content_agent_status || null,
           is_active: true
         })
         .select('id')

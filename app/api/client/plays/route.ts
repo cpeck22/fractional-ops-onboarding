@@ -100,10 +100,19 @@ export async function GET(request: NextRequest) {
       });
     });
     
-    // Override with database plays if they exist
+    // Override with database plays if they exist, but merge with hardcoded data to ensure correct names/categories
     if (dbPlays) {
       dbPlays.forEach(dbPlay => {
-        playMap.set(dbPlay.code, dbPlay);
+        // Find matching hardcoded play to ensure correct name and category
+        const hardcodedPlay = HARDCODED_PLAYS.find(p => p.code === dbPlay.code);
+        playMap.set(dbPlay.code, {
+          ...dbPlay,
+          // Override with hardcoded name and category if they exist (hardcoded is source of truth)
+          name: hardcodedPlay?.name || dbPlay.name,
+          category: hardcodedPlay?.category || dbPlay.category,
+          documentation_status: hardcodedPlay?.documentation_status || dbPlay.documentation_status,
+          content_agent_status: hardcodedPlay?.content_agent_status || dbPlay.content_agent_status
+        });
       });
     }
     
