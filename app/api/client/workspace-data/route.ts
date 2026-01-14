@@ -27,11 +27,11 @@ export async function GET(request: NextRequest) {
     
     // Try to get session first (works better with cookies), then fallback to getUser
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    let user = session?.user;
+    let user = session?.user || undefined;
     
     if (!user) {
       const { data: { user: fetchedUser }, error: authError } = await supabase.auth.getUser();
-      user = fetchedUser;
+      user = fetchedUser || undefined;
       
       if (authError || !user) {
         console.error('❌ Auth error in workspace-data:', authError?.message || sessionError?.message);
