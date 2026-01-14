@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -13,6 +14,9 @@ interface DashboardStats {
 }
 
 export default function ClientDashboard() {
+  const searchParams = useSearchParams();
+  const impersonateUserId = searchParams.get('impersonate');
+  
   const [stats, setStats] = useState<DashboardStats>({
     totalExecutions: 0,
     pendingApproval: 0,
@@ -24,12 +28,15 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [impersonateUserId]);
 
   const loadDashboardData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Use impersonated user ID if admin is impersonating
+      const effectiveUserId = impersonateUserId || user.id;
 
       // Fetch executions
       const { data: executions, error } = await supabase
@@ -42,7 +49,7 @@ export default function ClientDashboard() {
             category
           )
         `)
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .order('created_at', { ascending: false })
         .limit(10);
 

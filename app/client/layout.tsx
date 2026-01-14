@@ -152,10 +152,15 @@ export default function ClientLayout({
               const isActive = pathname === item.href || 
                 (item.href !== '/client' && pathname?.startsWith(item.href));
               
+              // Add impersonate parameter to all links if impersonating
+              const href = impersonatedUserId 
+                ? `${item.href}${item.href.includes('?') ? '&' : '?'}impersonate=${impersonatedUserId}`
+                : item.href;
+              
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     isActive
                       ? 'bg-fo-primary text-white font-semibold shadow-md'
