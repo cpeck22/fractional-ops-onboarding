@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { addImpersonateParam } from '@/lib/client-api-helpers';
 
 interface Play {
   code: string;
@@ -65,7 +66,8 @@ export default function PlayExecutionPage() {
       setPlay(foundPlay || null);
 
       // Load workspace data
-      const workspaceResponse = await fetch('/api/client/workspace-data', {
+      const workspaceUrl = addImpersonateParam('/api/client/workspace-data', impersonateUserId);
+      const workspaceResponse = await fetch(workspaceUrl, {
         credentials: 'include',
         headers: {
           ...(authToken && { Authorization: `Bearer ${authToken}` })
@@ -116,7 +118,8 @@ export default function PlayExecutionPage() {
         // customInput removed - not required for initial play execution
       };
 
-      const response = await fetch('/api/client/execute-play', {
+      const executeUrl = addImpersonateParam('/api/client/execute-play', impersonateUserId);
+      const response = await fetch(executeUrl, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -193,19 +196,20 @@ Please output the exact same output but take the feedback the CEO provided in th
         customInput: refinementPrompt // Send the structured refinement prompt
       };
 
-      const response = await fetch('/api/client/execute-play', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...(authToken && { Authorization: `Bearer ${authToken}` })
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          playCode: code,
-          runtimeContext,
-          refinementPrompt: refinementPrompt // Also pass as separate param for API
-        })
-      });
+        const refineUrl = addImpersonateParam('/api/client/execute-play', impersonateUserId);
+        const response = await fetch(refineUrl, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(authToken && { Authorization: `Bearer ${authToken}` })
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            playCode: code,
+            runtimeContext,
+            refinementPrompt: refinementPrompt // Also pass as separate param for API
+          })
+        });
 
       const result = await response.json();
 
@@ -244,7 +248,8 @@ Please output the exact same output but take the feedback the CEO provided in th
       const authToken = session?.access_token;
 
       // Update execution output
-      const response = await fetch(`/api/client/executions/${execution.id}`, {
+        const saveUrl = addImpersonateParam(`/api/client/executions/${execution.id}`, impersonateUserId);
+        const response = await fetch(saveUrl, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -530,7 +535,8 @@ Please output the exact same output but take the feedback the CEO provided in th
                   const { data: { session } } = await supabase.auth.getSession();
                   const authToken = session?.access_token;
 
-                  const response = await fetch('/api/client/approve', {
+                  const approveUrl = addImpersonateParam('/api/client/approve', impersonateUserId);
+                  const response = await fetch(approveUrl, {
                     method: 'POST',
                     headers: { 
                       'Content-Type': 'application/json',
