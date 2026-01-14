@@ -20,7 +20,11 @@ interface PlayExecution {
     code: string;
     name: string;
     category: string;
-  } | null;
+  } | null | {
+    code: string;
+    name: string;
+    category: string;
+  }[];
 }
 
 export default function ClairePlaysAdminPage() {
@@ -128,7 +132,18 @@ export default function ClairePlaysAdminPage() {
         return;
       }
 
-      setClientPlays(plays || []);
+      // Transform the data to handle Supabase's array response for relations
+      const transformedPlays: PlayExecution[] = (plays || []).map((play: any) => ({
+        id: play.id,
+        play_id: play.play_id,
+        status: play.status,
+        created_at: play.created_at,
+        claire_plays: Array.isArray(play.claire_plays) 
+          ? play.claire_plays[0] || null 
+          : play.claire_plays
+      }));
+
+      setClientPlays(transformedPlays);
       setLoadingPlays(false);
     } catch (error) {
       console.error('Error loading client plays:', error);
