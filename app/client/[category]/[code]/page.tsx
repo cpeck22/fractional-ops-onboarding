@@ -28,6 +28,8 @@ interface Execution {
 export default function PlayExecutionPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const impersonateUserId = searchParams.get('impersonate');
   const category = params.category as string;
   const code = params.code as string;
   // This route doesn't have executionId in params - it's for new executions only
