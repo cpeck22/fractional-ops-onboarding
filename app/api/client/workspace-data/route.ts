@@ -25,15 +25,22 @@ export async function GET(request: NextRequest) {
       }
     );
     
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Try to get session first (works better with cookies), then fallback to getUser
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    let user = session?.user;
     
-    if (authError || !user) {
-      console.error('❌ Auth error in workspace-data:', authError?.message);
-      console.error('❌ Available cookies:', cookieStore.getAll().map(c => c.name).join(', '));
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized', details: authError?.message },
-        { status: 401 }
-      );
+    if (!user) {
+      const { data: { user: fetchedUser }, error: authError } = await supabase.auth.getUser();
+      user = fetchedUser;
+      
+      if (authError || !user) {
+        console.error('❌ Auth error in workspace-data:', authError?.message || sessionError?.message);
+        console.error('❌ Available cookies:', cookieStore.getAll().map(c => c.name).join(', '));
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized', details: authError?.message || sessionError?.message },
+          { status: 401 }
+        );
+      }
     }
     
     // Get workspace API key from octave_outputs
