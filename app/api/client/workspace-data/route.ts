@@ -9,9 +9,9 @@ export async function GET(request: NextRequest) {
     const { user, error: authError } = await getAuthenticatedUser(request);
     
     if (authError || !user) {
-      console.error('❌ Auth error in workspace-data:', authError?.message);
+      console.error('❌ Auth error in workspace-data:', authError);
       return NextResponse.json(
-        { success: false, error: 'Unauthorized', details: authError?.message },
+        { success: false, error: 'Unauthorized', details: authError || 'Authentication failed' },
         { status: 401 }
       );
     }

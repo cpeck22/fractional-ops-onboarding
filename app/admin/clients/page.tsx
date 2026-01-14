@@ -98,7 +98,7 @@ export default function AdminClientsPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-fo-dark mb-4">Unauthorized</h1>
-          <p className="text-fo-text-secondary mb-4">You don&apos;t have permission to access this page.</p>
+          <p className="text-fo-text-secondary mb-4">You do not have permission to access this page.</p>
           <Link href="/admin" className="text-fo-primary hover:underline">← Back to Admin</Link>
         </div>
       </div>
