@@ -147,8 +147,8 @@ export default function PlayExecutionPage() {
       const runtimeContext = {
         personas: workspaceData?.personas.filter(p => p.oId === selectedPersona) || [],
         useCases: workspaceData?.useCases.filter(uc => selectedUseCases.includes(uc.oId)) || [],
-        clientReferences: workspaceData?.clientReferences.filter(r => selectedReferences.includes(r.oId)) || [],
-        customInput: '' // No longer required
+        clientReferences: workspaceData?.clientReferences.filter(r => selectedReferences.includes(r.oId)) || []
+        // customInput removed - not required for initial play execution
       };
 
       const response = await fetch('/api/client/execute-play', {
