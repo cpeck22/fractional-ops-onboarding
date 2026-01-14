@@ -38,61 +38,23 @@ export default function ClairePlaysAdminPage() {
     try {
       setLoading(true);
       
-      // Get all unique clients who have executed plays
-      // We'll use the service role key to bypass RLS
-      const { data: executions, error: execError } = await supabase
-        .from('play_executions')
-        .select('user_id')
-        .order('created_at', { ascending: false });
-
-      if (execError) {
-        console.error('Error loading executions:', execError);
-        toast.error('Failed to load clients');
-        setLoading(false);
-        return;
-      }
-
-      // Get unique user IDs
-      const uniqueUserIds = Array.from(new Set(executions?.map(e => e.user_id) || []));
-
-      // Get all user emails at once using admin API
-      const emailResponse = await fetch('/api/admin/client-emails', {
+      // Use admin API endpoint to get all clients (bypasses RLS)
+      const response = await fetch('/api/admin/claire-clients', {
         credentials: 'include'
-      }).catch(() => null);
-      
-      let userEmailsMap: Record<string, string> = {};
-      if (emailResponse) {
-        const emailData = await emailResponse.json();
-        if (emailData.success && emailData.emails) {
-          userEmailsMap = emailData.emails;
-        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch clients');
       }
 
-      // For each user, get their company info from octave_outputs
-      const clientsData: Client[] = [];
-      
-      for (const userId of uniqueUserIds) {
-        // Get company info from octave_outputs
-        const { data: workspaceData } = await supabase
-          .from('octave_outputs')
-          .select('company_name')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+      const result = await response.json();
 
-        // Count executions for this user
-        const executionsCount = executions?.filter(e => e.user_id === userId).length || 0;
-
-        clientsData.push({
-          user_id: userId,
-          email: userEmailsMap[userId] || 'Unknown',
-          company_name: workspaceData?.company_name || null,
-          executions_count: executionsCount
-        });
+      if (result.success) {
+        setClients(result.clients || []);
+      } else {
+        toast.error(result.error || 'Failed to load clients');
       }
 
-      setClients(clientsData.sort((a, b) => b.executions_count - a.executions_count));
       setLoading(false);
     } catch (error) {
       console.error('Error loading clients:', error);
@@ -106,40 +68,23 @@ export default function ClairePlaysAdminPage() {
       setLoadingPlays(true);
       setSelectedClient(userId);
 
-      const { data: plays, error } = await supabase
-        .from('play_executions')
-        .select(`
-          id,
-          play_id,
-          status,
-          created_at,
-          claire_plays (
-            code,
-            name,
-            category
-          )
-        `)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+      // Use admin API endpoint to get client plays (bypasses RLS)
+      const response = await fetch(`/api/admin/claire-client-plays?userId=${userId}`, {
+        credentials: 'include'
+      });
 
-      if (error) {
-        console.error('Error loading client plays:', error);
-        toast.error('Failed to load plays');
-        return;
+      if (!response.ok) {
+        throw new Error('Failed to fetch plays');
       }
 
-      // Transform the data to handle Supabase's array response for relations
-      const transformedPlays: PlayExecution[] = (plays || []).map((play: any) => ({
-        id: play.id,
-        play_id: play.play_id,
-        status: play.status,
-        created_at: play.created_at,
-        claire_plays: Array.isArray(play.claire_plays) 
-          ? play.claire_plays[0] || null 
-          : play.claire_plays
-      }));
+      const result = await response.json();
 
-      setClientPlays(transformedPlays);
+      if (result.success) {
+        setClientPlays(result.plays || []);
+      } else {
+        toast.error(result.error || 'Failed to load plays');
+      }
+
       setLoadingPlays(false);
     } catch (error) {
       console.error('Error loading client plays:', error);
