@@ -14,41 +14,39 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'userId is required' },
-        { status: 400 }
-      );
-    }
-
-    // Use admin client to get user email
+    // Use admin client to get all users
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Get user from auth.users via admin
-    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+    // Get all users
+    const { data: { users }, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
 
-    if (userError || !userData?.user) {
+    if (usersError) {
       return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 404 }
+        { success: false, error: 'Failed to fetch users' },
+        { status: 500 }
       );
     }
 
+    // Create a map of user_id -> email
+    const emailsMap: Record<string, string> = {};
+    users?.forEach(u => {
+      if (u.email) {
+        emailsMap[u.id] = u.email;
+      }
+    });
+
     return NextResponse.json({
       success: true,
-      email: userData.user.email || 'Unknown'
+      emails: emailsMap
     });
 
   } catch (error: any) {
-    console.error('❌ Error fetching client email:', error);
+    console.error('❌ Error fetching client emails:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch email', details: error.message },
+      { success: false, error: 'Failed to fetch emails', details: error.message },
       { status: 500 }
     );
   }

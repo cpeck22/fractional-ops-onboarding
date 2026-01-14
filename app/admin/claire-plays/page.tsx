@@ -55,7 +55,20 @@ export default function ClairePlaysAdminPage() {
       // Get unique user IDs
       const uniqueUserIds = [...new Set(executions?.map(e => e.user_id) || [])];
 
-      // For each user, get their email and company info from octave_outputs
+      // Get all user emails at once using admin API
+      const emailResponse = await fetch('/api/admin/client-emails', {
+        credentials: 'include'
+      }).catch(() => null);
+      
+      let userEmailsMap: Record<string, string> = {};
+      if (emailResponse) {
+        const emailData = await emailResponse.json();
+        if (emailData.success && emailData.emails) {
+          userEmailsMap = emailData.emails;
+        }
+      }
+
+      // For each user, get their company info from octave_outputs
       const clientsData: Client[] = [];
       
       for (const userId of uniqueUserIds) {
@@ -71,18 +84,9 @@ export default function ClairePlaysAdminPage() {
         // Count executions for this user
         const executionsCount = executions?.filter(e => e.user_id === userId).length || 0;
 
-        // Get email - we'll need to create an API endpoint for this or use a different approach
-        // For now, we'll use a placeholder and fetch it via API
-        const emailResponse = await fetch(`/api/admin/client-email?userId=${userId}`).catch(() => null);
-        let email = 'Unknown';
-        if (emailResponse) {
-          const emailData = await emailResponse.json();
-          email = emailData.email || 'Unknown';
-        }
-
         clientsData.push({
           user_id: userId,
-          email: email,
+          email: userEmailsMap[userId] || 'Unknown',
           company_name: workspaceData?.company_name || null,
           executions_count: executionsCount
         });
