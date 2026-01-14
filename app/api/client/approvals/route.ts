@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status'); // Filter by status
     const playCategory = searchParams.get('category'); // Filter by play category
+    const impersonateUserId = searchParams.get('impersonate'); // Check for impersonation
 
     // Get authenticated user
     const { user, error: authError } = await getAuthenticatedUser(request);
@@ -19,8 +20,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Check for impersonation - if admin is impersonating, use impersonated user's data
-    const { searchParams } = new URL(request.url);
-    const impersonateUserId = searchParams.get('impersonate');
     const effectiveUserId = impersonateUserId || user.id;
 
     const supabaseAdmin = createClient(

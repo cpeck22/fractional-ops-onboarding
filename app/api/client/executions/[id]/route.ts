@@ -11,6 +11,8 @@ export async function GET(
 ) {
   try {
     const executionId = params.id;
+    const { searchParams } = new URL(request.url);
+    const impersonateUserId = searchParams.get('impersonate');
 
     if (!executionId) {
       return NextResponse.json(
@@ -30,8 +32,6 @@ export async function GET(
     }
 
     // Check for impersonation - if admin is impersonating, use impersonated user's data
-    const { searchParams } = new URL(request.url);
-    const impersonateUserId = searchParams.get('impersonate');
     const effectiveUserId = impersonateUserId || user.id;
 
     const supabaseAdmin = createClient(
