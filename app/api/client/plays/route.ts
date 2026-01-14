@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { getAuthenticatedUser } from '@/lib/api-auth';
 
+export const dynamic = 'force-dynamic';
+
 // Hardcoded play list - matches the requirements document
 const HARDCODED_PLAYS = [
   // Allbound Plays (0000 codes)

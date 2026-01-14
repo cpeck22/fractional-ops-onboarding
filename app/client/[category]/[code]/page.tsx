@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
@@ -25,7 +25,7 @@ interface Execution {
   status: string;
 }
 
-export default function PlayExecutionPage() {
+function PlayExecutionPageContent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -95,7 +95,7 @@ export default function PlayExecutionPage() {
       toast.error('Failed to load play data');
       setLoading(false);
     }
-  }, [code, category]);
+  }, [code, category, impersonateUserId]);
 
   useEffect(() => {
     loadPlayAndWorkspaceData();
@@ -571,6 +571,21 @@ Please output the exact same output but take the feedback the CEO provided in th
         </div>
       )}
     </div>
+  );
+}
+
+export default function PlayExecutionPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-fo-primary mx-auto mb-4"></div>
+          <p className="text-fo-text-secondary">Loading play...</p>
+        </div>
+      </div>
+    }>
+      <PlayExecutionPageContent />
+    </Suspense>
   );
 }
 

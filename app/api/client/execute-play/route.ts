@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import { getAuthenticatedUser } from '@/lib/api-auth';
 
+export const dynamic = 'force-dynamic';
+
 const OCTAVE_BASE_URL = 'https://app.octavehq.com/api/v2/agents';
 
 // Hardcoded play list - matches the requirements document (same as plays route)
