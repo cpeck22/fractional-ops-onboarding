@@ -201,9 +201,9 @@ export async function POST(request: NextRequest) {
       selectedPersonas: runtimeContext.personas || [],
       selectedUseCases: runtimeContext.useCases || [],
       selectedReferences: runtimeContext.clientReferences || [],
-      // Only include customInput if this is a refinement (refinementPrompt is provided)
-      // For initial play execution, we don't prompt for customInput - the agent uses personas/useCases/references
-      ...(refinementPrompt && { customInput: refinementPrompt }),
+      // For refinement, use the refinement prompt. For initial execution, provide default instruction
+      // The agent needs customInput to know what to generate - we provide a default that tells it to use the play's purpose
+      customInput: refinementPrompt || 'Please generate the content for this play based on the selected personas, use cases, and client references.',
       // Flag to indicate this is a refinement
       isRefinement: !!refinementPrompt
     };
