@@ -54,19 +54,6 @@ export default function NurturePlaysPageContent() {
     loadPlays();
   }, [loadPlays]);
 
-  const getStatusBadge = (status: string) => {
-    const badges: Record<string, { color: string; label: string }> = {
-      'Completed': { color: 'bg-fo-green/20 text-fo-green', label: '✅ Ready' },
-      'In Progress': { color: 'bg-fo-orange/20 text-fo-orange', label: '🔄 In Progress' },
-      'Not Started': { color: 'bg-fo-light text-fo-text-secondary', label: '⏳ Coming Soon' },
-      'REQUIRED': { color: 'bg-fo-primary/20 text-fo-primary', label: '⭐ Required' },
-      'Placeholder For Review': { color: 'bg-yellow-100 text-yellow-800', label: '📋 Review' },
-      'Not Required': { color: 'bg-fo-light text-fo-text-secondary', label: 'ℹ️ Not Required' },
-    };
-    
-    return badges[status] || { color: 'bg-fo-light text-fo-text-secondary', label: status };
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -87,7 +74,6 @@ export default function NurturePlaysPageContent() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plays.map((play) => {
-          const statusBadge = getStatusBadge(play.content_agent_status || play.documentation_status);
           const isDisabled = play.documentation_status === 'Blocked' || 
                            (play.content_agent_status === 'Not Required' && play.documentation_status !== 'Completed');
           
@@ -107,12 +93,9 @@ export default function NurturePlaysPageContent() {
                 }
               }}
             >
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start mb-3">
                 <span className="text-sm font-mono font-bold text-fo-primary bg-fo-primary/10 px-2 py-1 rounded">
                   {play.code}
-                </span>
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${statusBadge.color}`}>
-                  {statusBadge.label}
                 </span>
               </div>
               
