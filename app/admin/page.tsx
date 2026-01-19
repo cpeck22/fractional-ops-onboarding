@@ -173,6 +173,7 @@ export default function AdminPage() {
           {adminNavItems.map((item) => {
             const isActive = pathname === item.href || 
               (item.href !== '/admin' && pathname?.startsWith(item.href));
+            const IconComponent = item.icon;
             
             return (
               <Link
@@ -184,8 +185,8 @@ export default function AdminPage() {
                     : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                 }`}
               >
-                <span className="text-xl flex-shrink-0">{item.icon}</span>
-                {sidebarOpen && <span className="text-sm">{item.label}</span>}
+                <IconComponent className="w-5 h-5 flex-shrink-0" strokeWidth={2} />
+                {sidebarOpen && <span className="text-sm font-medium">{item.label}</span>}
               </Link>
             );
           })}
