@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { addImpersonateParam } from '@/lib/client-api-helpers';
 
 interface DashboardStats {
   totalExecutions: number;
@@ -31,34 +32,37 @@ export default function ClientDashboardContent() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Use impersonated user ID if admin is impersonating
-      const effectiveUserId = impersonateUserId || user.id;
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
 
-      // Fetch executions
-      const { data: executions, error } = await supabase
-        .from('play_executions')
-        .select(`
-          *,
-          claire_plays (
-            code,
-            name,
-            category
-          )
-        `)
-        .eq('user_id', effectiveUserId)
-        .order('created_at', { ascending: false })
-        .limit(10);
+      // Use API endpoint to get all executions for accurate stats (same as approvals page)
+      const url = addImpersonateParam('/api/client/approvals', impersonateUserId);
+      
+      const response = await fetch(url, {
+        credentials: 'include',
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        }
+      });
 
-      if (error) {
-        console.error('Error loading executions:', error);
-        return;
+      if (!response.ok) {
+        throw new Error('Failed to fetch executions');
       }
 
-      // Calculate stats
-      const totalExecutions = executions?.length || 0;
-      const pendingApproval = executions?.filter(e => e.status === 'pending_approval').length || 0;
-      const approved = executions?.filter(e => e.status === 'approved').length || 0;
-      const draft = executions?.filter(e => e.status === 'draft').length || 0;
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to load executions');
+      }
+
+      const allExecutions = result.executions || [];
+
+      // Calculate stats from ALL executions
+      const totalExecutions = allExecutions.length;
+      const pendingApproval = allExecutions.filter((e: any) => e.status === 'pending_approval').length;
+      const approved = allExecutions.filter((e: any) => e.status === 'approved').length;
+      const draft = allExecutions.filter((e: any) => e.status === 'draft').length;
 
       setStats({
         totalExecutions,
@@ -67,7 +71,8 @@ export default function ClientDashboardContent() {
         draft
       });
 
-      setRecentExecutions(executions || []);
+      // Set recent executions (first 10) for display
+      setRecentExecutions(allExecutions.slice(0, 10));
       setLoading(false);
     } catch (error) {
       console.error('Error loading dashboard:', error);
