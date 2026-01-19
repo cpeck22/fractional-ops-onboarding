@@ -6,8 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get authenticated user (or impersonated user if admin is impersonating)
-    // getAuthenticatedUser already validates admin access for impersonation
+    // Get authenticated user
     const { user, error: authError } = await getAuthenticatedUser(request);
     
     if (authError || !user) {
@@ -21,8 +20,25 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const impersonateUserId = searchParams.get('impersonate');
     
+    // Verify admin access if impersonating
+    if (impersonateUserId) {
+      const ADMIN_EMAILS = [
+        'ali.hassan@fractionalops.com',
+        'sharifali1000@gmail.com',
+        'corey@fractionalops.com',
+      ];
+      const isAdmin = ADMIN_EMAILS.some(
+        email => email.toLowerCase() === user.email?.toLowerCase()
+      );
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized: Admin access required for impersonation' },
+          { status: 403 }
+        );
+      }
+    }
+    
     // Use impersonated user ID if provided, otherwise use authenticated user ID
-    // Note: getAuthenticatedUser already validates admin access when impersonating
     const effectiveUserId = impersonateUserId || user.id;
 
     // Use admin client to bypass RLS

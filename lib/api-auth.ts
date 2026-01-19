@@ -39,27 +39,9 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<{ user
       return { user: null, error: tokenError?.message || 'Unauthorized' };
     }
 
-    // If impersonating and user is admin, return impersonated user
-    if (impersonateUserId) {
-      const isAdmin = ADMIN_EMAILS.some(
-        email => email.toLowerCase() === tokenUser.email?.toLowerCase()
-      );
-
-      if (isAdmin) {
-        // Use admin client to get impersonated user
-        const supabaseAdmin = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
-
-        const { data: { user: impersonatedUser }, error: impersonateError } = await supabaseAdmin.auth.admin.getUserById(impersonateUserId);
-        
-        if (!impersonateError && impersonatedUser) {
-          return { user: impersonatedUser, error: null };
-        }
-      }
-    }
-    
+    // Note: We return the authenticated admin user, not the impersonated user
+    // Routes should check admin status and use impersonateUserId from query params separately
+    // This allows routes to verify admin access before using impersonated user ID
     return { user: tokenUser, error: null };
   } else {
     // Fallback to cookie-based auth
@@ -93,27 +75,9 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<{ user
       }
     }
 
-    // If impersonating and user is admin, return impersonated user
-    if (impersonateUserId) {
-      const isAdmin = ADMIN_EMAILS.some(
-        email => email.toLowerCase() === user?.email?.toLowerCase()
-      );
-
-      if (isAdmin) {
-        // Use admin client to get impersonated user
-        const supabaseAdmin = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
-
-        const { data: { user: impersonatedUser }, error: impersonateError } = await supabaseAdmin.auth.admin.getUserById(impersonateUserId);
-        
-        if (!impersonateError && impersonatedUser) {
-          return { user: impersonatedUser, error: null };
-        }
-      }
-    }
-
+    // Note: We return the authenticated admin user, not the impersonated user
+    // Routes should check admin status and use impersonateUserId from query params separately
+    // This allows routes to verify admin access before using impersonated user ID
     return { user, error: null };
   }
 }

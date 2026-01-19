@@ -4,6 +4,13 @@ import { getAuthenticatedUser } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
+// Admin emails that can impersonate clients
+const ADMIN_EMAILS = [
+  'ali.hassan@fractionalops.com',
+  'sharifali1000@gmail.com',
+  'corey@fractionalops.com',
+];
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -19,6 +26,19 @@ export async function GET(request: NextRequest) {
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
+    }
+
+    // Verify admin access if impersonating
+    if (impersonateUserId) {
+      const isAdmin = ADMIN_EMAILS.some(
+        email => email.toLowerCase() === user.email?.toLowerCase()
+      );
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized: Admin access required for impersonation' },
+          { status: 403 }
+        );
+      }
     }
 
     // Check for impersonation - if admin is impersonating, use impersonated user's data

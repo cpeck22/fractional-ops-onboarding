@@ -3,6 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import { getAuthenticatedUser } from '@/lib/api-auth';
 
+// Admin emails that can impersonate clients
+const ADMIN_EMAILS = [
+  'ali.hassan@fractionalops.com',
+  'sharifali1000@gmail.com',
+  'corey@fractionalops.com',
+];
+
 /**
  * Find agent in workspace by name pattern matching
  * e.g., code "0002" will find agent named "0002_*" or "*0002*"
@@ -29,6 +36,26 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Check for impersonation parameter
+    const { searchParams } = new URL(request.url);
+    const impersonateUserId = searchParams.get('impersonate');
+    
+    // Verify admin access if impersonating
+    if (impersonateUserId) {
+      const isAdmin = ADMIN_EMAILS.some(
+        email => email.toLowerCase() === user.email?.toLowerCase()
+      );
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized: Admin access required for impersonation' },
+          { status: 403 }
+        );
+      }
+    }
+    
+    // Use impersonated user ID if provided, otherwise use authenticated user ID
+    const effectiveUserId = impersonateUserId || user.id;
+    
     // Get workspace API key
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -38,7 +65,7 @@ export async function POST(request: NextRequest) {
     const { data: workspaceData, error: workspaceError } = await supabaseAdmin
       .from('octave_outputs')
       .select('workspace_api_key')
-      .eq('user_id', user.id)
+      .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();

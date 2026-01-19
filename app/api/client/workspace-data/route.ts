@@ -21,6 +21,25 @@ export async function GET(request: NextRequest) {
     // Check for impersonation - if admin is impersonating, use impersonated user's workspace
     const { searchParams } = new URL(request.url);
     const impersonateUserId = searchParams.get('impersonate');
+    
+    // Verify admin access if impersonating
+    if (impersonateUserId) {
+      const ADMIN_EMAILS = [
+        'ali.hassan@fractionalops.com',
+        'sharifali1000@gmail.com',
+        'corey@fractionalops.com',
+      ];
+      const isAdmin = ADMIN_EMAILS.some(
+        email => email.toLowerCase() === user.email?.toLowerCase()
+      );
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized: Admin access required for impersonation' },
+          { status: 403 }
+        );
+      }
+    }
+    
     const effectiveUserId = impersonateUserId || user.id;
 
     // Get workspace API key from octave_outputs
