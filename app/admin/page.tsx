@@ -48,7 +48,7 @@ const adminTools: AdminTool[] = [
     description: 'Manage the catalog of available plays for the client portal',
     icon: Target,
     href: '/admin/claire-plays',
-    color: 'from-fo-tertiary-2 to-fo-tertiary-2'
+    color: 'from-fo-primary to-fo-secondary'
   },
   {
     id: 'clients',
@@ -239,7 +239,7 @@ export default function AdminPage() {
               <h2 className="text-xl font-semibold text-fo-dark">Admin Dashboard</h2>
             </div>
             <div className="flex items-center gap-4">
-              <span className="hidden md:block px-3 py-1 bg-fo-tertiary-3/20 text-fo-tertiary-3 rounded-full text-sm font-medium inline-flex items-center gap-1.5">
+              <span className="hidden md:block px-3 py-1 bg-fo-primary/10 text-fo-primary rounded-full text-sm font-medium inline-flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5" strokeWidth={2} />
                 Admin Access
               </span>
@@ -289,11 +289,11 @@ export default function AdminPage() {
               <h3 className="font-bold text-fo-dark mb-4">Quick Tips</h3>
               <ul className="space-y-2 text-sm text-fo-text-secondary">
                 <li className="flex items-start gap-2">
-              <Check className="w-4 h-4 text-fo-tertiary-3 mt-0.5" strokeWidth={2} />
+              <Check className="w-4 h-4 text-fo-primary mt-0.5" strokeWidth={2} />
               <span className="font-normal"><strong className="font-semibold">View Strategies:</strong> See all client strategies, search by email or company name</span>
             </li>
             <li className="flex items-start gap-2">
-              <Check className="w-4 h-4 text-fo-tertiary-3 mt-0.5" strokeWidth={2} />
+              <Check className="w-4 h-4 text-fo-primary mt-0.5" strokeWidth={2} />
               <span className="font-normal"><strong className="font-semibold">Rerun Agent:</strong> Regenerate Call Prep or other outputs if quality is poor</span>
             </li>
             <li className="flex items-start gap-2">

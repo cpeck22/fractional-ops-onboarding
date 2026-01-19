@@ -237,7 +237,7 @@ export default function ClairePlaysAdminPage() {
                                 <span className={`px-2 py-1 rounded text-xs font-semibold ${
                                   play.status === 'approved' ? 'bg-fo-green/20 text-fo-green' :
                                   play.status === 'pending_approval' ? 'bg-fo-orange/20 text-fo-orange' :
-                                  play.status === 'rejected' ? 'bg-fo-tertiary-4/20 text-fo-tertiary-4' :
+                                  play.status === 'rejected' ? 'bg-gray-200 text-gray-700' :
                                   'bg-fo-light text-fo-text-secondary'
                                 }`}>
                                   {play.status}
