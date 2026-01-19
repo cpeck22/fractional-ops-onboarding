@@ -316,15 +316,15 @@ export async function POST(request: NextRequest) {
       
       // Map runtime context to full details for highlighting
       const highlightingContext = {
-        personas: runtimeContext.personas?.map(p => {
+        personas: runtimeContext.personas?.map((p: any) => {
           const fullPersona = fullWorkspaceData?.personas?.find((wp: any) => wp.oId === p.oId);
           return fullPersona || p;
         }) || [],
-        useCases: runtimeContext.useCases?.map(uc => {
+        useCases: runtimeContext.useCases?.map((uc: any) => {
           const fullUseCase = fullWorkspaceData?.use_cases?.find((wuc: any) => wuc.oId === uc.oId);
           return fullUseCase || uc;
         }) || [],
-        clientReferences: runtimeContext.clientReferences?.map(r => {
+        clientReferences: runtimeContext.clientReferences?.map((r: any) => {
           const fullRef = fullWorkspaceData?.client_references?.find((wr: any) => wr.oId === r.oId);
           return fullRef || r;
         }) || []
