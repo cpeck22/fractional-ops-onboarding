@@ -126,7 +126,7 @@ ${outputContent}
 **YOUR TASK:**
 Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identified segments. Every character, header, label, and structure must remain identical to the original.
 
-**CRITICAL: DO NOT wrap your response in markdown code blocks (no ```xml or ```). Return ONLY the content with XML tags, nothing else.**`;
+**CRITICAL: DO NOT wrap your response in markdown code blocks. Return ONLY the content with XML tags, nothing else. Do not use triple backticks or any markdown formatting.**`;
 
   try {
     console.log('🎨 Starting output highlighting with OpenAI...');
