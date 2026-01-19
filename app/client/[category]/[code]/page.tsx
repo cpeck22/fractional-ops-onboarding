@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
-import { ChevronLeft, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { renderHighlightedContent, hasHighlights } from '@/lib/render-highlights';
 
 interface Play {
   code: string;
@@ -304,30 +305,19 @@ Please output the exact same output but take the feedback the CEO provided in th
     }
   };
 
-  const highlightVariables = (text: string) => {
-    if (!text) return '';
+  // Get the content to display (highlighted or plain)
+  const getDisplayContent = () => {
+    if (!execution?.output) return '';
     
-    // Octave elements (blue): {{persona}}, {{use_case}}, {{reference}}, {{competitor}}, {{lead_magnet}}, {{segment}}
-    // Also match variations like {{persona_name}}, {{use_case_name}}, etc.
-    const octavePattern = /\{\{([^}]*?(?:persona|use_case|reference|competitor|lead_magnet|segment|persona_name|use_case_name|reference_name)[^}]*?)\}\}/gi;
+    const rawContent = execution.output.content || JSON.stringify(execution.output, null, 2);
+    const highlightedHtml = execution.output.highlighted_html;
     
-    // Assumptions/messaging (orange): {{problem}}, {{solution}}, {{pain_point}}, {{benefit}}, {{challenge}}
-    // Also match variations
-    const assumptionPattern = /\{\{([^}]*?(?:problem|solution|pain_point|benefit|challenge|assumption|messaging)[^}]*?)\}\}/gi;
+    if (highlightsEnabled && highlightedHtml && hasHighlights(highlightedHtml)) {
+      return renderHighlightedContent(highlightedHtml);
+    }
     
-    let highlighted = text
-      .replace(octavePattern, (match) => `<span class="bg-fo-primary/20 text-fo-primary font-semibold px-1 rounded">${match}</span>`)
-      .replace(assumptionPattern, (match) => `<span class="bg-fo-orange/20 text-fo-orange font-semibold px-1 rounded">${match}</span>`);
-    
-    // Also handle markdown-style code blocks that might contain variables
-    highlighted = highlighted.replace(/`([^`]+)`/g, (match, content) => {
-      if (content.includes('{{')) {
-        return `<code class="bg-fo-light px-1 rounded">${content}</code>`;
-      }
-      return match;
-    });
-    
-    return highlighted;
+    // Fallback to plain content
+    return rawContent.replace(/\n/g, '<br/>').replace(/ /g, '&nbsp;');
   };
 
   if (loading) {
@@ -511,34 +501,55 @@ Please output the exact same output but take the feedback the CEO provided in th
               <div 
                 className="prose max-w-none bg-fo-light/30 p-6 rounded-lg whitespace-pre-wrap"
                 dangerouslySetInnerHTML={{ 
-                  __html: highlightVariables(execution.output?.content || JSON.stringify(execution.output, null, 2))
+                  __html: getDisplayContent()
                 }}
               />
             )}
           </div>
 
-          {/* Variable Legend */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-bold text-fo-dark mb-4">Variable Legend</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-semibold text-fo-dark mb-2">Octave Elements</p>
-                <div className="space-y-1">
-                  <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs mr-2">persona</span>
-                  <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs mr-2">use_case</span>
-                  <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs mr-2">reference</span>
+          {/* Highlight Legend - Only show when highlights are enabled */}
+          {highlightsEnabled && execution && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-bold text-fo-dark mb-4">Highlight Legend</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-fo-dark mb-2">Octave Elements</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Persona</span>
+                      <span className="text-xs text-fo-text-secondary">Target audience</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Segment</span>
+                      <span className="text-xs text-fo-text-secondary">Company size/industry</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Use Case (Outcome)</span>
+                      <span className="text-xs text-fo-text-secondary">Desired outcome</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Use Case (Blocker)</span>
+                      <span className="text-xs text-fo-text-secondary">Problem/blocker</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">CTA (Lead Magnet)</span>
+                      <span className="text-xs text-fo-text-secondary">Call-to-action</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-fo-dark mb-2">Assumptions/Messaging</p>
-                <div className="space-y-1">
-                  <span className="inline-block bg-fo-orange/20 text-fo-orange px-2 py-1 rounded text-xs mr-2">problem</span>
-                  <span className="inline-block bg-fo-orange/20 text-fo-orange px-2 py-1 rounded text-xs mr-2">solution</span>
-                  <span className="inline-block bg-fo-orange/20 text-fo-orange px-2 py-1 rounded text-xs mr-2">pain_point</span>
+                <div>
+                  <p className="text-sm font-semibold text-fo-dark mb-2">Personalization</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-fo-orange/20 text-fo-orange px-2 py-1 rounded text-xs font-semibold">Personalized</span>
+                      <span className="text-xs text-fo-text-secondary">Claire generated info</span>
+                    </div>
+                    <p className="text-xs text-fo-text-secondary mt-4 italic">Hover over highlighted text to see details</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Approve Button */}
           <div className="bg-white rounded-lg shadow-md p-6">

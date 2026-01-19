@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import { getAuthenticatedUser } from '@/lib/api-auth';
+import { highlightOutput } from '@/lib/output-highlighting';
 
 export const dynamic = 'force-dynamic';
 
@@ -299,8 +300,46 @@ export async function POST(request: NextRequest) {
     }
     
     // Extract output from agent response
+    const rawOutputContent = agentResponse.data?.content || '';
+    
+    // Generate highlighted version using OpenAI
+    let highlightedHtml = rawOutputContent;
+    try {
+      // Fetch full workspace data to get persona/use case details for highlighting
+      const { data: fullWorkspaceData } = await supabaseAdmin
+        .from('octave_outputs')
+        .select('personas, use_cases, client_references')
+        .eq('user_id', effectiveUserId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      // Map runtime context to full details for highlighting
+      const highlightingContext = {
+        personas: runtimeContext.personas?.map(p => {
+          const fullPersona = fullWorkspaceData?.personas?.find((wp: any) => wp.oId === p.oId);
+          return fullPersona || p;
+        }) || [],
+        useCases: runtimeContext.useCases?.map(uc => {
+          const fullUseCase = fullWorkspaceData?.use_cases?.find((wuc: any) => wuc.oId === uc.oId);
+          return fullUseCase || uc;
+        }) || [],
+        clientReferences: runtimeContext.clientReferences?.map(r => {
+          const fullRef = fullWorkspaceData?.client_references?.find((wr: any) => wr.oId === r.oId);
+          return fullRef || r;
+        }) || []
+      };
+      
+      highlightedHtml = await highlightOutput(rawOutputContent, highlightingContext);
+      console.log('✅ Output highlighted successfully');
+    } catch (highlightError: any) {
+      console.error('⚠️ Error highlighting output (continuing with unhighlighted):', highlightError.message);
+      // Continue with unhighlighted content if highlighting fails
+    }
+    
     const output = {
-      content: agentResponse.data?.content || '',
+      content: rawOutputContent,
+      highlighted_html: highlightedHtml, // Store highlighted version
       jsonContent: agentResponse.data?.jsonContent || {},
       // Include matched context for reference
       matchedPersona: agentResponse.data?.persona || null,

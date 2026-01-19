@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { Clock, CheckCircle2, XCircle, AlertTriangle, ChevronLeft, Check, X } from 'lucide-react';
+import { renderHighlightedContent, hasHighlights } from '@/lib/render-highlights';
 
 interface Execution {
   id: string;
@@ -183,15 +184,19 @@ export default function ApprovalPage() {
     }
   };
 
-  const highlightVariables = (text: string) => {
-    const octavePattern = /\{\{(persona|use_case|reference|competitor|lead_magnet|segment)\}\}/gi;
-    const assumptionPattern = /\{\{(problem|solution|pain_point|benefit|challenge)\}\}/gi;
+  // Get display content with highlighting
+  const getDisplayContent = () => {
+    if (!execution) return '';
     
-    let highlighted = text
-      .replace(octavePattern, (match) => `<span class="bg-fo-primary/20 text-fo-primary font-semibold px-1 rounded">${match}</span>`)
-      .replace(assumptionPattern, (match) => `<span class="bg-fo-orange/20 text-fo-orange font-semibold px-1 rounded">${match}</span>`);
+    const rawContent = execution.edited_output?.content || execution.output?.content || JSON.stringify(execution.output || {}, null, 2);
+    const highlightedHtml = execution.edited_output?.highlighted_html || execution.output?.highlighted_html;
     
-    return highlighted;
+    // Use highlighted version if available, otherwise fallback to plain
+    if (highlightedHtml && hasHighlights(highlightedHtml)) {
+      return renderHighlightedContent(highlightedHtml);
+    }
+    
+    return rawContent.replace(/\n/g, '<br/>').replace(/ /g, '&nbsp;');
   };
 
   if (loading) {
@@ -301,29 +306,48 @@ export default function ApprovalPage() {
         <div 
           className="prose max-w-none bg-fo-light/30 p-6 rounded-lg whitespace-pre-wrap"
           dangerouslySetInnerHTML={{ 
-            __html: highlightVariables(outputContent)
+            __html: getDisplayContent()
           }}
         />
       </div>
 
-      {/* Variable Legend */}
+      {/* Highlight Legend */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-fo-border">
-        <h3 className="text-base font-semibold text-fo-dark mb-4">Variable Legend</h3>
+        <h3 className="text-base font-semibold text-fo-dark mb-4">Highlight Legend</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm font-semibold text-fo-dark mb-2">Octave Elements</p>
-            <div className="space-y-1">
-              <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs mr-2">persona</span>
-              <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs mr-2">use_case</span>
-              <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs mr-2">reference</span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Persona</span>
+                <span className="text-xs text-fo-text-secondary">Target audience</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Segment</span>
+                <span className="text-xs text-fo-text-secondary">Company size/industry</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Use Case (Outcome)</span>
+                <span className="text-xs text-fo-text-secondary">Desired outcome</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Use Case (Blocker)</span>
+                <span className="text-xs text-fo-text-secondary">Problem/blocker</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">CTA (Lead Magnet)</span>
+                <span className="text-xs text-fo-text-secondary">Call-to-action</span>
+              </div>
             </div>
           </div>
           <div>
-            <p className="text-sm font-semibold text-fo-dark mb-2">Assumptions/Messaging</p>
-            <div className="space-y-1">
-              <span className="inline-block bg-fo-orange/20 text-fo-orange px-2 py-1 rounded text-xs mr-2">problem</span>
-              <span className="inline-block bg-fo-orange/20 text-fo-orange px-2 py-1 rounded text-xs mr-2">solution</span>
-              <span className="inline-block bg-fo-orange/20 text-fo-orange px-2 py-1 rounded text-xs mr-2">pain_point</span>
+            <p className="text-sm font-semibold text-fo-dark mb-2">Personalization</p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-block bg-fo-orange/20 text-fo-orange px-2 py-1 rounded text-xs font-semibold">Personalized</span>
+                <span className="text-xs text-fo-text-secondary">Claire generated info</span>
+              </div>
+              <p className="text-xs text-fo-text-secondary mt-4 italic">Hover over highlighted text to see details</p>
             </div>
           </div>
         </div>
