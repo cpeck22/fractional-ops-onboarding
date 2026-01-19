@@ -289,13 +289,22 @@ export default function ApprovalsPageContent() {
               const approval = execution.play_approvals?.[0];
               const StatusIcon = statusBadge.icon;
               
+              // For drafts, link to execution detail page instead of approval page
+              // For other statuses with approvals, link to approval page
+              const href = execution.status === 'draft' 
+                ? (impersonateUserId 
+                    ? `/client/${execution.claire_plays?.category || 'allbound'}/${execution.claire_plays?.code || 'unknown'}/${execution.id}?impersonate=${impersonateUserId}`
+                    : `/client/${execution.claire_plays?.category || 'allbound'}/${execution.claire_plays?.code || 'unknown'}/${execution.id}`
+                  )
+                : (impersonateUserId 
+                    ? `/client/approve/${approval?.shareable_token || execution.id}?impersonate=${impersonateUserId}` 
+                    : `/client/approve/${approval?.shareable_token || execution.id}`
+                  );
+              
               return (
                 <Link
                   key={execution.id}
-                  href={impersonateUserId 
-                    ? `/client/approve/${approval?.shareable_token || execution.id}?impersonate=${impersonateUserId}` 
-                    : `/client/approve/${approval?.shareable_token || execution.id}`
-                  }
+                  href={href}
                   className="block p-6 border border-fo-border rounded-lg hover:bg-fo-bg-light transition-colors bg-white"
                 >
                   <div className="flex items-start justify-between">
