@@ -505,13 +505,6 @@ Please output the exact same output but take the feedback the CEO provided in th
                     >
                       Edit
                     </button>
-                    <button
-                      onClick={handleRefine}
-                      disabled={refining}
-                      className="px-4 py-2 bg-fo-secondary text-white rounded-lg hover:bg-opacity-90 disabled:opacity-50 transition-all"
-                    >
-                      {refining ? 'Refining...' : 'Refine'}
-                    </button>
                   </>
                 )}
               </div>
@@ -542,12 +535,34 @@ Please output the exact same output but take the feedback the CEO provided in th
                 </div>
               </div>
             ) : (
-              <div 
-                className="prose max-w-none bg-fo-light/30 p-6 rounded-lg whitespace-pre-wrap"
-                dangerouslySetInnerHTML={{ 
-                  __html: getDisplayContent()
-                }}
-              />
+              <>
+                <div 
+                  className="prose max-w-none bg-fo-light/30 p-6 rounded-lg whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ 
+                    __html: getDisplayContent()
+                  }}
+                />
+                {/* Refinement Input */}
+                <div className="mt-6 space-y-2">
+                  <label className="block text-sm font-semibold text-fo-dark">
+                    Refinement Instructions
+                  </label>
+                  <textarea
+                    value={customInput}
+                    onChange={(e) => setCustomInput(e.target.value)}
+                    placeholder="Enter your feedback or changes you'd like made to the output..."
+                    rows={4}
+                    className="w-full px-4 py-2 border border-fo-light rounded-lg focus:outline-none focus:ring-2 focus:ring-fo-primary text-sm"
+                  />
+                  <button
+                    onClick={handleRefine}
+                    disabled={refining || !customInput.trim()}
+                    className="px-4 py-2 bg-fo-secondary text-white rounded-lg hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {refining ? 'Refining...' : 'Refine Output'}
+                  </button>
+                </div>
+              </>
             )}
           </div>
 
