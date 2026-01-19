@@ -62,15 +62,18 @@ export default function ClientLayout({
         }
 
         // Load company name and workspace for impersonated user
-        const { data: workspaceData } = await supabase
+        const { data: workspaceData, error: workspaceError } = await supabase
           .from('octave_outputs')
           .select('company_name, workspace_api_key')
           .eq('user_id', impersonateUserId)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
         
-        if (workspaceData) {
+        if (workspaceError) {
+          console.error('Error loading workspace for impersonated user:', workspaceError);
+          setHasWorkspace(false);
+        } else if (workspaceData) {
           setCompanyName(workspaceData.company_name);
           setHasWorkspace(!!workspaceData.workspace_api_key);
         } else {
