@@ -97,12 +97,14 @@ export default function QuestionnairePage() {
                 />
               </div>
 
-              <button
-                onClick={handleStart}
-                className="bg-fo-primary hover:bg-fo-primary/90 text-white text-xl font-bold py-4 px-12 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-1"
-              >
-                Start Now
-              </button>
+              <div className="flex justify-center w-full">
+                <button
+                  onClick={handleStart}
+                  className="bg-fo-primary hover:bg-fo-primary/90 text-white text-xl font-bold py-4 px-12 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-1"
+                >
+                  Start Now
+                </button>
+              </div>
             </div>
           </div>
         </div>
