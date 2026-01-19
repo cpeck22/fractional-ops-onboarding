@@ -79,7 +79,7 @@ export default function ApprovalPage() {
       toast.error('Failed to load approval');
       setLoading(false);
     }
-  }, [token, router]);
+  }, [token, router, impersonateUserId]);
 
   useEffect(() => {
     loadApproval();
