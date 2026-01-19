@@ -124,7 +124,9 @@ ${exampleOutput}
 ${outputContent}
 
 **YOUR TASK:**
-Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identified segments. Every character, header, label, and structure must remain identical to the original.`;
+Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identified segments. Every character, header, label, and structure must remain identical to the original.
+
+**CRITICAL: DO NOT wrap your response in markdown code blocks (no ```xml or ```). Return ONLY the content with XML tags, nothing else.**`;
 
   try {
     console.log('🎨 Starting output highlighting with OpenAI...');
@@ -145,7 +147,10 @@ Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identif
       max_tokens: 4000
     });
 
-    const highlightedContent = completion.choices[0]?.message?.content || outputContent;
+    let highlightedContent = completion.choices[0]?.message?.content || outputContent;
+    
+    // Strip markdown code blocks if LLM added them (e.g., ```xml ... ```)
+    highlightedContent = highlightedContent.replace(/^```xml\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
     
     console.log('✅ Highlighting completed successfully');
     
