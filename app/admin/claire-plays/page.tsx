@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
 
 interface Client {
   user_id: string;
@@ -202,42 +203,66 @@ export default function ClairePlaysAdminPage() {
                         <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Category</th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Status</th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Created</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-fo-light">
                       {clientPlays.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-6 py-8 text-center text-fo-text-secondary">
+                          <td colSpan={6} className="px-6 py-8 text-center text-fo-text-secondary">
                             No plays executed yet
                           </td>
                         </tr>
                       ) : (
-                        clientPlays.map((play) => (
-                          <tr key={play.id} className="hover:bg-fo-light/50">
-                            <td className="px-6 py-4 text-sm font-mono font-bold text-fo-primary">
-                              {play.claire_plays?.code || 'N/A'}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-fo-dark">
-                              {play.claire_plays?.name || 'Unknown Play'}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-fo-text-secondary capitalize">
-                              {play.claire_plays?.category || 'N/A'}
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                                play.status === 'approved' ? 'bg-fo-green/20 text-fo-green' :
-                                play.status === 'pending_approval' ? 'bg-fo-orange/20 text-fo-orange' :
-                                play.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                                'bg-fo-light text-fo-text-secondary'
-                              }`}>
-                                {play.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-sm text-fo-text-secondary">
-                              {new Date(play.created_at).toLocaleDateString()}
-                            </td>
-                          </tr>
-                        ))
+                        clientPlays.map((play) => {
+                          const category = play.claire_plays?.category || 'allbound';
+                          const code = play.claire_plays?.code || '';
+                          const executionId = play.id;
+                          const viewUrl = code && executionId 
+                            ? `/client/${category}/${code}/${executionId}?impersonate=${selectedClient}`
+                            : null;
+                          
+                          return (
+                            <tr key={play.id} className="hover:bg-fo-light/50">
+                              <td className="px-6 py-4 text-sm font-mono font-bold text-fo-primary">
+                                {play.claire_plays?.code || 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-fo-dark">
+                                {play.claire_plays?.name || 'Unknown Play'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-fo-text-secondary capitalize">
+                                {play.claire_plays?.category || 'N/A'}
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                  play.status === 'approved' ? 'bg-fo-green/20 text-fo-green' :
+                                  play.status === 'pending_approval' ? 'bg-fo-orange/20 text-fo-orange' :
+                                  play.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                  'bg-fo-light text-fo-text-secondary'
+                                }`}>
+                                  {play.status}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-sm text-fo-text-secondary">
+                                {new Date(play.created_at).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-4">
+                                {viewUrl ? (
+                                  <Link
+                                    href={viewUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-fo-primary hover:text-fo-primary/80 hover:underline text-sm font-semibold"
+                                  >
+                                    View Play →
+                                  </Link>
+                                ) : (
+                                  <span className="text-fo-text-secondary text-sm">N/A</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
