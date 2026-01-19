@@ -6,6 +6,7 @@ import Image from 'next/image';
 import AuthForm from '@/components/AuthForm';
 import { getCurrentUser, supabase } from '@/lib/supabase';
 import Logo from '../Fractional-Ops_Symbol_Main.png';
+import { Users } from 'lucide-react';
 
 // Force dynamic rendering (no static generation)
 export const dynamic = 'force-dynamic';
@@ -71,14 +72,14 @@ export default function SignupPage() {
           {/* Collaboration Warning Banner */}
           <div className="bg-fo-sidebar-dark rounded-lg p-6 mb-6">
             <div className="flex items-start gap-4">
-              <div className="text-4xl flex-shrink-0">
-                🤝
+              <div className="flex-shrink-0">
+                <Users className="w-8 h-8 text-gray-300" strokeWidth={2} />
               </div>
               <div className="text-left">
-                <h3 className="text-white font-bold text-xl mb-2">
+                <h3 className="text-white font-semibold text-xl mb-2">
                   Collaborating with Colleagues?
                 </h3>
-                <p className="text-gray-300 text-base">
+                <p className="text-gray-300 text-base font-normal">
                   You must use the same login to see their saved answers!
                 </p>
               </div>

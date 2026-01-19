@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
+import { Clock, CheckCircle2, FileText, Target, RefreshCw, Send, Heart, ArrowRight } from 'lucide-react';
 
 interface DashboardStats {
   totalExecutions: number;
@@ -109,11 +110,11 @@ export default function ClientDashboardContent() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-2">Pending Approval</p>
+              <p className="text-sm font-medium text-fo-text-secondary mb-2">Pending Approval</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.pendingApproval}</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-fo-tertiary-4/10 flex items-center justify-center">
-              <span className="text-2xl">⏳</span>
+              <Clock className="w-6 h-6 text-fo-tertiary-4" strokeWidth={2} />
             </div>
           </div>
         </Link>
@@ -127,11 +128,11 @@ export default function ClientDashboardContent() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-2">Approved</p>
+              <p className="text-sm font-medium text-fo-text-secondary mb-2">Approved</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.approved}</p>
             </div>
-            <div className="w-12 h-12 rounded-full bg-fo-green/10 flex items-center justify-center">
-              <span className="text-2xl">✅</span>
+            <div className="w-12 h-12 rounded-full bg-fo-tertiary-3/10 flex items-center justify-center">
+              <CheckCircle2 className="w-6 h-6 text-fo-tertiary-3" strokeWidth={2} />
             </div>
           </div>
         </Link>
@@ -145,11 +146,11 @@ export default function ClientDashboardContent() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-2">Draft</p>
+              <p className="text-sm font-medium text-fo-text-secondary mb-2">Draft</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.draft}</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-fo-primary/10 flex items-center justify-center">
-              <span className="text-2xl">📝</span>
+              <FileText className="w-6 h-6 text-fo-primary" strokeWidth={2} />
             </div>
           </div>
         </Link>
@@ -157,11 +158,11 @@ export default function ClientDashboardContent() {
         <div className="bg-white rounded-lg shadow-sm p-6 border border-fo-border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-2">Total Plays</p>
+              <p className="text-sm font-medium text-fo-text-secondary mb-2">Total Plays</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.totalExecutions}</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-fo-secondary/10 flex items-center justify-center">
-              <span className="text-2xl">🎯</span>
+              <Target className="w-6 h-6 text-fo-secondary" strokeWidth={2} />
             </div>
           </div>
         </div>
@@ -178,9 +179,9 @@ export default function ClientDashboardContent() {
             }
             className="p-4 border border-fo-border rounded-lg hover:border-fo-primary hover:shadow-sm transition-all bg-white"
           >
-            <div className="text-2xl mb-2">🔄</div>
+            <RefreshCw className="w-6 h-6 text-gray-400 mb-2" strokeWidth={2} />
             <h3 className="font-semibold text-fo-dark mb-1">Allbound Plays</h3>
-            <p className="text-sm text-fo-text-secondary">Trigger-based automations</p>
+            <p className="text-sm font-normal text-fo-text-secondary">Trigger-based automations</p>
           </Link>
 
           <Link
@@ -190,9 +191,9 @@ export default function ClientDashboardContent() {
             }
             className="p-4 border border-fo-border rounded-lg hover:border-fo-primary hover:shadow-sm transition-all bg-white"
           >
-            <div className="text-2xl mb-2">📤</div>
+            <Send className="w-6 h-6 text-gray-400 mb-2" strokeWidth={2} />
             <h3 className="font-semibold text-fo-dark mb-1">Outbound Plays</h3>
-            <p className="text-sm text-fo-text-secondary">Custom campaign playbooks</p>
+            <p className="text-sm font-normal text-fo-text-secondary">Custom campaign playbooks</p>
           </Link>
 
           <Link
@@ -202,9 +203,9 @@ export default function ClientDashboardContent() {
             }
             className="p-4 border border-fo-border rounded-lg hover:border-fo-primary hover:shadow-sm transition-all bg-white"
           >
-            <div className="text-2xl mb-2">💚</div>
+            <Heart className="w-6 h-6 text-gray-400 mb-2" strokeWidth={2} />
             <h3 className="font-semibold text-fo-dark mb-1">Nurture Plays</h3>
-            <p className="text-sm text-fo-text-secondary">Ongoing nurture sequences</p>
+            <p className="text-sm font-normal text-fo-text-secondary">Ongoing nurture sequences</p>
           </Link>
         </div>
       </div>
@@ -219,8 +220,11 @@ export default function ClientDashboardContent() {
                 ? `/client/allbound?impersonate=${impersonateUserId}` 
                 : '/client/allbound'
               } 
-              className="text-fo-primary hover:underline"
-            >Get started</Link>
+              className="text-fo-primary hover:underline font-medium inline-flex items-center gap-1"
+            >
+              Get started
+              <ArrowRight className="w-4 h-4" strokeWidth={2} />
+            </Link>
           </p>
         ) : (
           <div className="space-y-3">

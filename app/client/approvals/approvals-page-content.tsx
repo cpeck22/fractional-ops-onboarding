@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
+import { Clock, CheckCircle2, XCircle, FileText, AlertTriangle, ArrowRight } from 'lucide-react';
 
 interface Execution {
   id: string;
@@ -89,14 +90,14 @@ export default function ApprovalsPageContent() {
   }, [loadApprovals]);
 
   const getStatusBadge = (status: string) => {
-    const badges: Record<string, { color: string; label: string }> = {
-      'pending_approval': { color: 'bg-fo-orange/20 text-fo-orange', label: '⏳ Pending' },
-      'approved': { color: 'bg-fo-green/20 text-fo-green', label: '✅ Approved' },
-      'rejected': { color: 'bg-fo-tertiary-4/20 text-fo-tertiary-4', label: '❌ Rejected' },
-      'draft': { color: 'bg-fo-light text-fo-text-secondary', label: '📝 Draft' },
+    const badges: Record<string, { color: string; label: string; icon: any }> = {
+      'pending_approval': { color: 'bg-fo-orange/20 text-fo-orange', label: 'Pending', icon: Clock },
+      'approved': { color: 'bg-fo-tertiary-3/20 text-fo-tertiary-3', label: 'Approved', icon: CheckCircle2 },
+      'rejected': { color: 'bg-fo-tertiary-4/20 text-fo-tertiary-4', label: 'Rejected', icon: XCircle },
+      'draft': { color: 'bg-fo-light text-fo-text-secondary', label: 'Draft', icon: FileText },
     };
     
-    return badges[status] || { color: 'bg-fo-light text-fo-text-secondary', label: status };
+    return badges[status] || { color: 'bg-fo-light text-fo-text-secondary', label: status, icon: FileText };
   };
 
   const formatDate = (dateString: string) => {
@@ -139,13 +140,13 @@ export default function ApprovalsPageContent() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-2">Pending</p>
+              <p className="text-sm font-medium text-fo-text-secondary mb-2">Pending</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.pending}</p>
             </div>
             <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
               statusFilter === 'pending_approval' ? 'bg-fo-orange/10' : 'bg-fo-orange/5'
             }`}>
-              <span className="text-2xl">⏳</span>
+              <Clock className="w-6 h-6 text-fo-orange" strokeWidth={2} />
             </div>
           </div>
         </Link>
@@ -161,13 +162,13 @@ export default function ApprovalsPageContent() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-2">Approved</p>
+              <p className="text-sm font-medium text-fo-text-secondary mb-2">Approved</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.approved}</p>
             </div>
             <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-              statusFilter === 'approved' ? 'bg-fo-green/10' : 'bg-fo-green/5'
+              statusFilter === 'approved' ? 'bg-fo-tertiary-3/10' : 'bg-fo-tertiary-3/5'
             }`}>
-              <span className="text-2xl">✅</span>
+              <CheckCircle2 className="w-6 h-6 text-fo-tertiary-3" strokeWidth={2} />
             </div>
           </div>
         </Link>
@@ -183,13 +184,13 @@ export default function ApprovalsPageContent() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-2">Rejected</p>
+              <p className="text-sm font-medium text-fo-text-secondary mb-2">Rejected</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.rejected}</p>
             </div>
             <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
               statusFilter === 'rejected' ? 'bg-fo-tertiary-4/10' : 'bg-fo-tertiary-4/5'
             }`}>
-              <span className="text-2xl">❌</span>
+              <XCircle className="w-6 h-6 text-fo-tertiary-4" strokeWidth={2} />
             </div>
           </div>
         </Link>
@@ -205,13 +206,13 @@ export default function ApprovalsPageContent() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-2">Draft</p>
+              <p className="text-sm font-medium text-fo-text-secondary mb-2">Draft</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.draft}</p>
             </div>
             <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
               statusFilter === 'draft' ? 'bg-fo-primary/10' : 'bg-fo-primary/5'
             }`}>
-              <span className="text-2xl">📝</span>
+              <FileText className="w-6 h-6 text-fo-primary" strokeWidth={2} />
             </div>
           </div>
         </Link>
@@ -275,9 +276,10 @@ export default function ApprovalsPageContent() {
         
         {executions.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-fo-text-secondary text-lg mb-4">No approvals found</p>
-            <Link href="/client/allbound" className="text-fo-primary hover:underline">
-              Create your first play →
+            <p className="text-fo-text-secondary text-lg font-normal mb-4">No approvals found</p>
+            <Link href="/client/allbound" className="text-fo-primary hover:underline font-medium inline-flex items-center gap-1">
+              Create your first play
+              <ArrowRight className="w-4 h-4" strokeWidth={2} />
             </Link>
           </div>
         ) : (
@@ -285,6 +287,7 @@ export default function ApprovalsPageContent() {
             {executions.map((execution) => {
               const statusBadge = getStatusBadge(execution.status);
               const approval = execution.play_approvals?.[0];
+              const StatusIcon = statusBadge.icon;
               
               return (
                 <Link
@@ -301,12 +304,14 @@ export default function ApprovalsPageContent() {
                         <span className="text-sm font-mono font-bold text-fo-primary bg-fo-primary/10 px-2 py-1 rounded">
                           {execution.claire_plays?.code || 'Unknown'}
                         </span>
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${statusBadge.color}`}>
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${statusBadge.color} inline-flex items-center gap-1.5`}>
+                          <StatusIcon className="w-3.5 h-3.5" strokeWidth={2} />
                           {statusBadge.label}
                         </span>
                         {approval?.due_date && isOverdue(approval.due_date) && (
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-fo-tertiary-4/20 text-fo-tertiary-4">
-                            ⚠️ Overdue
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-fo-tertiary-4/20 text-fo-tertiary-4 inline-flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3" strokeWidth={2} />
+                            Overdue
                           </span>
                         )}
                       </div>
@@ -315,7 +320,7 @@ export default function ApprovalsPageContent() {
                         {execution.claire_plays?.name || 'Unknown Play'}
                       </h3>
                       
-                      <div className="flex flex-wrap gap-4 text-sm text-fo-text-secondary">
+                      <div className="flex flex-wrap gap-4 text-sm font-normal text-fo-text-secondary">
                         <span>Created: {formatDate(execution.created_at)}</span>
                         {execution.executed_at && (
                           <span>Executed: {formatDate(execution.executed_at)}</span>
@@ -331,13 +336,13 @@ export default function ApprovalsPageContent() {
                       </div>
                       
                       {approval?.comments && (
-                        <p className="text-sm text-fo-text-secondary mt-2 italic">
+                        <p className="text-sm font-normal text-fo-text-secondary mt-2 italic">
                           &ldquo;{approval.comments}&rdquo;
                         </p>
                       )}
                     </div>
                     
-                    <span className="text-2xl">→</span>
+                    <ArrowRight className="w-5 h-5 text-gray-400" strokeWidth={2} />
                   </div>
                 </Link>
               );

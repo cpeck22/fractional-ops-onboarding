@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
+import { ChevronLeft } from 'lucide-react';
 
 interface Play {
   code: string;
@@ -377,8 +378,9 @@ Please output the exact same output but take the feedback the CEO provided in th
     return (
       <div className="bg-white rounded-lg shadow-md p-12 text-center">
         <p className="text-fo-text-secondary text-lg mb-4">Play not found</p>
-        <Link href={`/client/${category}`} className="text-fo-primary hover:underline">
-          ← Back to {category} plays
+        <Link href={`/client/${category}`} className="text-fo-primary hover:underline inline-flex items-center gap-1 font-medium">
+          <ChevronLeft className="w-4 h-4" strokeWidth={2} />
+          Back to {category} plays
         </Link>
       </div>
     );
@@ -391,22 +393,23 @@ Please output the exact same output but take the feedback the CEO provided in th
           href={impersonateUserId ? `/client/${category}?impersonate=${impersonateUserId}` : `/client/${category}`} 
           className="text-fo-primary hover:underline mb-2 inline-block"
         >
-          ← Back to {category} plays
+          <ChevronLeft className="w-4 h-4 inline mr-1" strokeWidth={2} />
+          Back to {category} plays
         </Link>
         <h1 className="text-3xl font-bold text-fo-dark mb-2">{play.name}</h1>
-        <p className="text-fo-text-secondary">Play Code: {play.code}</p>
+        <p className="text-fo-text-secondary font-normal">Play Code: {play.code}</p>
       </div>
 
       {!execution ? (
         // Runtime Context Collection Form
         <div className="bg-white rounded-lg shadow-md p-8">
-          <h2 className="text-xl font-bold text-fo-dark mb-6">Configure Your Play</h2>
+          <h2 className="text-xl font-semibold text-fo-dark mb-6">Configure Your Play</h2>
           
           <div className="space-y-6">
             {/* Persona Selection */}
             <div>
               <label className="block text-sm font-semibold text-fo-dark mb-2">
-                Select Persona <span className="text-fo-orange">*</span>
+                Select Persona <span className="text-fo-orange font-semibold">*</span>
               </label>
               <select
                 value={selectedPersona}
@@ -425,7 +428,7 @@ Please output the exact same output but take the feedback the CEO provided in th
             {/* Use Cases Selection */}
             <div>
               <label className="block text-sm font-semibold text-fo-dark mb-2">
-                Select Use Cases <span className="text-fo-orange">*</span>
+                Select Use Cases <span className="text-fo-orange font-semibold">*</span>
               </label>
               <div className="space-y-2 max-h-48 overflow-y-auto border border-fo-light rounded-lg p-4">
                 {workspaceData?.useCases.map((useCase) => (
@@ -451,7 +454,7 @@ Please output the exact same output but take the feedback the CEO provided in th
             {/* Client References Selection */}
             <div>
               <label className="block text-sm font-semibold text-fo-dark mb-2">
-                Select Client References (Optional)
+                Select Client References <span className="text-fo-text-secondary font-normal">(Optional)</span>
               </label>
               <div className="space-y-2 max-h-48 overflow-y-auto border border-fo-light rounded-lg p-4">
                 {workspaceData?.clientReferences.length === 0 ? (
@@ -491,10 +494,10 @@ Please output the exact same output but take the feedback the CEO provided in th
       ) : (
         // Output Display and Editing
         <div className="space-y-6">
-          {/* Output Display */}
-          <div className="bg-white rounded-lg shadow-md p-8">
+            {/* Output Display */}
+          <div className="bg-white rounded-lg shadow-sm border border-fo-border p-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-fo-dark">Generated Output</h2>
+              <h2 className="text-xl font-semibold text-fo-dark">Generated Output</h2>
               <div className="flex gap-2">
                 {!editing && (
                   <>

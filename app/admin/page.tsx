@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Logo from '../Fractional-Ops_Symbol_Main.png';
 import toast from 'react-hot-toast';
+import { LayoutDashboard, RefreshCw, Target, Users, Lock, ArrowRight, Check, Lightbulb } from 'lucide-react';
 
 // Admin emails that can access this page
 const ADMIN_EMAILS = [
@@ -19,7 +20,7 @@ interface AdminTool {
   id: string;
   title: string;
   description: string;
-  icon: string;
+  icon: any;
   href: string;
   color: string;
 }
@@ -29,7 +30,7 @@ const adminTools: AdminTool[] = [
     id: 'strategies',
     title: 'View All Strategies',
     description: 'Browse and view all client strategies created by Claire',
-    icon: '📊',
+    icon: LayoutDashboard,
     href: '/admin/strategies',
     color: 'from-blue-500 to-blue-600'
   },
@@ -37,7 +38,7 @@ const adminTools: AdminTool[] = [
     id: 'rerun-agent',
     title: 'Rerun Agent',
     description: 'Regenerate specific agent outputs for a client (Call Prep, etc.)',
-    icon: '🔄',
+    icon: RefreshCw,
     href: '/admin/rerun-agent',
     color: 'from-orange-500 to-orange-600'
   },
@@ -45,7 +46,7 @@ const adminTools: AdminTool[] = [
     id: 'claire-plays',
     title: 'Claire Plays Management',
     description: 'Manage the catalog of available plays for the client portal',
-    icon: '🎯',
+    icon: Target,
     href: '/admin/claire-plays',
     color: 'from-fo-tertiary-2 to-fo-tertiary-2'
   },
@@ -53,7 +54,7 @@ const adminTools: AdminTool[] = [
     id: 'clients',
     title: 'Client Portal Access',
     description: 'Access client Claire portals as an admin',
-    icon: '👥',
+    icon: Users,
     href: '/admin/clients',
     color: 'from-green-500 to-green-600'
   }
@@ -108,10 +109,10 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
-          <div className="text-6xl mb-6">🔒</div>
+          <Lock className="w-16 h-16 text-gray-400 mx-auto mb-6" strokeWidth={1.5} />
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Access Denied</h1>
-          <p className="text-gray-600 mb-2">You don&apos;t have permission to access the admin area.</p>
-          <p className="text-gray-500 text-sm mb-6">Logged in as: {currentUser}</p>
+          <p className="text-gray-600 font-normal mb-2">You don&apos;t have permission to access the admin area.</p>
+          <p className="text-gray-500 text-sm font-normal mb-6">Logged in as: {currentUser}</p>
           <button
             onClick={() => router.push('/questionnaire')}
             className="px-6 py-3 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-bold"
@@ -124,11 +125,11 @@ export default function AdminPage() {
   }
 
   const adminNavItems = [
-    { href: '/admin', label: 'Dashboard', icon: '📊' },
-    { href: '/admin/strategies', label: 'Strategies', icon: '📋' },
-    { href: '/admin/rerun-agent', label: 'Rerun Agent', icon: '🔄' },
-    { href: '/admin/claire-plays', label: 'Claire Plays', icon: '🎯' },
-    { href: '/admin/clients', label: 'Clients', icon: '👥' },
+    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/admin/strategies', label: 'Strategies', icon: LayoutDashboard },
+    { href: '/admin/rerun-agent', label: 'Rerun Agent', icon: RefreshCw },
+    { href: '/admin/claire-plays', label: 'Claire Plays', icon: Target },
+    { href: '/admin/clients', label: 'Clients', icon: Users },
   ];
 
   return (
@@ -237,8 +238,9 @@ export default function AdminPage() {
               <h2 className="text-xl font-semibold text-fo-dark">Admin Dashboard</h2>
             </div>
             <div className="flex items-center gap-4">
-              <span className="hidden md:block px-3 py-1 bg-fo-tertiary-3/20 text-fo-tertiary-3 rounded-full text-sm font-medium">
-                🔓 Admin Access
+              <span className="hidden md:block px-3 py-1 bg-fo-tertiary-3/20 text-fo-tertiary-3 rounded-full text-sm font-medium inline-flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5" strokeWidth={2} />
+                Admin Access
               </span>
               <div className="w-8 h-8 rounded-full bg-fo-primary flex items-center justify-center text-white font-semibold text-sm shadow-sm">
                 {currentUser?.charAt(0).toUpperCase() || 'A'}
@@ -252,8 +254,8 @@ export default function AdminPage() {
           <div className="p-6 max-w-7xl mx-auto">
         {/* Welcome Section */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Welcome, Admin 👋</h2>
-          <p className="text-gray-600 text-lg">Select a tool to get started</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Welcome, Admin</h2>
+          <p className="text-gray-600 text-lg font-normal">Select a tool to get started</p>
         </div>
 
             {/* Tools Grid */}
@@ -264,8 +266,8 @@ export default function AdminPage() {
                   onClick={() => router.push(tool.href)}
                   className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden text-left border border-fo-border hover:border-fo-primary/30"
                 >
-                  <div className={`bg-gradient-to-r ${tool.color} p-6`}>
-                    <span className="text-5xl">{tool.icon}</span>
+                  <div className={`bg-gradient-to-r ${tool.color} p-6 flex items-center justify-center`}>
+                    <tool.icon className="w-12 h-12 text-white" strokeWidth={2} />
                   </div>
                   <div className="p-6">
                     <h3 className="text-xl font-bold text-fo-dark mb-2 group-hover:text-fo-primary transition-colors">
@@ -274,7 +276,7 @@ export default function AdminPage() {
                     <p className="text-fo-text-secondary">{tool.description}</p>
                     <div className="mt-4 flex items-center text-fo-primary font-semibold">
                       <span>Open Tool</span>
-                      <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                      <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" strokeWidth={2} />
                     </div>
                   </div>
                 </button>
@@ -286,16 +288,16 @@ export default function AdminPage() {
               <h3 className="font-bold text-fo-dark mb-4">Quick Tips</h3>
               <ul className="space-y-2 text-sm text-fo-text-secondary">
                 <li className="flex items-start gap-2">
-                  <span className="text-fo-tertiary-3 mt-0.5">✓</span>
-                  <span><strong>View Strategies:</strong> See all client strategies, search by email or company name</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-fo-tertiary-3 mt-0.5">✓</span>
-                  <span><strong>Rerun Agent:</strong> Regenerate Call Prep or other outputs if quality is poor</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-fo-primary mt-0.5">💡</span>
-                  <span>Admin views don&apos;t trigger the 14-day timer for clients</span>
+              <Check className="w-4 h-4 text-fo-tertiary-3 mt-0.5" strokeWidth={2} />
+              <span className="font-normal"><strong className="font-semibold">View Strategies:</strong> See all client strategies, search by email or company name</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Check className="w-4 h-4 text-fo-tertiary-3 mt-0.5" strokeWidth={2} />
+              <span className="font-normal"><strong className="font-semibold">Rerun Agent:</strong> Regenerate Call Prep or other outputs if quality is poor</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Lightbulb className="w-4 h-4 text-fo-primary mt-0.5" strokeWidth={2} />
+              <span className="font-normal">Admin views don&apos;t trigger the 14-day timer for clients</span>
                 </li>
               </ul>
             </div>

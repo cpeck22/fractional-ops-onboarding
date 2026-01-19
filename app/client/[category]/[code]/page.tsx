@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
+import { ChevronLeft, AlertTriangle } from 'lucide-react';
 
 interface Play {
   code: string;
@@ -336,7 +337,8 @@ Please output the exact same output but take the feedback the CEO provided in th
       <div className="bg-white rounded-lg shadow-md p-12 text-center">
         <p className="text-fo-text-secondary text-lg mb-4">Play not found</p>
         <Link href={`/client/${category}`} className="text-fo-primary hover:underline">
-          ← Back to {category} plays
+          <ChevronLeft className="w-4 h-4 inline mr-1" strokeWidth={2} />
+          Back to {category} plays
         </Link>
       </div>
     );
@@ -346,7 +348,8 @@ Please output the exact same output but take the feedback the CEO provided in th
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
         <Link href={`/client/${category}`} className="text-fo-primary hover:underline mb-2 inline-block">
-          ← Back to {category} plays
+          <ChevronLeft className="w-4 h-4 inline mr-1" strokeWidth={2} />
+          Back to {category} plays
         </Link>
         <h1 className="text-3xl font-bold text-fo-dark mb-2">{play.name}</h1>
         <p className="text-fo-text-secondary">Play Code: {play.code}</p>
@@ -380,7 +383,7 @@ Please output the exact same output but take the feedback the CEO provided in th
             {/* Use Cases Selection */}
             <div>
               <label className="block text-sm font-semibold text-fo-dark mb-2">
-                Select Use Cases <span className="text-fo-orange">*</span>
+                Select Use Cases <span className="text-fo-orange font-semibold">*</span>
               </label>
               <div className="space-y-2 max-h-48 overflow-y-auto border border-fo-light rounded-lg p-4">
                 {workspaceData?.useCases.map((useCase) => (
@@ -406,7 +409,7 @@ Please output the exact same output but take the feedback the CEO provided in th
             {/* Client References Selection */}
             <div>
               <label className="block text-sm font-semibold text-fo-dark mb-2">
-                Select Client References (Optional)
+                Select Client References <span className="text-fo-text-secondary font-normal">(Optional)</span>
               </label>
               <div className="space-y-2 max-h-48 overflow-y-auto border border-fo-light rounded-lg p-4">
                 {workspaceData?.clientReferences.length === 0 ? (

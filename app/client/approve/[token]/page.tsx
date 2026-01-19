@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { Clock, CheckCircle2, XCircle, AlertTriangle, ChevronLeft, Check, X } from 'lucide-react';
 
 interface Execution {
   id: string;
@@ -215,7 +216,8 @@ export default function ApprovalPage() {
           } 
           className="text-fo-primary hover:underline"
         >
-          ← Back to approvals
+          <ChevronLeft className="w-4 h-4 inline mr-1" strokeWidth={2} />
+          Back to approvals
         </Link>
       </div>
     );
@@ -233,9 +235,10 @@ export default function ApprovalPage() {
             ? `/client/approvals?impersonate=${impersonateUserId}` 
             : '/client/approvals'
           } 
-          className="text-fo-primary hover:underline mb-4 inline-block"
+              className="text-fo-primary hover:underline mb-4 inline-flex items-center gap-1 font-medium"
         >
-          ← Back to approvals
+          <ChevronLeft className="w-4 h-4 inline mr-1" strokeWidth={2} />
+          Back to approvals
         </Link>
         <h1 className="text-2xl font-semibold text-fo-dark mb-2">Review Approval Request</h1>
         <p className="text-fo-text-secondary">
@@ -252,14 +255,31 @@ export default function ApprovalPage() {
       }`}>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-fo-dark mb-2">
-              {approval.status === 'approved' ? '✅ Approved' :
-               approval.status === 'rejected' ? '❌ Rejected' :
-               isOverdue ? '⚠️ Overdue - Action Required' :
-               '⏳ Pending Approval'}
+            <h2 className="text-xl font-bold text-fo-dark mb-2 inline-flex items-center gap-2">
+              {approval.status === 'approved' ? (
+                <>
+                  <CheckCircle2 className="w-5 h-5 text-fo-tertiary-3" strokeWidth={2} />
+                  Approved
+                </>
+              ) : approval.status === 'rejected' ? (
+                <>
+                  <XCircle className="w-5 h-5 text-fo-tertiary-4" strokeWidth={2} />
+                  Rejected
+                </>
+              ) : isOverdue ? (
+                <>
+                  <AlertTriangle className="w-5 h-5 text-fo-tertiary-4" strokeWidth={2} />
+                  Overdue - Action Required
+                </>
+              ) : (
+                <>
+                  <Clock className="w-5 h-5 text-fo-orange" strokeWidth={2} />
+                  Pending Approval
+                </>
+              )}
             </h2>
             {approval.due_date && (
-              <p className="text-sm text-fo-text-secondary">
+              <p className="text-sm font-normal text-fo-text-secondary">
                 Due Date: {new Date(approval.due_date).toLocaleDateString()}
                 {isOverdue && <span className="text-fo-tertiary-4 font-semibold ml-2">(Overdue)</span>}
               </p>
@@ -316,7 +336,7 @@ export default function ApprovalPage() {
           
           <div className="mb-6">
             <label className="block text-sm font-semibold text-fo-dark mb-2">
-              Comments {approval.status === 'pending' && <span className="text-fo-text-secondary">(Optional for approval, required for rejection)</span>}
+              Comments {approval.status === 'pending' && <span className="text-fo-text-secondary font-normal">(Optional for approval, required for rejection)</span>}
             </label>
             <textarea
               value={comments}
@@ -333,14 +353,24 @@ export default function ApprovalPage() {
               disabled={approving}
               className="flex-1 px-6 py-3 bg-fo-green text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:opacity-50 transition-all"
             >
-              {approving ? 'Approving...' : '✅ Approve'}
+              {approving ? 'Approving...' : (
+                <>
+                  <Check className="w-4 h-4 mr-1.5" strokeWidth={2} />
+                  Approve
+                </>
+              )}
             </button>
             <button
               onClick={handleReject}
               disabled={rejecting || !comments.trim()}
-              className="flex-1 px-6 py-3 bg-fo-tertiary-4 text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:opacity-50 transition-all"
+              className="flex-1 px-6 py-3 bg-fo-tertiary-4 text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:opacity-50 transition-all inline-flex items-center justify-center"
             >
-              {rejecting ? 'Rejecting...' : '❌ Reject'}
+              {rejecting ? 'Rejecting...' : (
+                <>
+                  <X className="w-4 h-4 mr-1.5" strokeWidth={2} />
+                  Reject
+                </>
+              )}
             </button>
           </div>
         </div>

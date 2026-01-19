@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
+import { AlertTriangle } from 'lucide-react';
 
 interface Play {
   code: string;
@@ -103,7 +104,8 @@ export default function NurturePlaysPageContent() {
               
               {isDisabled && (
                 <p className="text-xs text-fo-text-secondary mt-2">
-                  ⚠️ This play is currently unavailable
+                  <AlertTriangle className="w-4 h-4 inline mr-1" strokeWidth={2} />
+                  This play is currently unavailable
                 </p>
               )}
             </Link>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { getCurrentUser, supabase } from '@/lib/supabase';
 import Logo from './Fractional-Ops_Symbol_Main.png';
+import { Play } from 'lucide-react';
 
 // Force dynamic rendering (no static generation)
 export const dynamic = 'force-dynamic';
@@ -58,8 +59,9 @@ export default function Home() {
 
           {/* Claire's Greeting Video */}
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-fo-primary mb-4 text-center">
-              👇 Watch this first!
+            <h2 className="text-xl font-semibold text-fo-primary mb-4 text-center inline-flex items-center justify-center gap-2 w-full">
+              <Play className="w-5 h-5" strokeWidth={2} />
+              Watch this first
             </h2>
             <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-md relative">
               <iframe

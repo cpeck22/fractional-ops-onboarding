@@ -7,6 +7,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Image from 'next/image';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { LayoutDashboard, RefreshCw, Send, Heart, CheckCircle2, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
 
 // Admin emails that can impersonate clients
 const ADMIN_EMAILS = [
@@ -125,11 +126,11 @@ export default function ClientLayout({
   }, [router, searchParams]);
 
   const navItems = [
-    { href: '/client', label: 'Dashboard', icon: '📊' },
-    { href: '/client/allbound', label: 'Allbound', icon: '🔄' },
-    { href: '/client/outbound', label: 'Outbound', icon: '📤' },
-    { href: '/client/nurture', label: 'Nurture', icon: '💚' },
-    { href: '/client/approvals', label: 'Approvals', icon: '✅' },
+    { href: '/client', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/client/allbound', label: 'Allbound', icon: RefreshCw },
+    { href: '/client/outbound', label: 'Outbound', icon: Send },
+    { href: '/client/nurture', label: 'Nurture', icon: Heart },
+    { href: '/client/approvals', label: 'Approvals', icon: CheckCircle2 },
   ];
 
   return (
@@ -165,9 +166,11 @@ export default function ClientLayout({
                 className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-white"
                 aria-label="Toggle sidebar"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-                </svg>
+                {sidebarOpen ? (
+                  <X className="w-5 h-5" strokeWidth={2} />
+                ) : (
+                  <Menu className="w-5 h-5" strokeWidth={2} />
+                )}
               </button>
             </div>
           </div>
@@ -182,6 +185,7 @@ export default function ClientLayout({
                 ? `${item.href}${item.href.includes('?') ? '&' : '?'}impersonate=${impersonatedUserId}`
                 : item.href;
               
+              const IconComponent = item.icon;
               return (
                 <Link
                   key={item.href}
@@ -192,8 +196,8 @@ export default function ClientLayout({
                       : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                   }`}
                 >
-                  <span className="text-xl flex-shrink-0">{item.icon}</span>
-                  {sidebarOpen && <span className="text-sm">{item.label}</span>}
+                  <IconComponent className="w-5 h-5 flex-shrink-0" strokeWidth={2} />
+                  {sidebarOpen && <span className="text-sm font-medium">{item.label}</span>}
                 </Link>
               );
             })}
@@ -239,9 +243,7 @@ export default function ClientLayout({
                   className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors text-fo-text-secondary hover:text-fo-dark lg:hidden"
                   aria-label="Toggle sidebar"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
+                  <Menu className="w-6 h-6" strokeWidth={2} />
                 </button>
                 <h2 className="text-xl font-semibold text-fo-dark">
                   {pathname === '/client' && 'Dashboard'}
@@ -252,6 +254,11 @@ export default function ClientLayout({
                   {pathname?.startsWith('/client/approve/') && 'Review Approval'}
                   {pathname?.match(/\/client\/(allbound|outbound|nurture)\/\d+/) && 'Play Execution'}
                 </h2>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="hidden md:block text-sm font-normal text-fo-text-secondary">
+                  {companyName && <span className="font-medium">{companyName}</span>}
+                </div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="hidden md:block text-sm text-fo-text-secondary">
@@ -271,26 +278,25 @@ export default function ClientLayout({
               <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-lg shadow-md p-12 text-center">
                   <div className="mb-6">
-                    <div className="text-6xl mb-4">🎯</div>
                     <h1 className="text-3xl font-bold text-fo-dark mb-4">Welcome to Claire Portal</h1>
-                    <p className="text-lg text-fo-text-secondary mb-8">
+                    <p className="text-lg font-normal text-fo-text-secondary mb-8">
                       To access Claire&apos;s AI-powered marketing plays, you need to complete your onboarding questionnaire first.
                     </p>
                   </div>
                   
                   <div className="bg-fo-light/50 rounded-lg p-6 mb-8">
                     <h2 className="text-xl font-semibold text-fo-dark mb-4">What happens next?</h2>
-                    <ul className="text-left space-y-3 text-fo-text-secondary">
+                    <ul className="text-left space-y-3 text-fo-text-secondary font-normal">
                       <li className="flex items-start gap-3">
-                        <span className="text-fo-primary font-bold">1.</span>
+                        <span className="text-fo-primary font-semibold">1.</span>
                         <span>Complete the onboarding questionnaire to set up your workspace</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="text-fo-primary font-bold">2.</span>
+                        <span className="text-fo-primary font-semibold">2.</span>
                         <span>We&apos;ll generate your personalized Octave workspace with all the necessary agents</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <span className="text-fo-primary font-bold">3.</span>
+                        <span className="text-fo-primary font-semibold">3.</span>
                         <span>Access Claire Portal to run plays, generate content, and manage approvals</span>
                       </li>
                     </ul>
