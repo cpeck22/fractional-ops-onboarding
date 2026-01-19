@@ -44,6 +44,7 @@ function PlayExecutionPageContent() {
   const [editing, setEditing] = useState(false);
   const [refining, setRefining] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [highlightsEnabled, setHighlightsEnabled] = useState(true); // Default ON
 
   // Form state
   const [selectedPersona, setSelectedPersona] = useState<string>('');
