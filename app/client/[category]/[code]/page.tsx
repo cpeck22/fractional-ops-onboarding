@@ -492,7 +492,6 @@ Please output the exact same output but take the feedback the CEO provided in th
               </div>
             </div>
           )}
-
           {/* Output Display */}
           <div className="bg-white rounded-lg shadow-md p-8">
             <div className="flex items-center justify-between mb-4">
@@ -551,6 +550,50 @@ Please output the exact same output but take the feedback the CEO provided in th
               />
             )}
           </div>
+
+          {/* Highlight Legend - Only show when highlights are enabled */}
+          {highlightsEnabled && execution && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-bold text-fo-dark mb-4">Highlight Legend</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-fo-dark mb-2">Octave Elements</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Persona</span>
+                      <span className="text-xs text-fo-text-secondary">Target audience</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Segment</span>
+                      <span className="text-xs text-fo-text-secondary">Company size/industry</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Use Case (Outcome)</span>
+                      <span className="text-xs text-fo-text-secondary">Desired outcome</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Use Case (Blocker)</span>
+                      <span className="text-xs text-fo-text-secondary">Problem/blocker</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">CTA (Lead Magnet)</span>
+                      <span className="text-xs text-fo-text-secondary">Call-to-action</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-fo-dark mb-2">Personalization</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-fo-orange/20 text-fo-orange px-2 py-1 rounded text-xs font-semibold">Personalized</span>
+                      <span className="text-xs text-fo-text-secondary">Claire generated info</span>
+                    </div>
+                    <p className="text-xs text-fo-text-secondary mt-4 italic">Hover over highlighted text to see details</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Approve Button */}
           <div className="bg-white rounded-lg shadow-md p-6">

@@ -81,6 +81,14 @@ export async function highlightOutput(
 
   const prompt = `You are an expert at analyzing marketing content and identifying which parts correspond to specific input elements.
 
+**CRITICAL: YOU MUST PRESERVE EVERY SINGLE CHARACTER OF THE ORIGINAL OUTPUT. DO NOT ADD, REMOVE, OR MODIFY ANY TEXT, HEADERS, LABELS, STRUCTURE, OR FORMATTING.**
+
+Your ONLY task is to wrap specific text segments with XML tags. You must NOT:
+- Remove any headers, titles, or labels (e.g., "Day Zero Cold Call", "Subject Line:", "Body:", "0002", etc.)
+- Change any formatting, line breaks, or structure
+- Add or remove any content
+- Modify any existing text
+
 Your task is to analyze the OUTPUT content and identify which text segments correspond to:
 1. **OCTAVE_ELEMENTS** (from library):
    - <persona> - References to the target persona (e.g., "CEOs", "CFOs", "Marketing Directors")
@@ -99,37 +107,24 @@ Your task is to analyze the OUTPUT content and identify which text segments corr
 - Use Case Blockers: ${useCaseBlockers}
 - Client References: ${referenceNames}
 
-**CRITICAL INSTRUCTIONS:**
-1. **PRESERVE ALL STRUCTURE**: You MUST preserve ALL titles, headers, section names, labels, and formatting exactly as they appear in the original output. This includes:
-   - "Day Zero Cold Call", "Day One Email", "Day Two Email", etc.
-   - "Subject Line", "Body", "Subject:", "Body:", etc.
-   - Play codes like "0002", "0001", etc.
-   - Any other structural elements, headers, or labels
-   - ALL line breaks, spacing, and formatting
-
-2. **ONLY HIGHLIGHT CONTENT**: Only wrap the actual CONTENT TEXT with XML tags. Do NOT wrap:
-   - Section headers/titles
-   - Labels like "Subject Line:", "Body:"
-   - Play codes
-   - Structural elements
-
-3. **PRESERVE EXACT FORMATTING**: Keep all original formatting, line breaks, HTML tags, and structure exactly as provided.
-
-4. **HIGHLIGHTING RULES**:
-   - Identify text segments that semantically match the input elements
-   - Wrap ONLY the matching text segments with XML tags (e.g., <persona>text</persona>)
-   - Be precise - only highlight text that clearly corresponds to the input elements
-   - If a segment could match multiple categories, choose the most specific one
-   - Personalization tags should be used for specific names, companies, or details that appear to be dynamically inserted
+**STRICT INSTRUCTIONS:**
+1. Read the OUTPUT content EXACTLY as provided
+2. Identify text segments that semantically match the input elements above
+3. Wrap ONLY those matching segments with XML tags (e.g., <persona>text</persona>)
+4. DO NOT wrap headers, labels, titles, or structural elements
+5. DO NOT modify, add, or remove ANY text
+6. Preserve ALL original formatting, line breaks, HTML tags, headers, labels, and structure EXACTLY as they appear
+7. If a segment could match multiple categories, choose the most specific one
+8. Personalization tags should be used for specific names, companies, or details that appear to be dynamically inserted
 
 **EXAMPLE OUTPUT FORMAT:**
 ${exampleOutput}
 
-**OUTPUT TO ANALYZE:**
+**OUTPUT TO ANALYZE (PRESERVE EVERYTHING EXACTLY AS IS, ONLY ADD TAGS):**
 ${outputContent}
 
 **YOUR TASK:**
-Return the EXACT SAME OUTPUT content with ONLY the content text segments wrapped in semantic XML tags. DO NOT modify, remove, or change ANY titles, headers, labels, or structural elements. Preserve everything exactly as it appears, only adding XML tags around the highlighted text segments.`;
+Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identified segments. Every character, header, label, and structure must remain identical to the original.`;
 
   try {
     console.log('🎨 Starting output highlighting with OpenAI...');
@@ -139,7 +134,7 @@ Return the EXACT SAME OUTPUT content with ONLY the content text segments wrapped
       messages: [
         {
           role: "system",
-          content: "You are an expert content analyst specializing in identifying semantic relationships between marketing content and input elements. CRITICAL: You must preserve ALL original structure, titles, headers, labels, and formatting exactly as provided. Only add XML tags around content text segments - never modify or remove any structural elements."
+          content: "You are an expert content analyst specializing in identifying semantic relationships between marketing content and input elements. Your ONLY job is to wrap text segments with XML tags. You MUST preserve every single character of the original content - do not add, remove, or modify any text, headers, labels, or structure. Only wrap matching segments with tags."
         },
         {
           role: "user",
