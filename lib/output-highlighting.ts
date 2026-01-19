@@ -99,14 +99,28 @@ Your task is to analyze the OUTPUT content and identify which text segments corr
 - Use Case Blockers: ${useCaseBlockers}
 - Client References: ${referenceNames}
 
-**INSTRUCTIONS:**
-1. Read the OUTPUT content carefully
-2. Identify text segments that semantically match the input elements above
-3. Wrap matching segments with the appropriate XML tags (e.g., <persona>text</persona>)
-4. Be precise - only highlight text that clearly corresponds to the input elements
-5. Preserve all original formatting, line breaks, and HTML tags
-6. If a segment could match multiple categories, choose the most specific one
-7. Personalization tags should be used for specific names, companies, or details that appear to be dynamically inserted
+**CRITICAL INSTRUCTIONS:**
+1. **PRESERVE ALL STRUCTURE**: You MUST preserve ALL titles, headers, section names, labels, and formatting exactly as they appear in the original output. This includes:
+   - "Day Zero Cold Call", "Day One Email", "Day Two Email", etc.
+   - "Subject Line", "Body", "Subject:", "Body:", etc.
+   - Play codes like "0002", "0001", etc.
+   - Any other structural elements, headers, or labels
+   - ALL line breaks, spacing, and formatting
+
+2. **ONLY HIGHLIGHT CONTENT**: Only wrap the actual CONTENT TEXT with XML tags. Do NOT wrap:
+   - Section headers/titles
+   - Labels like "Subject Line:", "Body:"
+   - Play codes
+   - Structural elements
+
+3. **PRESERVE EXACT FORMATTING**: Keep all original formatting, line breaks, HTML tags, and structure exactly as provided.
+
+4. **HIGHLIGHTING RULES**:
+   - Identify text segments that semantically match the input elements
+   - Wrap ONLY the matching text segments with XML tags (e.g., <persona>text</persona>)
+   - Be precise - only highlight text that clearly corresponds to the input elements
+   - If a segment could match multiple categories, choose the most specific one
+   - Personalization tags should be used for specific names, companies, or details that appear to be dynamically inserted
 
 **EXAMPLE OUTPUT FORMAT:**
 ${exampleOutput}
@@ -115,7 +129,7 @@ ${exampleOutput}
 ${outputContent}
 
 **YOUR TASK:**
-Return the OUTPUT content with semantic XML tags wrapping the identified segments. Preserve all original formatting and structure.`;
+Return the EXACT SAME OUTPUT content with ONLY the content text segments wrapped in semantic XML tags. DO NOT modify, remove, or change ANY titles, headers, labels, or structural elements. Preserve everything exactly as it appears, only adding XML tags around the highlighted text segments.`;
 
   try {
     console.log('🎨 Starting output highlighting with OpenAI...');
@@ -125,7 +139,7 @@ Return the OUTPUT content with semantic XML tags wrapping the identified segment
       messages: [
         {
           role: "system",
-          content: "You are an expert content analyst specializing in identifying semantic relationships between marketing content and input elements. You output clean, well-formatted XML with semantic tags."
+          content: "You are an expert content analyst specializing in identifying semantic relationships between marketing content and input elements. CRITICAL: You must preserve ALL original structure, titles, headers, labels, and formatting exactly as provided. Only add XML tags around content text segments - never modify or remove any structural elements."
         },
         {
           role: "user",
