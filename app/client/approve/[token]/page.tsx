@@ -54,8 +54,11 @@ export default function ApprovalPage() {
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
 
-      // Fetch approval by token
-      const response = await fetch(`/api/client/approve/${token}`, {
+      // Fetch approval by token (include impersonate parameter if present)
+      const approveUrl = impersonateUserId 
+        ? `/api/client/approve/${token}?impersonate=${impersonateUserId}`
+        : `/api/client/approve/${token}`;
+      const response = await fetch(approveUrl, {
         credentials: 'include',
         headers: {
           ...(authToken && { Authorization: `Bearer ${authToken}` })
@@ -91,7 +94,10 @@ export default function ApprovalPage() {
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
 
-      const response = await fetch('/api/client/approve', {
+      const approveUrl = impersonateUserId 
+        ? `/api/client/approve?impersonate=${impersonateUserId}`
+        : '/api/client/approve';
+      const response = await fetch(approveUrl, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -138,7 +144,10 @@ export default function ApprovalPage() {
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
 
-      const response = await fetch('/api/client/approve', {
+      const rejectUrl = impersonateUserId 
+        ? `/api/client/approve?impersonate=${impersonateUserId}`
+        : '/api/client/approve';
+      const response = await fetch(rejectUrl, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',

@@ -5,6 +5,13 @@ import { getAuthenticatedUser } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
+// Admin emails that can impersonate clients
+const ADMIN_EMAILS = [
+  'ali.hassan@fractionalops.com',
+  'sharifali1000@gmail.com',
+  'corey@fractionalops.com',
+];
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -159,6 +166,25 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Check for impersonation parameter
+    const { searchParams } = new URL(request.url);
+    const impersonateUserId = searchParams.get('impersonate');
+    
+    // Verify admin access if impersonating
+    let isAdminImpersonating = false;
+    if (impersonateUserId) {
+      const isAdmin = ADMIN_EMAILS.some(
+        email => email.toLowerCase() === user.email?.toLowerCase()
+      );
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized: Admin access required for impersonation' },
+          { status: 403 }
+        );
+      }
+      isAdminImpersonating = true;
+    }
+
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -184,10 +210,21 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Check if user owns the execution
-    if (approval.play_executions.user_id !== user.id) {
+    // Check if user owns the execution OR admin is impersonating the owner
+    const executionOwnerId = approval.play_executions.user_id;
+    const effectiveUserId = impersonateUserId || user.id;
+    
+    if (!isAdminImpersonating && executionOwnerId !== user.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
+        { status: 403 }
+      );
+    }
+    
+    // If admin is impersonating, verify the impersonated user owns the execution
+    if (isAdminImpersonating && executionOwnerId !== impersonateUserId) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Approval does not belong to impersonated user' },
         { status: 403 }
       );
     }
