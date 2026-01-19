@@ -146,8 +146,11 @@ function PlayExecutionPageContent() {
         setEditedOutput(result.execution.output.content || JSON.stringify(result.execution.output, null, 2));
         toast.success('Play executed successfully!');
         
-        // Update URL to include execution ID
-        router.replace(`/client/${category}/${code}/${result.execution.id}`);
+        // Update URL to include execution ID and preserve impersonate parameter
+        const newUrl = impersonateUserId 
+          ? `/client/${category}/${code}/${result.execution.id}?impersonate=${impersonateUserId}`
+          : `/client/${category}/${code}/${result.execution.id}`;
+        router.replace(newUrl);
       } else {
         toast.error(result.error || 'Failed to execute play');
       }
@@ -225,8 +228,11 @@ Please output the exact same output but take the feedback the CEO provided in th
         setEditedOutput(result.execution.output.content || JSON.stringify(result.execution.output, null, 2));
         toast.success('Output refined successfully!');
         
-        // Update URL to include execution ID
-        router.replace(`/client/${category}/${code}/${result.execution.id}`);
+        // Update URL to include execution ID and preserve impersonate parameter
+        const refinedUrl = impersonateUserId 
+          ? `/client/${category}/${code}/${result.execution.id}?impersonate=${impersonateUserId}`
+          : `/client/${category}/${code}/${result.execution.id}`;
+        router.replace(refinedUrl);
       } else {
         toast.error(result.error || 'Failed to refine output');
       }
@@ -280,9 +286,12 @@ Please output the exact same output but take the feedback the CEO provided in th
         setEditing(false);
         toast.success('Draft saved successfully!');
         
-        // Update URL to include execution ID
+        // Update URL to include execution ID and preserve impersonate parameter
         if (result.execution.id) {
-          router.replace(`/client/${category}/${code}/${result.execution.id}`);
+          const savedUrl = impersonateUserId 
+            ? `/client/${category}/${code}/${result.execution.id}?impersonate=${impersonateUserId}`
+            : `/client/${category}/${code}/${result.execution.id}`;
+          router.replace(savedUrl);
         }
       } else {
         toast.error(result.error || 'Failed to save draft');
@@ -557,7 +566,10 @@ Please output the exact same output but take the feedback the CEO provided in th
 
                   if (result.success) {
                     toast.success('Approval request created!');
-                    router.push(`/client/approve/${result.approval.shareableToken}`);
+                    const approveRedirectUrl = impersonateUserId 
+                      ? `/client/approve/${result.approval.shareableToken}?impersonate=${impersonateUserId}`
+                      : `/client/approve/${result.approval.shareableToken}`;
+                    router.push(approveRedirectUrl);
                   } else {
                     toast.error(result.error || 'Failed to create approval');
                   }
