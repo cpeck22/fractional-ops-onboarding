@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -30,7 +30,9 @@ interface Approval {
 export default function ApprovalPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const token = params.token as string;
+  const impersonateUserId = searchParams.get('impersonate');
 
   const [execution, setExecution] = useState<Execution | null>(null);
   const [approval, setApproval] = useState<Approval | null>(null);
@@ -108,7 +110,10 @@ export default function ApprovalPage() {
       if (result.success) {
         toast.success('Approval submitted successfully!');
         setTimeout(() => {
-          router.push('/client/approvals');
+          router.push(impersonateUserId 
+            ? `/client/approvals?impersonate=${impersonateUserId}` 
+            : '/client/approvals'
+          );
         }, 1500);
       } else {
         toast.error(result.error || 'Failed to approve');
@@ -152,7 +157,10 @@ export default function ApprovalPage() {
       if (result.success) {
         toast.success('Rejection submitted successfully!');
         setTimeout(() => {
-          router.push('/client/approvals');
+          router.push(impersonateUserId 
+            ? `/client/approvals?impersonate=${impersonateUserId}` 
+            : '/client/approvals'
+          );
         }, 1500);
       } else {
         toast.error(result.error || 'Failed to reject');
@@ -191,7 +199,13 @@ export default function ApprovalPage() {
     return (
       <div className="bg-white rounded-lg shadow-md p-12 text-center">
         <p className="text-fo-text-secondary text-lg mb-4">Approval not found</p>
-        <Link href="/client/approvals" className="text-fo-primary hover:underline">
+        <Link 
+          href={impersonateUserId 
+            ? `/client/approvals?impersonate=${impersonateUserId}` 
+            : '/client/approvals'
+          } 
+          className="text-fo-primary hover:underline"
+        >
           ← Back to approvals
         </Link>
       </div>
@@ -205,7 +219,13 @@ export default function ApprovalPage() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
-        <Link href="/client/approvals" className="text-fo-primary hover:underline mb-2 inline-block">
+        <Link 
+          href={impersonateUserId 
+            ? `/client/approvals?impersonate=${impersonateUserId}` 
+            : '/client/approvals'
+          } 
+          className="text-fo-primary hover:underline mb-2 inline-block"
+        >
           ← Back to approvals
         </Link>
         <h1 className="text-3xl font-bold text-fo-dark mb-2">Review Approval Request</h1>

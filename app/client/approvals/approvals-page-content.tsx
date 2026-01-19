@@ -134,7 +134,10 @@ export default function ApprovalsPageContent() {
       {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Link
-          href="/client/approvals?status=pending_approval"
+          href={impersonateUserId 
+            ? `/client/approvals?status=pending_approval&impersonate=${impersonateUserId}` 
+            : '/client/approvals?status=pending_approval'
+          }
           className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${
             statusFilter === 'pending_approval' ? 'border-fo-orange' : 'border-fo-light'
           } hover:shadow-lg transition-shadow`}
@@ -149,7 +152,10 @@ export default function ApprovalsPageContent() {
         </Link>
 
         <Link
-          href="/client/approvals?status=approved"
+          href={impersonateUserId 
+            ? `/client/approvals?status=approved&impersonate=${impersonateUserId}` 
+            : '/client/approvals?status=approved'
+          }
           className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${
             statusFilter === 'approved' ? 'border-fo-green' : 'border-fo-light'
           } hover:shadow-lg transition-shadow`}
@@ -164,7 +170,10 @@ export default function ApprovalsPageContent() {
         </Link>
 
         <Link
-          href="/client/approvals?status=rejected"
+          href={impersonateUserId 
+            ? `/client/approvals?status=rejected&impersonate=${impersonateUserId}` 
+            : '/client/approvals?status=rejected'
+          }
           className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${
             statusFilter === 'rejected' ? 'border-red-500' : 'border-fo-light'
           } hover:shadow-lg transition-shadow`}
@@ -179,7 +188,10 @@ export default function ApprovalsPageContent() {
         </Link>
 
         <Link
-          href="/client/approvals?status=draft"
+          href={impersonateUserId 
+            ? `/client/approvals?status=draft&impersonate=${impersonateUserId}` 
+            : '/client/approvals?status=draft'
+          }
           className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${
             statusFilter === 'draft' ? 'border-fo-primary' : 'border-fo-light'
           } hover:shadow-lg transition-shadow`}
@@ -206,6 +218,10 @@ export default function ApprovalsPageContent() {
               } else {
                 params.set('status', e.target.value);
               }
+              // Preserve impersonate parameter
+              if (impersonateUserId) {
+                params.set('impersonate', impersonateUserId);
+              }
               window.location.href = `/client/approvals?${params.toString()}`;
             }}
             className="px-4 py-2 border border-fo-light rounded-lg focus:outline-none focus:ring-2 focus:ring-fo-primary"
@@ -225,6 +241,10 @@ export default function ApprovalsPageContent() {
                 params.delete('category');
               } else {
                 params.set('category', e.target.value);
+              }
+              // Preserve impersonate parameter
+              if (impersonateUserId) {
+                params.set('impersonate', impersonateUserId);
               }
               window.location.href = `/client/approvals?${params.toString()}`;
             }}
@@ -258,7 +278,10 @@ export default function ApprovalsPageContent() {
               return (
                 <Link
                   key={execution.id}
-                  href={`/client/approve/${approval?.shareable_token || execution.id}`}
+                  href={impersonateUserId 
+                    ? `/client/approve/${approval?.shareable_token || execution.id}?impersonate=${impersonateUserId}` 
+                    : `/client/approve/${approval?.shareable_token || execution.id}`
+                  }
                   className="block p-6 border border-fo-light rounded-lg hover:bg-fo-light transition-colors"
                 >
                   <div className="flex items-start justify-between">

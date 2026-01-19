@@ -105,7 +105,13 @@ export default function ClientDashboardContent() {
 
       {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Link href="/client/approvals?status=pending_approval" className="bg-white rounded-lg shadow-md p-6 border-l-4 border-fo-orange hover:shadow-lg transition-shadow">
+        <Link 
+          href={impersonateUserId 
+            ? `/client/approvals?status=pending_approval&impersonate=${impersonateUserId}` 
+            : '/client/approvals?status=pending_approval'
+          } 
+          className="bg-white rounded-lg shadow-md p-6 border-l-4 border-fo-orange hover:shadow-lg transition-shadow"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-fo-text-secondary mb-1">Pending Approval</p>
@@ -115,7 +121,13 @@ export default function ClientDashboardContent() {
           </div>
         </Link>
 
-        <Link href="/client/approvals?status=approved" className="bg-white rounded-lg shadow-md p-6 border-l-4 border-fo-green hover:shadow-lg transition-shadow">
+        <Link 
+          href={impersonateUserId 
+            ? `/client/approvals?status=approved&impersonate=${impersonateUserId}` 
+            : '/client/approvals?status=approved'
+          } 
+          className="bg-white rounded-lg shadow-md p-6 border-l-4 border-fo-green hover:shadow-lg transition-shadow"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-fo-text-secondary mb-1">Approved</p>
@@ -125,7 +137,13 @@ export default function ClientDashboardContent() {
           </div>
         </Link>
 
-        <Link href="/client/approvals?status=draft" className="bg-white rounded-lg shadow-md p-6 border-l-4 border-fo-primary hover:shadow-lg transition-shadow">
+        <Link 
+          href={impersonateUserId 
+            ? `/client/approvals?status=draft&impersonate=${impersonateUserId}` 
+            : '/client/approvals?status=draft'
+          } 
+          className="bg-white rounded-lg shadow-md p-6 border-l-4 border-fo-primary hover:shadow-lg transition-shadow"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-fo-text-secondary mb-1">Draft</p>
