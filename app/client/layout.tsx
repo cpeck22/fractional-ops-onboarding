@@ -7,7 +7,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Image from 'next/image';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { LayoutDashboard, RefreshCw, Send, Heart, CheckCircle2, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Send, Heart, CheckCircle2, ChevronLeft, ChevronRight, Menu, X, Settings } from 'lucide-react';
 
 // Admin emails that can impersonate clients
 const ADMIN_EMAILS = [
@@ -327,6 +327,17 @@ export default function ClientLayout({
             </div>
           </main>
         </div>
+
+        {/* Go to Admin Panel Button - Only shown when impersonating */}
+        {impersonatedUserId && isAdmin && (
+          <Link
+            href="/admin"
+            className="fixed bottom-6 right-6 bg-fo-primary hover:bg-fo-primary/90 text-white px-4 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 font-semibold text-sm z-50"
+          >
+            <Settings className="w-4 h-4" strokeWidth={2} />
+            Go to Admin Panel
+          </Link>
+        )}
       </div>
     </ProtectedRoute>
   );
