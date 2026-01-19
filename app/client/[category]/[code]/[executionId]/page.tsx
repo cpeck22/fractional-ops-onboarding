@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { addImpersonateParam } from '@/lib/client-api-helpers';
 
 interface Play {
   code: string;
@@ -27,6 +28,8 @@ interface Execution {
 export default function PlayExecutionPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const impersonateUserId = searchParams.get('impersonate');
   const category = params.category as string;
   const code = params.code as string;
   const executionId = params.executionId as string | undefined;
@@ -54,7 +57,8 @@ export default function PlayExecutionPage() {
       const authToken = session?.access_token;
 
       // Load play details
-      const playResponse = await fetch(`/api/client/plays?category=${category}`, {
+      const playUrl = addImpersonateParam(`/api/client/plays?category=${category}`, impersonateUserId);
+      const playResponse = await fetch(playUrl, {
         credentials: 'include',
         headers: {
           ...(authToken && { Authorization: `Bearer ${authToken}` })
@@ -65,7 +69,8 @@ export default function PlayExecutionPage() {
       setPlay(foundPlay || null);
 
       // Load workspace data
-      const workspaceResponse = await fetch('/api/client/workspace-data', {
+      const workspaceUrl = addImpersonateParam('/api/client/workspace-data', impersonateUserId);
+      const workspaceResponse = await fetch(workspaceUrl, {
         credentials: 'include',
         headers: {
           ...(authToken && { Authorization: `Bearer ${authToken}` })
@@ -85,7 +90,8 @@ export default function PlayExecutionPage() {
 
       // If executionId is provided, load that execution
       if (executionId) {
-        const executionResponse = await fetch(`/api/client/executions/${executionId}`, {
+        const executionUrl = addImpersonateParam(`/api/client/executions/${executionId}`, impersonateUserId);
+        const executionResponse = await fetch(executionUrl, {
           credentials: 'include',
           headers: {
             ...(authToken && { Authorization: `Bearer ${authToken}` })
@@ -126,7 +132,7 @@ export default function PlayExecutionPage() {
       toast.error('Failed to load play data');
       setLoading(false);
     }
-  }, [code, category, executionId]);
+  }, [code, category, executionId, impersonateUserId]);
 
   useEffect(() => {
     loadPlayAndWorkspaceData();
@@ -151,7 +157,8 @@ export default function PlayExecutionPage() {
         // customInput removed - not required for initial play execution
       };
 
-      const response = await fetch('/api/client/execute-play', {
+      const executeUrl = addImpersonateParam('/api/client/execute-play', impersonateUserId);
+      const response = await fetch(executeUrl, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -175,8 +182,11 @@ export default function PlayExecutionPage() {
         setEditedOutput(result.execution.output.content || JSON.stringify(result.execution.output, null, 2));
         toast.success('Play executed successfully!');
         
-        // Update URL to include execution ID
-        router.replace(`/client/${category}/${code}/${result.execution.id}`);
+        // Update URL to include execution ID and preserve impersonate parameter
+        const newUrl = impersonateUserId 
+          ? `/client/${category}/${code}/${result.execution.id}?impersonate=${impersonateUserId}`
+          : `/client/${category}/${code}/${result.execution.id}`;
+        router.replace(newUrl);
       } else {
         toast.error(result.error || 'Failed to execute play');
       }
@@ -228,7 +238,8 @@ Please output the exact same output but take the feedback the CEO provided in th
         // customInput removed - refinementPrompt is passed separately to API
       };
 
-      const response = await fetch('/api/client/execute-play', {
+      const refineUrl = addImpersonateParam('/api/client/execute-play', impersonateUserId);
+      const response = await fetch(refineUrl, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -255,7 +266,10 @@ Please output the exact same output but take the feedback the CEO provided in th
         
         // Update URL if execution ID changed (shouldn't happen, but just in case)
         if (result.execution.id !== executionId) {
-          router.replace(`/client/${category}/${code}/${result.execution.id}`);
+          const newUrl = impersonateUserId 
+            ? `/client/${category}/${code}/${result.execution.id}?impersonate=${impersonateUserId}`
+            : `/client/${category}/${code}/${result.execution.id}`;
+          router.replace(newUrl);
         }
       } else {
         toast.error(result.error || 'Failed to refine output');
@@ -281,7 +295,8 @@ Please output the exact same output but take the feedback the CEO provided in th
       const authToken = session?.access_token;
 
       // Update execution output
-      const response = await fetch(`/api/client/executions/${execution.id}`, {
+      const saveUrl = addImpersonateParam(`/api/client/executions/${execution.id}`, impersonateUserId);
+      const response = await fetch(saveUrl, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -372,7 +387,10 @@ Please output the exact same output but take the feedback the CEO provided in th
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
-        <Link href={`/client/${category}`} className="text-fo-primary hover:underline mb-2 inline-block">
+        <Link 
+          href={impersonateUserId ? `/client/${category}?impersonate=${impersonateUserId}` : `/client/${category}`} 
+          className="text-fo-primary hover:underline mb-2 inline-block"
+        >
           ← Back to {category} plays
         </Link>
         <h1 className="text-3xl font-bold text-fo-dark mb-2">{play.name}</h1>
@@ -564,7 +582,8 @@ Please output the exact same output but take the feedback the CEO provided in th
                   const { data: { session } } = await supabase.auth.getSession();
                   const authToken = session?.access_token;
 
-                  const response = await fetch('/api/client/approve', {
+                  const approveUrl = addImpersonateParam('/api/client/approve', impersonateUserId);
+                  const response = await fetch(approveUrl, {
                     method: 'POST',
                     headers: { 
                       'Content-Type': 'application/json',
@@ -580,7 +599,10 @@ Please output the exact same output but take the feedback the CEO provided in th
 
                   if (result.success) {
                     toast.success('Approval request created!');
-                    router.push(`/client/approve/${result.approval.shareableToken}`);
+                    const approvePageUrl = impersonateUserId 
+                      ? `/client/approve/${result.approval.shareableToken}?impersonate=${impersonateUserId}`
+                      : `/client/approve/${result.approval.shareableToken}`;
+                    router.push(approvePageUrl);
                   } else {
                     toast.error(result.error || 'Failed to create approval');
                   }

@@ -4,6 +4,13 @@ import { getAuthenticatedUser } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
+// Admin emails that can impersonate clients
+const ADMIN_EMAILS = [
+  'ali.hassan@fractionalops.com',
+  'sharifali1000@gmail.com',
+  'corey@fractionalops.com',
+];
+
 /**
  * GET - Fetch a specific execution by ID
  */
@@ -33,8 +40,20 @@ export async function GET(
       );
     }
 
-    // Check for impersonation - if admin is impersonating, use impersonated user's data
-    const effectiveUserId = impersonateUserId || user.id;
+    // Check for impersonation - if admin is impersonating, verify admin access
+    let effectiveUserId = user.id;
+    if (impersonateUserId) {
+      const isAdmin = ADMIN_EMAILS.some(
+        email => email.toLowerCase() === user.email?.toLowerCase()
+      );
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized: Admin access required for impersonation' },
+          { status: 403 }
+        );
+      }
+      effectiveUserId = impersonateUserId;
+    }
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -126,10 +145,22 @@ export async function PUT(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Check for impersonation - if admin is impersonating, use impersonated user's data
+    // Check for impersonation - if admin is impersonating, verify admin access
     const { searchParams } = new URL(request.url);
     const impersonateUserId = searchParams.get('impersonate');
-    const effectiveUserId = impersonateUserId || user.id;
+    let effectiveUserId = user.id;
+    if (impersonateUserId) {
+      const isAdmin = ADMIN_EMAILS.some(
+        email => email.toLowerCase() === user.email?.toLowerCase()
+      );
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized: Admin access required for impersonation' },
+          { status: 403 }
+        );
+      }
+      effectiveUserId = impersonateUserId;
+    }
 
     // Verify execution belongs to user (or impersonated user)
     const { data: existingExecution, error: verifyError } = await supabaseAdmin

@@ -5,6 +5,13 @@ import { getAuthenticatedUser } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
+// Admin emails that can impersonate clients
+const ADMIN_EMAILS = [
+  'ali.hassan@fractionalops.com',
+  'sharifali1000@gmail.com',
+  'corey@fractionalops.com',
+];
+
 const OCTAVE_BASE_URL = 'https://app.octavehq.com/api/v2/agents';
 
 // Hardcoded play list - matches the requirements document (same as plays route)
@@ -85,10 +92,22 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Check for impersonation - if admin is impersonating, use impersonated user's workspace
+    // Check for impersonation - if admin is impersonating, verify admin access
     const { searchParams } = new URL(request.url);
     const impersonateUserId = searchParams.get('impersonate');
-    const effectiveUserId = impersonateUserId || user.id;
+    let effectiveUserId = user.id;
+    if (impersonateUserId) {
+      const isAdmin = ADMIN_EMAILS.some(
+        email => email.toLowerCase() === user.email?.toLowerCase()
+      );
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized: Admin access required for impersonation' },
+          { status: 403 }
+        );
+      }
+      effectiveUserId = impersonateUserId;
+    }
 
     // Get workspace API key and play details
     const supabaseAdmin = createClient(
