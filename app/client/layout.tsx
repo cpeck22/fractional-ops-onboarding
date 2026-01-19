@@ -61,41 +61,61 @@ export default function ClientLayout({
           setImpersonatedUser(impersonatedUserData.user);
         }
 
-        // Load company name and workspace for impersonated user
-        const { data: workspaceData, error: workspaceError } = await supabase
-          .from('octave_outputs')
-          .select('company_name, workspace_api_key')
-          .eq('user_id', impersonateUserId)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        
-        if (workspaceError) {
-          console.error('Error loading workspace for impersonated user:', workspaceError);
-          setHasWorkspace(false);
-        } else if (workspaceData) {
-          setCompanyName(workspaceData.company_name);
-          setHasWorkspace(!!workspaceData.workspace_api_key);
-        } else {
+        // Use API endpoint to check workspace (bypasses RLS)
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const authToken = session?.access_token;
+          
+          const response = await fetch(
+            `/api/client/check-workspace?impersonate=${impersonateUserId}`,
+            {
+              credentials: 'include',
+              headers: {
+                ...(authToken && { Authorization: `Bearer ${authToken}` })
+              }
+            }
+          );
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            setCompanyName(result.companyName);
+            setHasWorkspace(result.hasWorkspace);
+          } else {
+            console.error('Error loading workspace for impersonated user:', result.error);
+            setHasWorkspace(false);
+          }
+        } catch (error) {
+          console.error('Error checking workspace:', error);
           setHasWorkspace(false);
         }
       } else {
         // Normal user access
         setImpersonatedUserId(null);
         
-        // Load company name and check for workspace from octave_outputs
-        const { data: workspaceData, error } = await supabase
-          .from('octave_outputs')
-          .select('company_name, workspace_api_key')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-        
-        if (workspaceData) {
-          setCompanyName(workspaceData.company_name);
-          setHasWorkspace(!!workspaceData.workspace_api_key);
-        } else {
+        // Use API endpoint to check workspace
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const authToken = session?.access_token;
+          
+          const response = await fetch('/api/client/check-workspace', {
+            credentials: 'include',
+            headers: {
+              ...(authToken && { Authorization: `Bearer ${authToken}` })
+            }
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            setCompanyName(result.companyName);
+            setHasWorkspace(result.hasWorkspace);
+          } else {
+            console.error('Error loading workspace:', result.error);
+            setHasWorkspace(false);
+          }
+        } catch (error) {
+          console.error('Error checking workspace:', error);
           setHasWorkspace(false);
         }
       }
