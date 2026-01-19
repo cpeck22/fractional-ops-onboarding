@@ -38,9 +38,16 @@ export default function ClairePlaysAdminPage() {
     try {
       setLoading(true);
       
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+      
       // Use admin API endpoint to get all clients (bypasses RLS)
       const response = await fetch('/api/admin/claire-clients', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        }
       });
 
       if (!response.ok) {
@@ -68,9 +75,16 @@ export default function ClairePlaysAdminPage() {
       setLoadingPlays(true);
       setSelectedClient(userId);
 
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
       // Use admin API endpoint to get client plays (bypasses RLS)
       const response = await fetch(`/api/admin/claire-client-plays?userId=${userId}`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        }
       });
 
       if (!response.ok) {

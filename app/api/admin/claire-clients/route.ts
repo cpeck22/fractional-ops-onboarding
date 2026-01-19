@@ -4,6 +4,13 @@ import { getAuthenticatedUser } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
+// Admin emails that can access admin endpoints
+const ADMIN_EMAILS = [
+  'ali.hassan@fractionalops.com',
+  'sharifali1000@gmail.com',
+  'corey@fractionalops.com',
+];
+
 export async function GET(request: NextRequest) {
   try {
     // Verify admin access
@@ -13,6 +20,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Verify user is admin
+    const isAdmin = ADMIN_EMAILS.some(
+      email => email.toLowerCase() === user.email?.toLowerCase()
+    );
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Admin access required' },
+        { status: 403 }
       );
     }
 
