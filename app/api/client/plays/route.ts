@@ -8,21 +8,21 @@ export const dynamic = 'force-dynamic';
 // Hardcoded play list - matches the requirements document
 const HARDCODED_PLAYS = [
   // Allbound Plays (0000 codes)
-  { code: '0001', name: 'Activities_Post-Call → Email Draft', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'Not Required' },
+  { code: '0001', name: 'Activities_Post-Call → Email Draft', category: 'allbound', documentation_status: 'Blocked', content_agent_status: 'Not Required' },
   { code: '0002', name: 'Activities_Website Visitor → Helpful Outreach', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'In Progress' },
   { code: '0003', name: 'Activities_New Decision-Maker → Help Their Change', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'Completed' },
   { code: '0004', name: 'Activities_Funding Event → Real Value Outreach (SKIPPED)', category: 'allbound', documentation_status: 'Blocked', content_agent_status: 'Completed' },
   { code: '0005', name: "Competitor's Client Growing → Provide Alternative", category: 'allbound', documentation_status: 'Completed', content_agent_status: 'Completed' },
   { code: '0006', name: 'Prospect Job Change → Help Their Change', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'In Progress' },
   { code: '0007', name: 'Pricing Page → Proactive Objection Handling', category: 'allbound', documentation_status: 'Not Started', content_agent_status: 'Not Required' },
-  { code: '0008', name: 'Discovery Meeting → Full Call Prep', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'REQUIRED' },
-  { code: '0009', name: 'Meeting Confirmation → VSL', category: 'allbound', documentation_status: 'Not Started', content_agent_status: 'In Progress' },
-  { code: '0010', name: 'Post-Call → Email Draft', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'Not Required' },
-  { code: '0011', name: 'Call Prep → Follow-up Meeting', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'REQUIRED' },
+  { code: '0008', name: 'Discovery Meeting → Full Call Prep', category: 'allbound', documentation_status: 'Blocked', content_agent_status: 'REQUIRED' },
+  { code: '0009', name: 'Meeting Confirmation → VSL', category: 'allbound', documentation_status: 'Blocked', content_agent_status: 'In Progress' },
+  { code: '0010', name: 'Post-Call → Email Draft', category: 'allbound', documentation_status: 'Blocked', content_agent_status: 'Not Required' },
+  { code: '0011', name: 'Call Prep → Follow-up Meeting', category: 'allbound', documentation_status: 'Blocked', content_agent_status: 'REQUIRED' },
   { code: '0012', name: 'No-Show → Recovery Message', category: 'allbound', documentation_status: 'Not Started', content_agent_status: 'In Progress' },
-  { code: '0013', name: 'Call Finished → Recap In CRM', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'Not Required' },
-  { code: '0014', name: 'Objections In Email → Draft Response', category: 'allbound', documentation_status: 'Not Started', content_agent_status: 'REQUIRED' },
-  { code: '0015', name: 'Meeting → Automatically Assigned CRM To-Dos', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'Not Required' },
+  { code: '0013', name: 'Call Finished → Recap In CRM', category: 'allbound', documentation_status: 'Blocked', content_agent_status: 'Not Required' },
+  { code: '0014', name: 'Objections In Email → Draft Response', category: 'allbound', documentation_status: 'Blocked', content_agent_status: 'REQUIRED' },
+  { code: '0015', name: 'Meeting → Automatically Assigned CRM To-Dos', category: 'allbound', documentation_status: 'Blocked', content_agent_status: 'Not Required' },
   { code: '0016', name: 'Competitor Client New Exec → Provide Alternative', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'In Progress' },
   { code: '0017', name: 'New Job Posting with Intent Trigger Key-Words -> Warm Outreach', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'Completed' },
   { code: '0018', name: 'Trigify Evergreen Campaign', category: 'allbound', documentation_status: 'Not Started', content_agent_status: 'Not Required' },
@@ -68,8 +68,7 @@ export async function GET(request: NextRequest) {
       plays = plays.filter(p => p.category === category);
     }
     
-    // Filter out blocked plays (they're not active)
-    plays = plays.filter(p => p.documentation_status !== 'Blocked');
+    // Note: Blocked plays are kept in the list but marked as unavailable in the frontend
     
     // Get play details from database if they exist (for future admin-managed plays)
     // Note: Plays endpoint doesn't require auth, but we'll try to get user for RLS
