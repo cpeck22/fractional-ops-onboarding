@@ -75,33 +75,35 @@ export default function QuestionnairePage() {
   if (showIntro) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-fo-light to-white flex items-center justify-center">
+        <div className="min-h-screen bg-fo-bg-light flex items-center justify-center">
           <div className="max-w-4xl w-full mx-auto px-4 py-8 flex flex-col items-center">
-             {/* Header with Logout Button */}
-             <div className="w-full relative text-center mb-8">
+            <div className="bg-white rounded-lg shadow-sm border border-fo-border p-8 w-full">
+              {/* Header with Logout Button */}
+              <div className="w-full relative text-center mb-8">
                 <button
                   onClick={handleLogout}
                   className="absolute right-0 top-0 text-fo-text-secondary hover:text-fo-primary transition-colors duration-200 text-sm font-medium"
                 >
                   Log Out
                 </button>
-            </div>
+              </div>
 
-            <div className="w-full bg-black rounded-lg overflow-hidden shadow-2xl mb-8 aspect-video">
-              <iframe 
-                src="https://drive.google.com/file/d/1mK4Z7Sp8_t9gU3_WCO5QWmORl4dQXekw/preview" 
-                className="w-full h-full" 
-                allow="autoplay"
-                style={{ border: 'none' }}
-              />
-            </div>
+              <div className="w-full bg-black rounded-lg overflow-hidden shadow-md mb-8 aspect-video">
+                <iframe 
+                  src="https://drive.google.com/file/d/1mK4Z7Sp8_t9gU3_WCO5QWmORl4dQXekw/preview" 
+                  className="w-full h-full" 
+                  allow="autoplay"
+                  style={{ border: 'none' }}
+                />
+              </div>
 
-            <button
-              onClick={handleStart}
-              className="bg-purple-600 hover:bg-purple-700 text-white text-xl font-bold py-4 px-12 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-            >
-              Start Now
-            </button>
+              <button
+                onClick={handleStart}
+                className="bg-fo-primary hover:bg-fo-primary/90 text-white text-xl font-bold py-4 px-12 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-1"
+              >
+                Start Now
+              </button>
+            </div>
           </div>
         </div>
       </ProtectedRoute>
@@ -110,40 +112,42 @@ export default function QuestionnairePage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-fo-light to-white">
+      <div className="min-h-screen bg-fo-bg-light">
         <div className="max-w-4xl mx-auto px-4 py-8">
           {/* Header with Logout Button */}
-          <div className="relative text-center mb-8">
-            <button
-              onClick={handleLogout}
-              className="absolute right-0 top-0 text-fo-text-secondary hover:text-fo-primary transition-colors duration-200 text-sm font-medium"
-            >
-              Log Out
-            </button>
-            <h1 className="text-3xl font-bold text-fo-primary mb-2">
-              10-Steps to Sales Excellence
-            </h1>
-            <p className="text-fo-text-secondary text-sm">
-              {sections[currentSection].title}
-            </p>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="bg-fo-light rounded-full h-3">
-              <div 
-                className="bg-gradient-to-r from-fo-primary to-fo-secondary h-3 rounded-full transition-all duration-300"
-                style={{ width: `${((currentSection + 1) / sections.length) * 100}%` }}
-              ></div>
+          <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6 mb-6">
+            <div className="relative text-center">
+              <button
+                onClick={handleLogout}
+                className="absolute right-0 top-0 text-fo-text-secondary hover:text-fo-primary transition-colors duration-200 text-sm font-medium"
+              >
+                Log Out
+              </button>
+              <h1 className="text-3xl font-bold text-fo-primary mb-2">
+                10-Steps to Sales Excellence
+              </h1>
+              <p className="text-fo-text-secondary text-sm">
+                {sections[currentSection].title}
+              </p>
             </div>
-            <div className="flex justify-between text-sm text-fo-text-secondary mt-2 font-medium">
-              <span>Estimated Time To Finish: {Math.round((25 * (sections.length - currentSection - 1)) / sections.length)} minutes</span>
-              <span>{Math.round(((sections.length - currentSection - 1) / sections.length) * 100)}% Remaining</span>
+
+            {/* Progress Bar */}
+            <div className="mt-6">
+              <div className="bg-fo-light rounded-full h-3">
+                <div 
+                  className="bg-gradient-to-r from-fo-primary to-fo-secondary h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${((currentSection + 1) / sections.length) * 100}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between text-sm text-fo-text-secondary mt-2 font-medium">
+                <span>Estimated Time To Finish: {Math.round((25 * (sections.length - currentSection - 1)) / sections.length)} minutes</span>
+                <span>{Math.round(((sections.length - currentSection - 1) / sections.length) * 100)}% Remaining</span>
+              </div>
             </div>
           </div>
 
           {/* Form */}
-          <div className="bg-white rounded-lg shadow-fo-shadow p-8">
+          <div className="bg-white rounded-lg shadow-sm border border-fo-border p-8">
             <QuestionnaireForm
               section={sections[currentSection]}
               data={questionnaireData[sections[currentSection].id as keyof QuestionnaireData] || {}}

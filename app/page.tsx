@@ -36,61 +36,63 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 bg-gray-100 py-12">
-      <div className="max-w-2xl w-full space-y-8">
-        <div className="text-center">
-          <div className="inline-block relative mb-4">
-            <span className="absolute -top-2 -right-8 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
-              BETA
-            </span>
+    <main className="min-h-screen flex items-center justify-center px-4 bg-fo-bg-light py-12">
+      <div className="max-w-2xl w-full space-y-6">
+        <div className="bg-white rounded-lg shadow-sm border border-fo-border p-8">
+          <div className="text-center mb-6">
+            <div className="inline-block relative mb-4">
+              <span className="absolute -top-2 -right-8 bg-fo-primary text-white text-xs font-bold px-2 py-1 rounded">
+                BETA
+              </span>
+            </div>
+            <div className="mx-auto h-32 w-64 mt-4">
+              <Image
+                src={Logo}
+                alt="Fractional Ops logo"
+                width={256}
+                height={256}
+                priority
+              />
+            </div>
           </div>
-          <div className="mx-auto h-32 w-64 mt-4">
-            <Image
-              src={Logo}
-              alt="Fractional Ops logo"
-              width={256}
-              height={256}
-              priority
-            />
-          </div>
-        </div>
 
-        {/* Claire's Greeting Video */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold text-blue-600 mb-4 text-center">
-            👇 Watch this first!
-          </h2>
-          <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden shadow-md relative">
-            <iframe
-              src="https://drive.google.com/file/d/12e2_ABddNtMe3CcH-rssjR45BSpRTMRE/preview"
-              className="w-full h-full"
-              allow="autoplay"
-              allowFullScreen
-              style={{ border: 'none' }}
-            />
-            {/* Overlay to block download button in top-right corner */}
-            <div 
-              className="absolute top-0 right-0 w-16 h-16 bg-transparent z-10"
-              onClick={(e) => e.preventDefault()}
-            />
+          {/* Claire's Greeting Video */}
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-fo-primary mb-4 text-center">
+              👇 Watch this first!
+            </h2>
+            <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-md relative">
+              <iframe
+                src="https://drive.google.com/file/d/12e2_ABddNtMe3CcH-rssjR45BSpRTMRE/preview"
+                className="w-full h-full"
+                allow="autoplay"
+                allowFullScreen
+                style={{ border: 'none' }}
+              />
+              {/* Overlay to block download button in top-right corner */}
+              <div 
+                className="absolute top-0 right-0 w-16 h-16 bg-transparent z-10"
+                onClick={(e) => e.preventDefault()}
+              />
+            </div>
           </div>
-        </div>
-        
-        <div className="text-left">
-          <button
-            onClick={() => router.push('/signup')}
-            className="w-full px-8 py-3 bg-blue-600 text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 font-semibold text-lg"
-          >
-            Start Now
-          </button>
           
-          <div className="mt-6 text-center">
+          <div className="text-left">
             <button
-              onClick={() => router.push('/signin')}
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              onClick={() => router.push('/signup')}
+              className="w-full px-8 py-3 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fo-primary font-semibold text-lg shadow-md hover:shadow-lg transition-all"
             >
-              Already have an account? Sign In
+              Start Now
             </button>
+            
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => router.push('/signin')}
+                className="text-sm text-fo-text-secondary hover:text-fo-primary transition-colors"
+              >
+                Already have an account? Sign In
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -32,7 +32,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={poppins.className}>
         <QuestionnaireProvider>
-          <div className="min-h-screen bg-gradient-to-br from-fo-light to-white">
+          <div className="min-h-screen bg-fo-bg-light">
             {children}
           </div>
           <Toaster position="top-right" />

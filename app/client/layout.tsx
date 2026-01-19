@@ -134,14 +134,14 @@ export default function ClientLayout({
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-fo-light to-white">
-        {/* Sidebar Navigation */}
+      <div className="min-h-screen bg-fo-bg-light flex">
+        {/* Dark Gray Sidebar Navigation */}
         <aside
-          className={`fixed left-0 top-0 h-full bg-white shadow-lg transition-all duration-300 z-50 ${
+          className={`fixed left-0 top-0 h-full bg-fo-sidebar-dark shadow-xl transition-all duration-300 z-50 ${
             sidebarOpen ? 'w-64' : 'w-20'
           }`}
         >
-          <div className="p-6 border-b border-fo-light">
+          <div className="p-6 border-b border-gray-700">
             <div className="flex items-center justify-between">
               {sidebarOpen && (
                 <div className="flex items-center gap-3">
@@ -153,8 +153,8 @@ export default function ClientLayout({
                     className="rounded"
                   />
                   <div>
-                    <h1 className="text-lg font-bold text-fo-dark">Claire Portal</h1>
-                    <p className="text-xs text-fo-text-secondary">
+                    <h1 className="text-lg font-bold text-white">Claire Portal</h1>
+                    <p className="text-xs text-gray-400">
                       {companyName || 'CEO Dashboard'}
                     </p>
                   </div>
@@ -162,15 +162,17 @@ export default function ClientLayout({
               )}
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 hover:bg-fo-light rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-white"
                 aria-label="Toggle sidebar"
               >
-                {sidebarOpen ? '←' : '→'}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+                </svg>
               </button>
             </div>
           </div>
 
-          <nav className="p-4 space-y-2">
+          <nav className="p-4 space-y-1 mt-4">
             {navItems.map((item) => {
               const isActive = pathname === item.href || 
                 (item.href !== '/client' && pathname?.startsWith(item.href));
@@ -186,11 +188,11 @@ export default function ClientLayout({
                   href={href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     isActive
-                      ? 'bg-fo-primary text-white font-semibold shadow-md'
-                      : 'text-fo-text-secondary hover:bg-fo-light hover:text-fo-primary'
+                      ? 'bg-fo-primary text-white font-semibold shadow-sm'
+                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                   }`}
                 >
-                  <span className="text-xl">{item.icon}</span>
+                  <span className="text-xl flex-shrink-0">{item.icon}</span>
                   {sidebarOpen && <span className="text-sm">{item.label}</span>}
                 </Link>
               );
@@ -198,9 +200,9 @@ export default function ClientLayout({
           </nav>
 
           {sidebarOpen && (
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-fo-light">
-              <div className="text-xs text-fo-text-secondary mb-3">
-                <p className="font-semibold mb-1">Logged in as:</p>
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
+              <div className="text-xs text-gray-400 mb-3">
+                <p className="font-semibold mb-1 text-gray-300">Logged in as:</p>
                 <p className="truncate">{user?.email || 'Loading...'}</p>
               </div>
               <button
@@ -218,7 +220,7 @@ export default function ClientLayout({
                     toast.error('Failed to sign out');
                   }
                 }}
-                className="w-full px-3 py-2 bg-fo-light hover:bg-fo-primary hover:text-white text-fo-text-secondary rounded-lg text-xs font-semibold transition-all"
+                className="w-full px-3 py-2 bg-gray-700 hover:bg-fo-primary text-gray-200 rounded-lg text-xs font-semibold transition-all"
               >
                 Sign Out
               </button>
@@ -226,10 +228,46 @@ export default function ClientLayout({
           )}
         </aside>
 
-        {/* Main Content */}
-        <main className={`transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
-          <div className="p-8">
-            {hasWorkspace === false ? (
+        {/* Main Content Area */}
+        <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
+          {/* Top Navigation Bar */}
+          <header className="bg-white border-b border-fo-border shadow-sm sticky top-0 z-40">
+            <div className="px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors text-fo-text-secondary hover:text-fo-dark lg:hidden"
+                  aria-label="Toggle sidebar"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                <h2 className="text-xl font-semibold text-fo-dark">
+                  {pathname === '/client' && 'Dashboard'}
+                  {pathname === '/client/allbound' && 'Allbound Plays'}
+                  {pathname === '/client/outbound' && 'Outbound Plays'}
+                  {pathname === '/client/nurture' && 'Nurture Plays'}
+                  {pathname === '/client/approvals' && 'Approvals'}
+                  {pathname?.startsWith('/client/approve/') && 'Review Approval'}
+                  {pathname?.match(/\/client\/(allbound|outbound|nurture)\/\d+/) && 'Play Execution'}
+                </h2>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="hidden md:block text-sm text-fo-text-secondary">
+                  {companyName && <span className="font-medium">{companyName}</span>}
+                </div>
+                <div className="w-8 h-8 rounded-full bg-fo-primary flex items-center justify-center text-white font-semibold text-sm shadow-sm">
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="bg-fo-bg-light min-h-[calc(100vh-73px)]">
+            <div className="p-6 max-w-7xl mx-auto">
+              {hasWorkspace === false ? (
               <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-lg shadow-md p-12 text-center">
                   <div className="mb-6">
@@ -280,8 +318,9 @@ export default function ClientLayout({
             ) : (
               children
             )}
-          </div>
-        </main>
+            </div>
+          </main>
+        </div>
       </div>
     </ProtectedRoute>
   );

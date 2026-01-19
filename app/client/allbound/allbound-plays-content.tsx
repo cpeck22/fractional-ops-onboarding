@@ -67,11 +67,6 @@ export default function AllboundPlaysPageContent() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-fo-dark mb-2">Allbound Plays</h1>
-        <p className="text-fo-text-secondary">Trigger-based automations that respond to prospect activities</p>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plays.map((play) => {
           const isDisabled = play.documentation_status === 'Blocked' || 
@@ -80,11 +75,14 @@ export default function AllboundPlaysPageContent() {
           return (
             <Link
               key={play.code}
-              href={isDisabled ? '#' : `/client/allbound/${play.code}`}
-              className={`bg-white rounded-lg shadow-md p-6 border-2 transition-all ${
+              href={isDisabled ? '#' : impersonateUserId 
+                ? `/client/allbound/${play.code}?impersonate=${impersonateUserId}` 
+                : `/client/allbound/${play.code}`
+              }
+              className={`bg-white rounded-lg shadow-sm p-6 border transition-all ${
                 isDisabled
-                  ? 'border-fo-light opacity-60 cursor-not-allowed'
-                  : 'border-fo-light hover:border-fo-primary hover:shadow-lg cursor-pointer'
+                  ? 'border-fo-border opacity-60 cursor-not-allowed'
+                  : 'border-fo-border hover:border-fo-primary hover:shadow-md cursor-pointer'
               }`}
               onClick={(e) => {
                 if (isDisabled) {
@@ -114,7 +112,7 @@ export default function AllboundPlaysPageContent() {
       </div>
 
       {plays.length === 0 && (
-        <div className="bg-white rounded-lg shadow-md p-12 text-center">
+        <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-fo-border">
           <p className="text-fo-text-secondary text-lg">No allbound plays available</p>
         </div>
       )}

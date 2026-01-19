@@ -92,7 +92,7 @@ export default function ApprovalsPageContent() {
     const badges: Record<string, { color: string; label: string }> = {
       'pending_approval': { color: 'bg-fo-orange/20 text-fo-orange', label: '⏳ Pending' },
       'approved': { color: 'bg-fo-green/20 text-fo-green', label: '✅ Approved' },
-      'rejected': { color: 'bg-red-100 text-red-800', label: '❌ Rejected' },
+      'rejected': { color: 'bg-fo-tertiary-4/20 text-fo-tertiary-4', label: '❌ Rejected' },
       'draft': { color: 'bg-fo-light text-fo-text-secondary', label: '📝 Draft' },
     };
     
@@ -126,28 +126,27 @@ export default function ApprovalsPageContent() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-fo-dark mb-2">Approvals Dashboard</h1>
-        <p className="text-fo-text-secondary">Review and manage your play approvals</p>
-      </div>
-
       {/* Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <Link
           href={impersonateUserId 
             ? `/client/approvals?status=pending_approval&impersonate=${impersonateUserId}` 
             : '/client/approvals?status=pending_approval'
           }
-          className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${
-            statusFilter === 'pending_approval' ? 'border-fo-orange' : 'border-fo-light'
-          } hover:shadow-lg transition-shadow`}
+          className={`bg-white rounded-lg shadow-sm p-6 border ${
+            statusFilter === 'pending_approval' ? 'border-fo-orange' : 'border-fo-border'
+          } hover:shadow-md transition-all cursor-pointer`}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-1">Pending</p>
+              <p className="text-sm text-fo-text-secondary mb-2">Pending</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.pending}</p>
             </div>
-            <span className="text-4xl">⏳</span>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              statusFilter === 'pending_approval' ? 'bg-fo-orange/10' : 'bg-fo-orange/5'
+            }`}>
+              <span className="text-2xl">⏳</span>
+            </div>
           </div>
         </Link>
 
@@ -156,16 +155,20 @@ export default function ApprovalsPageContent() {
             ? `/client/approvals?status=approved&impersonate=${impersonateUserId}` 
             : '/client/approvals?status=approved'
           }
-          className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${
-            statusFilter === 'approved' ? 'border-fo-green' : 'border-fo-light'
-          } hover:shadow-lg transition-shadow`}
+          className={`bg-white rounded-lg shadow-sm p-6 border ${
+            statusFilter === 'approved' ? 'border-fo-green' : 'border-fo-border'
+          } hover:shadow-md transition-all cursor-pointer`}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-1">Approved</p>
+              <p className="text-sm text-fo-text-secondary mb-2">Approved</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.approved}</p>
             </div>
-            <span className="text-4xl">✅</span>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              statusFilter === 'approved' ? 'bg-fo-green/10' : 'bg-fo-green/5'
+            }`}>
+              <span className="text-2xl">✅</span>
+            </div>
           </div>
         </Link>
 
@@ -174,16 +177,20 @@ export default function ApprovalsPageContent() {
             ? `/client/approvals?status=rejected&impersonate=${impersonateUserId}` 
             : '/client/approvals?status=rejected'
           }
-          className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${
-            statusFilter === 'rejected' ? 'border-red-500' : 'border-fo-light'
-          } hover:shadow-lg transition-shadow`}
+          className={`bg-white rounded-lg shadow-sm p-6 border ${
+            statusFilter === 'rejected' ? 'border-fo-tertiary-4' : 'border-fo-border'
+          } hover:shadow-md transition-all cursor-pointer`}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-1">Rejected</p>
+              <p className="text-sm text-fo-text-secondary mb-2">Rejected</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.rejected}</p>
             </div>
-            <span className="text-4xl">❌</span>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              statusFilter === 'rejected' ? 'bg-fo-tertiary-4/10' : 'bg-fo-tertiary-4/5'
+            }`}>
+              <span className="text-2xl">❌</span>
+            </div>
           </div>
         </Link>
 
@@ -192,22 +199,26 @@ export default function ApprovalsPageContent() {
             ? `/client/approvals?status=draft&impersonate=${impersonateUserId}` 
             : '/client/approvals?status=draft'
           }
-          className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${
-            statusFilter === 'draft' ? 'border-fo-primary' : 'border-fo-light'
-          } hover:shadow-lg transition-shadow`}
+          className={`bg-white rounded-lg shadow-sm p-6 border ${
+            statusFilter === 'draft' ? 'border-fo-primary' : 'border-fo-border'
+          } hover:shadow-md transition-all cursor-pointer`}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-1">Draft</p>
+              <p className="text-sm text-fo-text-secondary mb-2">Draft</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.draft}</p>
             </div>
-            <span className="text-4xl">📝</span>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              statusFilter === 'draft' ? 'bg-fo-primary/10' : 'bg-fo-primary/5'
+            }`}>
+              <span className="text-2xl">📝</span>
+            </div>
           </div>
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-fo-border">
         <div className="flex flex-wrap gap-4">
           <select
             value={statusFilter}
@@ -224,7 +235,7 @@ export default function ApprovalsPageContent() {
               }
               window.location.href = `/client/approvals?${params.toString()}`;
             }}
-            className="px-4 py-2 border border-fo-light rounded-lg focus:outline-none focus:ring-2 focus:ring-fo-primary"
+            className="px-4 py-2 border border-fo-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-fo-primary"
           >
             <option value="all">All Statuses</option>
             <option value="pending_approval">Pending Approval</option>
@@ -248,7 +259,7 @@ export default function ApprovalsPageContent() {
               }
               window.location.href = `/client/approvals?${params.toString()}`;
             }}
-            className="px-4 py-2 border border-fo-light rounded-lg focus:outline-none focus:ring-2 focus:ring-fo-primary"
+            className="px-4 py-2 border border-fo-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-fo-primary"
           >
             <option value="all">All Categories</option>
             <option value="allbound">Allbound</option>
@@ -259,8 +270,8 @@ export default function ApprovalsPageContent() {
       </div>
 
       {/* Executions List */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold text-fo-dark mb-4">Approval Requests</h2>
+      <div className="bg-white rounded-lg shadow-sm p-6 border border-fo-border">
+        <h2 className="text-lg font-semibold text-fo-dark mb-4">Approval Requests</h2>
         
         {executions.length === 0 ? (
           <div className="text-center py-12">
@@ -282,7 +293,7 @@ export default function ApprovalsPageContent() {
                     ? `/client/approve/${approval?.shareable_token || execution.id}?impersonate=${impersonateUserId}` 
                     : `/client/approve/${approval?.shareable_token || execution.id}`
                   }
-                  className="block p-6 border border-fo-light rounded-lg hover:bg-fo-light transition-colors"
+                  className="block p-6 border border-fo-border rounded-lg hover:bg-fo-bg-light transition-colors bg-white"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -294,7 +305,7 @@ export default function ApprovalsPageContent() {
                           {statusBadge.label}
                         </span>
                         {approval?.due_date && isOverdue(approval.due_date) && (
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-800">
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-fo-tertiary-4/20 text-fo-tertiary-4">
                             ⚠️ Overdue
                           </span>
                         )}
@@ -310,7 +321,7 @@ export default function ApprovalsPageContent() {
                           <span>Executed: {formatDate(execution.executed_at)}</span>
                         )}
                         {approval?.due_date && (
-                          <span className={isOverdue(approval.due_date) ? 'text-red-600 font-semibold' : ''}>
+                          <span className={isOverdue(approval.due_date) ? 'text-fo-tertiary-4 font-semibold' : ''}>
                             Due: {formatDate(approval.due_date)}
                           </span>
                         )}

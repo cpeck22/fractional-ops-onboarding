@@ -97,27 +97,24 @@ export default function ClientDashboardContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-fo-dark mb-2">Welcome to Claire Portal</h1>
-        <p className="text-fo-text-secondary">Manage your AI-powered marketing plays and approvals</p>
-      </div>
-
+    <div className="w-full">
       {/* Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <Link 
           href={impersonateUserId 
             ? `/client/approvals?status=pending_approval&impersonate=${impersonateUserId}` 
             : '/client/approvals?status=pending_approval'
           } 
-          className="bg-white rounded-lg shadow-md p-6 border-l-4 border-fo-orange hover:shadow-lg transition-shadow"
+          className="bg-white rounded-lg shadow-sm p-6 border border-fo-border hover:shadow-md transition-all cursor-pointer hover:border-fo-primary/30"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-1">Pending Approval</p>
+              <p className="text-sm text-fo-text-secondary mb-2">Pending Approval</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.pendingApproval}</p>
             </div>
-            <span className="text-4xl">⏳</span>
+            <div className="w-12 h-12 rounded-full bg-fo-tertiary-4/10 flex items-center justify-center">
+              <span className="text-2xl">⏳</span>
+            </div>
           </div>
         </Link>
 
@@ -126,14 +123,16 @@ export default function ClientDashboardContent() {
             ? `/client/approvals?status=approved&impersonate=${impersonateUserId}` 
             : '/client/approvals?status=approved'
           } 
-          className="bg-white rounded-lg shadow-md p-6 border-l-4 border-fo-green hover:shadow-lg transition-shadow"
+          className="bg-white rounded-lg shadow-sm p-6 border border-fo-border hover:shadow-md transition-all cursor-pointer hover:border-fo-primary/30"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-1">Approved</p>
+              <p className="text-sm text-fo-text-secondary mb-2">Approved</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.approved}</p>
             </div>
-            <span className="text-4xl">✅</span>
+            <div className="w-12 h-12 rounded-full bg-fo-green/10 flex items-center justify-center">
+              <span className="text-2xl">✅</span>
+            </div>
           </div>
         </Link>
 
@@ -142,35 +141,42 @@ export default function ClientDashboardContent() {
             ? `/client/approvals?status=draft&impersonate=${impersonateUserId}` 
             : '/client/approvals?status=draft'
           } 
-          className="bg-white rounded-lg shadow-md p-6 border-l-4 border-fo-primary hover:shadow-lg transition-shadow"
+          className="bg-white rounded-lg shadow-sm p-6 border border-fo-border hover:shadow-md transition-all cursor-pointer hover:border-fo-primary/30"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-1">Draft</p>
+              <p className="text-sm text-fo-text-secondary mb-2">Draft</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.draft}</p>
             </div>
-            <span className="text-4xl">📝</span>
+            <div className="w-12 h-12 rounded-full bg-fo-primary/10 flex items-center justify-center">
+              <span className="text-2xl">📝</span>
+            </div>
           </div>
         </Link>
 
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-fo-secondary hover:shadow-lg transition-shadow">
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-fo-border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-fo-text-secondary mb-1">Total Plays</p>
+              <p className="text-sm text-fo-text-secondary mb-2">Total Plays</p>
               <p className="text-3xl font-bold text-fo-dark">{stats.totalExecutions}</p>
             </div>
-            <span className="text-4xl">🎯</span>
+            <div className="w-12 h-12 rounded-full bg-fo-secondary/10 flex items-center justify-center">
+              <span className="text-2xl">🎯</span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-bold text-fo-dark mb-4">Quick Actions</h2>
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-fo-border">
+        <h2 className="text-lg font-semibold text-fo-dark mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link
-            href="/client/allbound"
-            className="p-4 border-2 border-fo-light rounded-lg hover:border-fo-primary hover:bg-fo-light transition-all"
+            href={impersonateUserId 
+              ? `/client/allbound?impersonate=${impersonateUserId}` 
+              : '/client/allbound'
+            }
+            className="p-4 border border-fo-border rounded-lg hover:border-fo-primary hover:shadow-sm transition-all bg-white"
           >
             <div className="text-2xl mb-2">🔄</div>
             <h3 className="font-semibold text-fo-dark mb-1">Allbound Plays</h3>
@@ -178,8 +184,11 @@ export default function ClientDashboardContent() {
           </Link>
 
           <Link
-            href="/client/outbound"
-            className="p-4 border-2 border-fo-light rounded-lg hover:border-fo-primary hover:bg-fo-light transition-all"
+            href={impersonateUserId 
+              ? `/client/outbound?impersonate=${impersonateUserId}` 
+              : '/client/outbound'
+            }
+            className="p-4 border border-fo-border rounded-lg hover:border-fo-primary hover:shadow-sm transition-all bg-white"
           >
             <div className="text-2xl mb-2">📤</div>
             <h3 className="font-semibold text-fo-dark mb-1">Outbound Plays</h3>
@@ -187,8 +196,11 @@ export default function ClientDashboardContent() {
           </Link>
 
           <Link
-            href="/client/nurture"
-            className="p-4 border-2 border-fo-light rounded-lg hover:border-fo-primary hover:bg-fo-light transition-all"
+            href={impersonateUserId 
+              ? `/client/nurture?impersonate=${impersonateUserId}` 
+              : '/client/nurture'
+            }
+            className="p-4 border border-fo-border rounded-lg hover:border-fo-primary hover:shadow-sm transition-all bg-white"
           >
             <div className="text-2xl mb-2">💚</div>
             <h3 className="font-semibold text-fo-dark mb-1">Nurture Plays</h3>
@@ -198,37 +210,49 @@ export default function ClientDashboardContent() {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold text-fo-dark mb-4">Recent Activity</h2>
+      <div className="bg-white rounded-lg shadow-sm p-6 border border-fo-border">
+        <h2 className="text-lg font-semibold text-fo-dark mb-4">Recent Activity</h2>
         {recentExecutions.length === 0 ? (
           <p className="text-fo-text-secondary text-center py-8">
-            No plays executed yet. <Link href="/client/allbound" className="text-fo-primary hover:underline">Get started</Link>
+            No plays executed yet. <Link 
+              href={impersonateUserId 
+                ? `/client/allbound?impersonate=${impersonateUserId}` 
+                : '/client/allbound'
+              } 
+              className="text-fo-primary hover:underline"
+            >Get started</Link>
           </p>
         ) : (
           <div className="space-y-3">
-            {recentExecutions.map((execution) => (
-              <Link
-                key={execution.id}
-                href={`/client/${execution.claire_plays?.category || 'allbound'}/${execution.claire_plays?.code || 'unknown'}/${execution.id}`}
-                className="flex items-center justify-between p-4 border border-fo-light rounded-lg hover:bg-fo-light transition-colors"
-              >
-                <div>
-                  <p className="font-semibold text-fo-dark">
-                    {execution.claire_plays?.name || `Play ${execution.claire_plays?.code || 'Unknown'}`}
-                  </p>
-                  <p className="text-sm text-fo-text-secondary">
-                    {new Date(execution.created_at).toLocaleDateString()} • Status: {execution.status}
-                  </p>
-                </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  execution.status === 'approved' ? 'bg-fo-green/20 text-fo-green' :
-                  execution.status === 'pending_approval' ? 'bg-fo-orange/20 text-fo-orange' :
-                  'bg-fo-light text-fo-text-secondary'
-                }`}>
-                  {execution.status}
-                </span>
-              </Link>
-            ))}
+            {recentExecutions.map((execution) => {
+              const executionUrl = impersonateUserId 
+                ? `/client/${execution.claire_plays?.category || 'allbound'}/${execution.claire_plays?.code || 'unknown'}/${execution.id}?impersonate=${impersonateUserId}`
+                : `/client/${execution.claire_plays?.category || 'allbound'}/${execution.claire_plays?.code || 'unknown'}/${execution.id}`;
+              
+              return (
+                <Link
+                  key={execution.id}
+                  href={executionUrl}
+                  className="flex items-center justify-between p-4 border border-fo-border rounded-lg hover:bg-fo-bg-light transition-colors bg-white"
+                >
+                  <div>
+                    <p className="font-semibold text-fo-dark">
+                      {execution.claire_plays?.name || `Play ${execution.claire_plays?.code || 'Unknown'}`}
+                    </p>
+                    <p className="text-sm text-fo-text-secondary">
+                      {new Date(execution.created_at).toLocaleDateString()} • Status: {execution.status}
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    execution.status === 'approved' ? 'bg-fo-tertiary-3/20 text-fo-tertiary-3' :
+                    execution.status === 'pending_approval' ? 'bg-fo-tertiary-4/20 text-fo-tertiary-4' :
+                    'bg-fo-light text-fo-text-secondary'
+                  }`}>
+                    {execution.status}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

@@ -197,7 +197,7 @@ export default function ApprovalPage() {
 
   if (!execution || !approval) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-12 text-center">
+      <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-fo-border">
         <p className="text-fo-text-secondary text-lg mb-4">Approval not found</p>
         <Link 
           href={impersonateUserId 
@@ -224,21 +224,21 @@ export default function ApprovalPage() {
             ? `/client/approvals?impersonate=${impersonateUserId}` 
             : '/client/approvals'
           } 
-          className="text-fo-primary hover:underline mb-2 inline-block"
+          className="text-fo-primary hover:underline mb-4 inline-block"
         >
           ← Back to approvals
         </Link>
-        <h1 className="text-3xl font-bold text-fo-dark mb-2">Review Approval Request</h1>
+        <h1 className="text-2xl font-semibold text-fo-dark mb-2">Review Approval Request</h1>
         <p className="text-fo-text-secondary">
           Play: {execution.claire_plays?.name} ({execution.claire_plays?.code})
         </p>
       </div>
 
       {/* Status Banner */}
-      <div className={`bg-white rounded-lg shadow-md p-6 mb-6 border-l-4 ${
+      <div className={`bg-white rounded-lg shadow-sm p-6 mb-6 border ${
         approval.status === 'approved' ? 'border-fo-green' :
-        approval.status === 'rejected' ? 'border-red-500' :
-        isOverdue ? 'border-red-500' :
+        approval.status === 'rejected' ? 'border-fo-tertiary-4' :
+        isOverdue ? 'border-fo-tertiary-4' :
         'border-fo-orange'
       }`}>
         <div className="flex items-center justify-between">
@@ -252,13 +252,13 @@ export default function ApprovalPage() {
             {approval.due_date && (
               <p className="text-sm text-fo-text-secondary">
                 Due Date: {new Date(approval.due_date).toLocaleDateString()}
-                {isOverdue && <span className="text-red-600 font-semibold ml-2">(Overdue)</span>}
+                {isOverdue && <span className="text-fo-tertiary-4 font-semibold ml-2">(Overdue)</span>}
               </p>
             )}
           </div>
           <span className={`px-4 py-2 rounded-lg font-semibold ${
             approval.status === 'approved' ? 'bg-fo-green/20 text-fo-green' :
-            approval.status === 'rejected' ? 'bg-red-100 text-red-800' :
+            approval.status === 'rejected' ? 'bg-fo-tertiary-4/20 text-fo-tertiary-4' :
             'bg-fo-orange/20 text-fo-orange'
           }`}>
             {approval.status}
@@ -267,8 +267,8 @@ export default function ApprovalPage() {
       </div>
 
       {/* Output Display */}
-      <div className="bg-white rounded-lg shadow-md p-8 mb-6">
-        <h2 className="text-xl font-bold text-fo-dark mb-4">Generated Output</h2>
+      <div className="bg-white rounded-lg shadow-sm p-8 mb-6 border border-fo-border">
+        <h2 className="text-lg font-semibold text-fo-dark mb-4">Generated Output</h2>
         <div 
           className="prose max-w-none bg-fo-light/30 p-6 rounded-lg whitespace-pre-wrap"
           dangerouslySetInnerHTML={{ 
@@ -278,8 +278,8 @@ export default function ApprovalPage() {
       </div>
 
       {/* Variable Legend */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h3 className="text-lg font-bold text-fo-dark mb-4">Variable Legend</h3>
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-fo-border">
+        <h3 className="text-base font-semibold text-fo-dark mb-4">Variable Legend</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm font-semibold text-fo-dark mb-2">Octave Elements</p>
@@ -302,8 +302,8 @@ export default function ApprovalPage() {
 
       {/* Approval Actions */}
       {canApprove && (
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h2 className="text-xl font-bold text-fo-dark mb-4">Your Decision</h2>
+        <div className="bg-white rounded-lg shadow-sm p-8 border border-fo-border">
+          <h2 className="text-lg font-semibold text-fo-dark mb-4">Your Decision</h2>
           
           <div className="mb-6">
             <label className="block text-sm font-semibold text-fo-dark mb-2">
@@ -314,7 +314,7 @@ export default function ApprovalPage() {
               onChange={(e) => setComments(e.target.value)}
               placeholder="Add your comments or feedback..."
               rows={4}
-              className="w-full px-4 py-2 border border-fo-light rounded-lg focus:outline-none focus:ring-2 focus:ring-fo-primary"
+              className="w-full px-4 py-2 border border-fo-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-fo-primary"
             />
           </div>
 
@@ -329,7 +329,7 @@ export default function ApprovalPage() {
             <button
               onClick={handleReject}
               disabled={rejecting || !comments.trim()}
-              className="flex-1 px-6 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:opacity-50 transition-all"
+              className="flex-1 px-6 py-3 bg-fo-tertiary-4 text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:opacity-50 transition-all"
             >
               {rejecting ? 'Rejecting...' : '❌ Reject'}
             </button>
