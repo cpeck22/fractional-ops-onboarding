@@ -107,14 +107,22 @@ export async function GET(request: NextRequest) {
       dbPlays.forEach(dbPlay => {
         // Find matching hardcoded play to ensure correct name and category
         const hardcodedPlay = HARDCODED_PLAYS.find(p => p.code === dbPlay.code);
-        playMap.set(dbPlay.code, {
-          ...dbPlay,
-          // Override with hardcoded name and category if they exist (hardcoded is source of truth)
-          name: hardcodedPlay?.name || dbPlay.name,
-          category: hardcodedPlay?.category || dbPlay.category,
-          documentation_status: hardcodedPlay?.documentation_status || dbPlay.documentation_status,
-          content_agent_status: hardcodedPlay?.content_agent_status || dbPlay.content_agent_status
-        });
+        
+        // Use hardcoded category as source of truth (it's the correct category)
+        const correctCategory = hardcodedPlay?.category || dbPlay.category;
+        
+        // Only include database play if it matches the requested category filter
+        // This prevents plays from appearing in wrong categories
+        if (!category || correctCategory === category) {
+          playMap.set(dbPlay.code, {
+            ...dbPlay,
+            // Override with hardcoded name and category if they exist (hardcoded is source of truth)
+            name: hardcodedPlay?.name || dbPlay.name,
+            category: correctCategory, // Always use hardcoded category as source of truth
+            documentation_status: hardcodedPlay?.documentation_status || dbPlay.documentation_status,
+            content_agent_status: hardcodedPlay?.content_agent_status || dbPlay.content_agent_status
+          });
+        }
       });
     }
     
