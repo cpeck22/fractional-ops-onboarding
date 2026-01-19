@@ -32,7 +32,7 @@ const adminTools: AdminTool[] = [
     description: 'Browse and view all client strategies created by Claire',
     icon: LayoutDashboard,
     href: '/admin/strategies',
-    color: 'from-blue-500 to-blue-600'
+    color: 'from-fo-primary to-fo-secondary'
   },
   {
     id: 'rerun-agent',
@@ -40,7 +40,7 @@ const adminTools: AdminTool[] = [
     description: 'Regenerate specific agent outputs for a client (Call Prep, etc.)',
     icon: RefreshCw,
     href: '/admin/rerun-agent',
-    color: 'from-orange-500 to-orange-600'
+    color: 'from-fo-primary to-fo-secondary'
   },
   {
     id: 'claire-plays',
@@ -56,7 +56,7 @@ const adminTools: AdminTool[] = [
     description: 'Access client Claire portals as an admin',
     icon: Users,
     href: '/admin/clients',
-    color: 'from-green-500 to-green-600'
+    color: 'from-fo-primary to-fo-secondary'
   }
 ];
 
