@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
-import { Clock, CheckCircle2, XCircle, AlertTriangle, ChevronLeft, Check, X } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, AlertTriangle, ChevronLeft, Check, X, Eye, EyeOff } from 'lucide-react';
 import { renderHighlightedContent, hasHighlights } from '@/lib/render-highlights';
 
 interface Execution {
@@ -42,6 +42,7 @@ export default function ApprovalPage() {
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [comments, setComments] = useState('');
+  const [highlightsEnabled, setHighlightsEnabled] = useState(true);
 
   const loadApproval = useCallback(async () => {
     try {
@@ -185,19 +186,19 @@ export default function ApprovalPage() {
   };
 
   // Get display content with highlighting
-  const getDisplayContent = () => {
+  const getDisplayContent = useCallback(() => {
     if (!execution) return '';
     
     const rawContent = execution.edited_output?.content || execution.output?.content || JSON.stringify(execution.output || {}, null, 2);
     const highlightedHtml = execution.edited_output?.highlighted_html || execution.output?.highlighted_html;
     
-    // Use highlighted version if available, otherwise fallback to plain
-    if (highlightedHtml && hasHighlights(highlightedHtml)) {
+    // Use highlighted version if enabled and available, otherwise fallback to plain
+    if (highlightsEnabled && highlightedHtml && hasHighlights(highlightedHtml)) {
       return renderHighlightedContent(highlightedHtml);
     }
     
     return rawContent.replace(/\n/g, '<br/>').replace(/ /g, '&nbsp;');
-  };
+  }, [execution, highlightsEnabled]);
 
   if (loading) {
     return (
@@ -302,55 +303,38 @@ export default function ApprovalPage() {
 
       {/* Output Display */}
       <div className="bg-white rounded-lg shadow-sm p-8 mb-6 border border-fo-border">
-        <h2 className="text-lg font-semibold text-fo-dark mb-4">Generated Output</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-fo-dark">Generated Output</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setHighlightsEnabled(!highlightsEnabled)}
+              className={`px-4 py-2 rounded-lg transition-all inline-flex items-center gap-2 ${
+                highlightsEnabled
+                  ? 'bg-fo-primary text-white hover:bg-fo-primary/90'
+                  : 'bg-fo-light text-fo-dark hover:bg-fo-primary hover:text-white'
+              }`}
+              title={highlightsEnabled ? 'Hide highlights' : 'Show highlights'}
+            >
+              {highlightsEnabled ? (
+                <>
+                  <Eye className="w-4 h-4" strokeWidth={2} />
+                  Highlights On
+                </>
+              ) : (
+                <>
+                  <EyeOff className="w-4 h-4" strokeWidth={2} />
+                  Highlights Off
+                </>
+              )}
+            </button>
+          </div>
+        </div>
         <div 
           className="prose max-w-none bg-fo-light/30 p-6 rounded-lg whitespace-pre-wrap"
           dangerouslySetInnerHTML={{ 
             __html: getDisplayContent()
           }}
         />
-      </div>
-
-      {/* Highlight Legend */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-fo-border">
-        <h3 className="text-base font-semibold text-fo-dark mb-4">Highlight Legend</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm font-semibold text-fo-dark mb-2">Octave Elements</p>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Persona</span>
-                <span className="text-xs text-fo-text-secondary">Target audience</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Segment</span>
-                <span className="text-xs text-fo-text-secondary">Company size/industry</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Use Case (Outcome)</span>
-                <span className="text-xs text-fo-text-secondary">Desired outcome</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">Use Case (Blocker)</span>
-                <span className="text-xs text-fo-text-secondary">Problem/blocker</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-block bg-fo-primary/20 text-fo-primary px-2 py-1 rounded text-xs font-semibold">CTA (Lead Magnet)</span>
-                <span className="text-xs text-fo-text-secondary">Call-to-action</span>
-              </div>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-fo-dark mb-2">Personalization</p>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="inline-block bg-fo-orange/20 text-fo-orange px-2 py-1 rounded text-xs font-semibold">Personalized</span>
-                <span className="text-xs text-fo-text-secondary">Claire generated info</span>
-              </div>
-              <p className="text-xs text-fo-text-secondary mt-4 italic">Hover over highlighted text to see details</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Approval Actions */}

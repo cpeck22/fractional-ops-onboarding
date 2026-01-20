@@ -8,30 +8,30 @@ export function renderHighlightedContent(highlightedXml: string): string {
   let html = highlightedXml;
   
   // Map XML tags to styled HTML spans with appropriate colors
-  // Octave Elements (blue/primary)
+  // Claire Elements (matching CEO screenshot colors)
   html = html.replace(/<persona>(.*?)<\/persona>/gi, (match, content) => {
-    return `<span class="bg-fo-primary/20 text-fo-primary font-semibold px-1 rounded cursor-help" title="Persona: ${escapeHtml(content)}">${content}</span>`;
+    return `<span class="bg-highlight-persona text-fo-dark font-semibold px-1 rounded cursor-help" title="Persona: ${escapeHtml(content)}">${content}</span>`;
   });
   
   html = html.replace(/<segment>(.*?)<\/segment>/gi, (match, content) => {
-    return `<span class="bg-fo-primary/20 text-fo-primary font-semibold px-1 rounded cursor-help" title="Segment: ${escapeHtml(content)}">${content}</span>`;
+    return `<span class="bg-highlight-segment text-fo-dark font-semibold px-1 rounded cursor-help" title="Segment: ${escapeHtml(content)}">${content}</span>`;
   });
   
   html = html.replace(/<usecase_outcome>(.*?)<\/usecase_outcome>/gi, (match, content) => {
-    return `<span class="bg-fo-primary/20 text-fo-primary font-semibold px-1 rounded cursor-help" title="Use Case (Desired Outcome): ${escapeHtml(content)}">${content}</span>`;
+    return `<span class="bg-highlight-outcome text-fo-dark font-semibold px-1 rounded cursor-help" title="Use Case (Desired Outcome): ${escapeHtml(content)}">${content}</span>`;
   });
   
   html = html.replace(/<usecase_blocker>(.*?)<\/usecase_blocker>/gi, (match, content) => {
-    return `<span class="bg-fo-primary/20 text-fo-primary font-semibold px-1 rounded cursor-help" title="Use Case (Problem/Blocker): ${escapeHtml(content)}">${content}</span>`;
+    return `<span class="bg-highlight-blocker text-fo-dark font-semibold px-1 rounded cursor-help" title="Use Case (Problem/Blocker): ${escapeHtml(content)}">${content}</span>`;
   });
   
   html = html.replace(/<cta_leadmagnet>(.*?)<\/cta_leadmagnet>/gi, (match, content) => {
-    return `<span class="bg-fo-primary/20 text-fo-primary font-semibold px-1 rounded cursor-help" title="CTA (Lead Magnet): ${escapeHtml(content)}">${content}</span>`;
+    return `<span class="bg-highlight-cta text-fo-dark font-semibold px-1 rounded cursor-help" title="CTA (Lead Magnet): ${escapeHtml(content)}">${content}</span>`;
   });
   
-  // Personalization (orange)
+  // Claire Content Agent Personalization (light purple)
   html = html.replace(/<personalization>(.*?)<\/personalization>/gi, (match, content) => {
-    return `<span class="bg-fo-orange/20 text-fo-orange font-semibold px-1 rounded cursor-help" title="Personalized / Claire Generated Info: ${escapeHtml(content)}">${content}</span>`;
+    return `<span class="bg-highlight-personalized text-fo-dark font-semibold px-1 rounded cursor-help" title="Personalized / Claire Generated Info: ${escapeHtml(content)}">${content}</span>`;
   });
   
   // Handle nested tags (if any) - process personalization first since it might be nested
