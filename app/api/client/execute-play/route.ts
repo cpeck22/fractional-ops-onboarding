@@ -364,6 +364,60 @@ export async function POST(request: NextRequest) {
       // Don't fail the request, just log the error
     }
     
+    // Trigger highlighting asynchronously (fire and forget) to avoid timeout
+    // This runs in the background and updates the execution when complete
+    if (execution?.id) {
+      // Don't await - let this run in background
+      (async () => {
+        try {
+          // Fetch full workspace data to get persona/use case details for highlighting
+          const { data: fullWorkspaceData } = await supabaseAdmin
+            .from('octave_outputs')
+            .select('personas, use_cases, client_references')
+            .eq('user_id', effectiveUserId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+          
+          // Map runtime context to full details for highlighting
+          const highlightingContext = {
+            personas: runtimeContext.personas?.map((p: any) => {
+              const fullPersona = fullWorkspaceData?.personas?.find((wp: any) => wp.oId === p.oId);
+              return fullPersona || p;
+            }) || [],
+            useCases: runtimeContext.useCases?.map((uc: any) => {
+              const fullUseCase = fullWorkspaceData?.use_cases?.find((wuc: any) => wuc.oId === uc.oId);
+              return fullUseCase || uc;
+            }) || [],
+            clientReferences: runtimeContext.clientReferences?.map((r: any) => {
+              const fullRef = fullWorkspaceData?.client_references?.find((wr: any) => wr.oId === r.oId);
+              return fullRef || r;
+            }) || []
+          };
+          
+          const highlightedHtml = await highlightOutput(rawOutputContent, highlightingContext);
+          
+          // Update execution with highlighted version
+          await supabaseAdmin
+            .from('play_executions')
+            .update({
+              output: {
+                ...output,
+                highlighted_html: highlightedHtml
+              }
+            })
+            .eq('id', execution.id);
+          
+          console.log('✅ Output highlighted and saved asynchronously');
+        } catch (highlightError: any) {
+          console.error('⚠️ Error highlighting output in background:', highlightError.message);
+          // Silently fail - execution already saved without highlighting
+        }
+      })().catch(err => {
+        console.error('⚠️ Background highlighting task error:', err);
+      });
+    }
+    
     return NextResponse.json({
       success: true,
       execution: {
