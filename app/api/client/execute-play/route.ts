@@ -302,44 +302,10 @@ export async function POST(request: NextRequest) {
     // Extract output from agent response
     const rawOutputContent = agentResponse.data?.content || '';
     
-    // Generate highlighted version using OpenAI
-    let highlightedHtml = rawOutputContent;
-    try {
-      // Fetch full workspace data to get persona/use case details for highlighting
-      const { data: fullWorkspaceData } = await supabaseAdmin
-        .from('octave_outputs')
-        .select('personas, use_cases, client_references')
-        .eq('user_id', effectiveUserId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-      
-      // Map runtime context to full details for highlighting
-      const highlightingContext = {
-        personas: runtimeContext.personas?.map((p: any) => {
-          const fullPersona = fullWorkspaceData?.personas?.find((wp: any) => wp.oId === p.oId);
-          return fullPersona || p;
-        }) || [],
-        useCases: runtimeContext.useCases?.map((uc: any) => {
-          const fullUseCase = fullWorkspaceData?.use_cases?.find((wuc: any) => wuc.oId === uc.oId);
-          return fullUseCase || uc;
-        }) || [],
-        clientReferences: runtimeContext.clientReferences?.map((r: any) => {
-          const fullRef = fullWorkspaceData?.client_references?.find((wr: any) => wr.oId === r.oId);
-          return fullRef || r;
-        }) || []
-      };
-      
-      highlightedHtml = await highlightOutput(rawOutputContent, highlightingContext);
-      console.log('✅ Output highlighted successfully');
-    } catch (highlightError: any) {
-      console.error('⚠️ Error highlighting output (continuing with unhighlighted):', highlightError.message);
-      // Continue with unhighlighted content if highlighting fails
-    }
-    
+    // Save execution immediately (without highlighting to avoid timeout)
     const output = {
       content: rawOutputContent,
-      highlighted_html: highlightedHtml, // Store highlighted version
+      highlighted_html: rawOutputContent, // Initially same as content, will be updated async
       jsonContent: agentResponse.data?.jsonContent || {},
       // Include matched context for reference
       matchedPersona: agentResponse.data?.persona || null,
