@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { RefreshCw } from 'lucide-react';
 
 // Admin emails that can access this page
 const ADMIN_EMAILS = [
@@ -10,6 +11,45 @@ const ADMIN_EMAILS = [
   'sharifali1000@gmail.com',
   'corey@fractionalops.com',
 ];
+
+// All available agent options grouped by category
+const AGENT_OPTIONS = [
+  // Phase 1 Agents
+  { value: 'prospector', label: 'Prospector Agent', icon: '🔍', category: 'Phase 1' },
+  
+  // Call Prep
+  { value: 'callPrep', label: 'Call Prep', icon: '📞', category: 'Call Prep' },
+  
+  // Cold Email Sequences (5 variants)
+  { value: 'coldEmails.leadMagnetLong', label: 'Cold Email: Lead Magnet Long', icon: '📧', category: 'Cold Emails' },
+  { value: 'coldEmails.personalizedSolutions', label: 'Cold Email: Personalized Solutions', icon: '📧', category: 'Cold Emails' },
+  { value: 'coldEmails.problemSolution', label: 'Cold Email: Problem/Solution', icon: '📧', category: 'Cold Emails' },
+  { value: 'coldEmails.localCity', label: 'Cold Email: Local/Same City', icon: '📧', category: 'Cold Emails' },
+  { value: 'coldEmails.leadMagnetShort', label: 'Cold Email: Lead Magnet Short', icon: '📧', category: 'Cold Emails' },
+  
+  // LinkedIn Posts (3 variants)
+  { value: 'linkedinPosts.inspiring', label: 'LinkedIn Post: Inspiring', icon: '💼', category: 'LinkedIn Posts' },
+  { value: 'linkedinPosts.promotional', label: 'LinkedIn Post: Promotional', icon: '💼', category: 'LinkedIn Posts' },
+  { value: 'linkedinPosts.actionable', label: 'LinkedIn Post: Actionable', icon: '💼', category: 'LinkedIn Posts' },
+  
+  // LinkedIn DMs (3 variants)
+  { value: 'linkedinDMs.newsletter', label: 'LinkedIn DM: Newsletter CTA', icon: '💬', category: 'LinkedIn DMs' },
+  { value: 'linkedinDMs.leadMagnet', label: 'LinkedIn DM: Lead Magnet CTA', icon: '💬', category: 'LinkedIn DMs' },
+  { value: 'linkedinDMs.askQuestion', label: 'LinkedIn DM: Ask A Question', icon: '💬', category: 'LinkedIn DMs' },
+  
+  // Newsletters (2 variants)
+  { value: 'newsletters.tactical', label: 'Newsletter: Tactical', icon: '📰', category: 'Newsletters' },
+  { value: 'newsletters.leadership', label: 'Newsletter: Leadership', icon: '📰', category: 'Newsletters' },
+  
+  // YouTube
+  { value: 'youtube.longForm', label: 'YouTube Script: Long-Form', icon: '🎥', category: 'YouTube' },
+];
+
+// Helper to get display name for agent type
+const getAgentDisplayName = (agentType: string): string => {
+  const option = AGENT_OPTIONS.find(opt => opt.value === agentType);
+  return option ? option.label : agentType;
+};
 
 export default function RerunAgentPage() {
   const router = useRouter();
@@ -73,7 +113,7 @@ export default function RerunAgentPage() {
       if (data.success) {
         setResult({ 
           success: true, 
-          message: `✅ ${agentType === 'callPrep' ? 'Call Prep' : agentType} agent rerun successfully for ${email}! The client's /results page now shows the new output.`
+          message: `✅ ${getAgentDisplayName(agentType)} agent rerun successfully for ${email}! The client's /results page now shows the new output.`
         });
         setEmail(''); // Clear form on success
       } else {
@@ -94,7 +134,7 @@ export default function RerunAgentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-fo-bg-light flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-fo-primary"></div>
       </div>
     );
@@ -102,15 +142,15 @@ export default function RerunAgentPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-fo-bg-light flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <div className="text-6xl mb-6">🔒</div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Access Denied</h1>
-          <p className="text-gray-600 mb-2">You don&apos;t have permission to access this page.</p>
-          <p className="text-gray-500 text-sm mb-6">Logged in as: {currentUser}</p>
+          <h1 className="text-3xl font-bold text-fo-dark mb-4">Access Denied</h1>
+          <p className="text-fo-text-secondary mb-2">You don&apos;t have permission to access this page.</p>
+          <p className="text-fo-text-secondary text-sm mb-6">Logged in as: {currentUser}</p>
           <button
             onClick={() => router.push('/questionnaire')}
-            className="px-6 py-3 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-bold"
+            className="px-6 py-3 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold"
           >
             Go to Questionnaire
           </button>
@@ -119,21 +159,30 @@ export default function RerunAgentPage() {
     );
   }
 
+  // Group agents by category for better UX
+  const groupedAgents = AGENT_OPTIONS.reduce((acc, agent) => {
+    if (!acc[agent.category]) {
+      acc[agent.category] = [];
+    }
+    acc[agent.category].push(agent);
+    return acc;
+  }, {} as Record<string, typeof AGENT_OPTIONS>);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-fo-bg-light">
       {/* Admin Header */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-4 px-6 shadow-lg">
+      <div className="bg-gradient-to-r from-fo-sidebar-dark to-gray-900 text-white py-4 px-6 shadow-lg">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push('/admin/strategies')}
+              onClick={() => router.push('/admin')}
               className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
             >
               <span>←</span>
-              <span>Back to Strategies</span>
+              <span>Back to Admin</span>
             </button>
             <div className="h-6 w-px bg-gray-600"></div>
-            <span className="px-3 py-1 bg-orange-500 text-white rounded-full text-xs font-bold">
+            <span className="px-3 py-1 bg-fo-primary text-white rounded-full text-xs font-semibold">
               ADMIN TOOL
             </span>
           </div>
@@ -145,12 +194,16 @@ export default function RerunAgentPage() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-fo-border">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="text-5xl mb-4">🔄</div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Rerun Agent</h1>
-            <p className="text-gray-600">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-fo-primary/10 flex items-center justify-center">
+                <RefreshCw className="w-8 h-8 text-fo-primary" strokeWidth={2} />
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-fo-dark mb-2">Rerun Agent</h1>
+            <p className="text-fo-text-secondary">
               Regenerate a specific agent output for a client&apos;s strategy
             </p>
           </div>
@@ -159,7 +212,7 @@ export default function RerunAgentPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Input */}
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-fo-dark mb-2">
                 Client Email
               </label>
               <input
@@ -168,28 +221,37 @@ export default function RerunAgentPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="client@company.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-fo-primary text-gray-900"
+                className="w-full px-4 py-3 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-fo-primary text-fo-dark bg-white"
                 disabled={isSubmitting}
+                required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-fo-text-secondary mt-1">
                 Enter the email address the client used to sign up
               </p>
             </div>
 
             {/* Agent Type Dropdown */}
             <div>
-              <label htmlFor="agentType" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="agentType" className="block text-sm font-semibold text-fo-dark mb-2">
                 Agent to Rerun
               </label>
               <select
                 id="agentType"
                 value={agentType}
                 onChange={(e) => setAgentType(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-fo-primary text-gray-900 bg-white"
+                className="w-full px-4 py-3 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-fo-primary text-fo-dark bg-white"
                 disabled={isSubmitting}
+                required
               >
-                <option value="callPrep">📞 Call Prep (Call Script + Objection Handling)</option>
-                {/* Add more options here in the future */}
+                {Object.entries(groupedAgents).map(([category, agents]) => (
+                  <optgroup key={category} label={category}>
+                    {agents.map((agent) => (
+                      <option key={agent.value} value={agent.value}>
+                        {agent.icon} {agent.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
 
@@ -197,9 +259,9 @@ export default function RerunAgentPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-4 rounded-lg font-bold text-lg transition-all ${
+              className={`w-full py-4 rounded-lg font-semibold text-lg transition-all ${
                 isSubmitting
-                  ? 'bg-gray-400 cursor-not-allowed'
+                  ? 'bg-gray-400 cursor-not-allowed text-white'
                   : 'bg-fo-primary text-white hover:bg-fo-primary/90 shadow-lg hover:shadow-xl'
               }`}
             >
@@ -218,19 +280,22 @@ export default function RerunAgentPage() {
           {result && (
             <div className={`mt-6 p-4 rounded-lg ${
               result.success 
-                ? 'bg-green-50 border border-green-200' 
-                : 'bg-red-50 border border-red-200'
+                ? 'bg-fo-tertiary-3/20 border border-fo-tertiary-3' 
+                : 'bg-fo-tertiary-4/20 border border-fo-tertiary-4'
             }`}>
-              <p className={`text-sm ${result.success ? 'text-green-800' : 'text-red-800'}`}>
+              <p className={`text-sm font-medium ${result.success ? 'text-fo-tertiary-3' : 'text-fo-tertiary-4'}`}>
                 {result.message}
               </p>
             </div>
           )}
 
           {/* Info Box */}
-          <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 mb-2">ℹ️ How it works</h3>
-            <ul className="text-sm text-blue-800 space-y-1">
+          <div className="mt-8 bg-fo-primary/10 border border-fo-primary/20 rounded-lg p-4">
+            <h3 className="font-semibold text-fo-dark mb-2 flex items-center gap-2">
+              <span className="text-fo-primary">ℹ️</span>
+              How it works
+            </h3>
+            <ul className="text-sm text-fo-text-secondary space-y-1">
               <li>1. Enter the client&apos;s email address</li>
               <li>2. Select which agent to rerun</li>
               <li>3. The system will regenerate that specific output</li>
@@ -242,4 +307,3 @@ export default function RerunAgentPage() {
     </div>
   );
 }
-
