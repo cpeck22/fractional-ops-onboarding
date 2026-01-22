@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Target, Loader2, Users, Briefcase, Building2, Layers, BookOpen, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { supabase } from '@/lib/supabase';
 
 interface GTMStrategyData {
   workspace: {
@@ -63,12 +64,19 @@ export default function GTMStrategyPageContent() {
       setLoading(true);
       setError(null);
 
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
       const url = impersonateUserId
         ? `/api/client/gtm-strategy?impersonate=${impersonateUserId}`
         : '/api/client/gtm-strategy';
 
       const response = await fetch(url, {
         credentials: 'include',
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        }
       });
 
       const result = await response.json();
