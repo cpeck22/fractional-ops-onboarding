@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase, signOut } from '@/lib/supabase';
 import Image from 'next/image';
 import Link from 'next/link';
-import Logo from '../Fractional-Ops_Symbol_Main.png';
+import Logo from '../../Fractional-Ops_Symbol_Main.png';
 import toast from 'react-hot-toast';
-import { LayoutDashboard, RefreshCw, Target, Users, Lock, ArrowRight, Check, Lightbulb, Bot } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Target, Users, Lock, Bot, Copy, CheckCircle } from 'lucide-react';
+import { WORKSPACE_AGENTS, getAgentsByCategory, type WorkspaceAgent } from '@/lib/workspace-agents';
 
 // Admin emails that can access this page
 const ADMIN_EMAILS = [
@@ -16,68 +17,20 @@ const ADMIN_EMAILS = [
   'corey@fractionalops.com',
 ];
 
-interface AdminTool {
-  id: string;
-  title: string;
-  description: string;
-  icon: any;
-  href: string;
-  color: string;
-}
-
-const adminTools: AdminTool[] = [
-  {
-    id: 'strategies',
-    title: 'View All Strategies',
-    description: 'Browse and view all client strategies created by Claire',
-    icon: LayoutDashboard,
-    href: '/admin/strategies',
-    color: 'from-fo-primary to-fo-secondary'
-  },
-  {
-    id: 'rerun-agent',
-    title: 'Rerun Agent',
-    description: 'Regenerate specific agent outputs for a client (Call Prep, etc.)',
-    icon: RefreshCw,
-    href: '/admin/rerun-agent',
-    color: 'from-fo-primary to-fo-secondary'
-  },
-  {
-    id: 'claire-plays',
-    title: 'Claire Plays Management',
-    description: 'Manage the catalog of available plays for the client portal',
-    icon: Target,
-    href: '/admin/claire-plays',
-    color: 'from-fo-primary to-fo-secondary'
-  },
-  {
-    id: 'clients',
-    title: 'Client Portal Access',
-    description: 'Access client Claire portals as an admin',
-    icon: Users,
-    href: '/admin/clients',
-    color: 'from-fo-primary to-fo-secondary'
-  },
-  {
-    id: 'agents',
-    title: 'Claire Agent Management',
-    description: 'View and manage all agents duplicated in workspace creation',
-    icon: Bot,
-    href: '/admin/agents',
-    color: 'from-fo-primary to-fo-secondary'
-  }
-];
-
-export default function AdminPage() {
+export default function AgentManagementPage() {
   const router = useRouter();
   const pathname = usePathname();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [copiedAgentId, setCopiedAgentId] = useState<string | null>(null);
 
-  const checkAdminAccess = useCallback(async () => {
+  useEffect(() => {
+    checkAdminAccess();
+  }, []);
+
+  const checkAdminAccess = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -87,7 +40,6 @@ export default function AdminPage() {
       }
 
       setCurrentUser(user.email || null);
-      setUser(user);
       
       const isAdminUser = ADMIN_EMAILS.some(
         email => email.toLowerCase() === user.email?.toLowerCase()
@@ -99,11 +51,14 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  };
 
-  useEffect(() => {
-    checkAdminAccess();
-  }, [checkAdminAccess]);
+  const copyToClipboard = (text: string, agentId: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedAgentId(agentId);
+    toast.success('Agent ID copied to clipboard');
+    setTimeout(() => setCopiedAgentId(null), 2000);
+  };
 
   if (loading) {
     return (
@@ -140,6 +95,8 @@ export default function AdminPage() {
     { href: '/admin/clients', label: 'Clients', icon: Users },
     { href: '/admin/agents', label: 'Agent Management', icon: Bot },
   ];
+
+  const agentsByCategory = getAgentsByCategory();
 
   return (
     <div className="min-h-screen bg-fo-bg-light flex">
@@ -245,7 +202,7 @@ export default function AdminPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
-              <h2 className="text-xl font-semibold text-fo-dark">Admin Dashboard</h2>
+              <h2 className="text-xl font-semibold text-fo-dark">Claire Agent Management</h2>
             </div>
             <div className="flex items-center gap-4">
               <span className="hidden md:block px-3 py-1 bg-fo-primary/10 text-fo-primary rounded-full text-sm font-medium inline-flex items-center gap-1.5">
@@ -262,52 +219,94 @@ export default function AdminPage() {
         {/* Main Content */}
         <main className="bg-fo-bg-light min-h-[calc(100vh-73px)]">
           <div className="p-6 max-w-7xl mx-auto">
-        {/* Welcome Section */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Welcome, Admin</h2>
-          <p className="text-gray-600 text-lg font-normal">Select a tool to get started</p>
-        </div>
-
-            {/* Tools Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
-              {adminTools.map((tool) => (
-                <button
-                  key={tool.id}
-                  onClick={() => router.push(tool.href)}
-                  className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden text-left border border-fo-border hover:border-fo-primary/30"
-                >
-                  <div className={`bg-gradient-to-r ${tool.color} p-6 flex items-center justify-center`}>
-                    <tool.icon className="w-12 h-12 text-white" strokeWidth={2} />
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-fo-dark mb-2 group-hover:text-fo-primary transition-colors">
-                      {tool.title}
-                    </h3>
-                    <p className="text-fo-text-secondary">{tool.description}</p>
-                    <div className="mt-4 flex items-center text-fo-primary font-semibold">
-                      <span>Open Tool</span>
-                      <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" strokeWidth={2} />
-                    </div>
-                  </div>
-                </button>
-              ))}
+            {/* Header Section */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-fo-dark mb-2">Claire Agent Management Tool</h1>
+              <p className="text-fo-text-secondary">
+                View all agents that are duplicated when creating a new workspace via /generate-workspace
+              </p>
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Total Agents:</strong> {WORKSPACE_AGENTS.length} agents are configured to be duplicated
+                </p>
+              </div>
             </div>
 
-            {/* Quick Stats / Info */}
-            <div className="mt-12 bg-white rounded-lg shadow-sm border border-fo-border p-6">
-              <h3 className="font-bold text-fo-dark mb-4">Quick Tips</h3>
+            {/* Agents by Category */}
+            {Object.entries(agentsByCategory).map(([category, agents]) => (
+              <div key={category} className="mb-8 bg-white rounded-lg shadow-sm border border-fo-border overflow-hidden">
+                <div className="bg-gradient-to-r from-fo-primary to-fo-secondary p-4">
+                  <h2 className="text-xl font-bold text-white">
+                    {category} ({agents.length})
+                  </h2>
+                </div>
+                <div className="divide-y divide-fo-border">
+                  {agents.map((agent, index) => (
+                    <div
+                      key={agent.id}
+                      className="p-4 hover:bg-fo-bg-light transition-colors flex items-center justify-between"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-fo-text-secondary w-12">
+                            #{index + 1}
+                          </span>
+                          <div className="flex-1">
+                            <div className="font-mono text-sm text-fo-dark font-semibold">
+                              {agent.id}
+                            </div>
+                            {agent.name && (
+                              <div className="text-sm text-fo-text-secondary mt-1">
+                                {agent.name}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(agent.id, agent.id)}
+                        className="ml-4 p-2 hover:bg-fo-bg-light rounded-lg transition-colors text-fo-text-secondary hover:text-fo-primary"
+                        title="Copy agent ID"
+                      >
+                        {copiedAgentId === agent.id ? (
+                          <CheckCircle className="w-5 h-5 text-green-500" strokeWidth={2} />
+                        ) : (
+                          <Copy className="w-5 h-5" strokeWidth={2} />
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Info Section */}
+            <div className="mt-8 bg-white rounded-lg shadow-sm border border-fo-border p-6">
+              <h3 className="font-bold text-fo-dark mb-4">About This Tool</h3>
               <ul className="space-y-2 text-sm text-fo-text-secondary">
                 <li className="flex items-start gap-2">
-              <Check className="w-4 h-4 text-fo-primary mt-0.5" strokeWidth={2} />
-              <span className="font-normal"><strong className="font-semibold">View Strategies:</strong> See all client strategies, search by email or company name</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Check className="w-4 h-4 text-fo-primary mt-0.5" strokeWidth={2} />
-              <span className="font-normal"><strong className="font-semibold">Rerun Agent:</strong> Regenerate Call Prep or other outputs if quality is poor</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Lightbulb className="w-4 h-4 text-fo-primary mt-0.5" strokeWidth={2} />
-              <span className="font-normal">Admin views don&apos;t trigger the 14-day timer for clients</span>
+                  <CheckCircle className="w-4 h-4 text-fo-primary mt-0.5 flex-shrink-0" strokeWidth={2} />
+                  <span>
+                    <strong className="font-semibold">Agent IDs:</strong> These are the agent IDs that are duplicated from the source workspace to each new client workspace
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-fo-primary mt-0.5 flex-shrink-0" strokeWidth={2} />
+                  <span>
+                    <strong className="font-semibold">Categories:</strong> Agents are grouped by their function (Prospector, Cold Email, LinkedIn Post, etc.)
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-fo-primary mt-0.5 flex-shrink-0" strokeWidth={2} />
+                  <span>
+                    <strong className="font-semibold">Agent Names:</strong> Names will be added later to make identification easier
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-fo-primary mt-0.5 flex-shrink-0" strokeWidth={2} />
+                  <span>
+                    <strong className="font-semibold">Copy:</strong> Click the copy icon to copy an agent ID to your clipboard
+                  </span>
                 </li>
               </ul>
             </div>

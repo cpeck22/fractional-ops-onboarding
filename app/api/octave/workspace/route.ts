@@ -3,6 +3,7 @@ import axios from 'axios';
 import { QuestionnaireData, OctaveWorkspaceRequest } from '@/types';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { getWorkspaceAgentIds } from '@/lib/workspace-agents';
 
 const OCTAVE_API_URL = 'https://app.octavehq.com/api/v2/agents/workspace/build';
 
@@ -79,58 +80,7 @@ export async function POST(request: NextRequest) {
         name: workspaceName,
         url: workspaceUrl,
         addExistingUsers: true,
-        agentOIds: [
-          // Prospector Agent (keep this one)
-          'ca_0EQ3oCpNpE8VubFBIUmYm',
-          
-          // Cold Email Sequence Agents (5)
-          'ca_6ghm6GTyTCtQjUibRJYBn', // COLD EMAIL - 3 Personalized Solutions
-          'ca_70c4EJDSrPykuWgMGJreP', // COLD EMAIL - Lead Magnet Focus (Short)
-          'ca_6E1kFGKeALMz64F7SMB0c', // COLD EMAIL - Local/Same City In Common Focus
-          'ca_NJM0OZjyBbMn1cDTDIoVl', // COLD EMAIL - Problem/Solution Focus
-          'ca_MaQ3TezxYsMJvkpGnDMDS', // COLD EMAIL - Lead Magnet Focus (Long)
-          
-          // Call Prep Agent (1)
-          'ca_BLZTE6PKlqVEAK1ZFarmR', // Call Prep Agent (1st Meeting)
-          
-          // LinkedIn Post Agents (3)
-          'ca_B6JBf44OqaZA5cdhJ1z6P', // LINKEDIN POST: Inspiring Post
-          'ca_KdG0WncyW45oRqFZcdngQ', // LINKEDIN POST: Promotional Posts (Lead-Magnet)
-          'ca_xfNTga6wQNUqfH45KM0Ka', // LINKEDIN POST: Actionable Post
-          
-          // LinkedIn DM Agents (3)
-          'ca_b4p8wuI4rntQdhoxK2hF7', // LINKEDIN CONNECTION DM - Newsletter CTA
-          'ca_Ea41BbpWV2HPlvLQiyyT4', // LINKEDIN CONNECTION DM - Lead Magnet CTA
-          'ca_mKHrB6A2yNiBN5yRPPsOm', // LINKEDIN CONNECTION DM - Ask A Question
-          
-          // YouTube Script Agents (1)
-          'ca_oR6ro10L1z7N8HouxVgNc', // SCRIPT WRITING - Long-Form YouTube
-          
-          // Newsletter Agents (2)
-          'ca_e4UYXGTMitLjwZEgzsNc1', // NEWSLETTER - Tactical Writing Agent
-          'ca_gilixBObzhALpK7LO7Nr9',  // NEWSLETTER - Leadership Writing Agent
-          
-          // Additional agents to duplicate (but not run in Generate-Strategy)
-          'ca_GMFhrclZrKlLenspxmf62',
-          'ca_uMdv2bkfb0KoOAyIA5llW',
-          
-          // New agents to duplicate (added from original Workspace)
-          'ca_c1qy7EuAXr8Z6TPujnycr',
-          'ca_Q2MtCQAuQCmHilPWUYpyr',
-          'ca_Udf2ldbDFTbhrNk0ZEbgR',
-          'ca_cOe6Ml9XvnsLzp2UU3wXY',
-          'ca_293ipaXQSPcGw6BNqLktN',
-          'ca_9QS0knPK30f3frXrJG5hP',
-          'ca_5Uri8yosNot38SOrvB7mM',
-          'ca_TuwbyP6Ky4eT1Rd9NiCOv',
-          'ca_d5o4UmytXj4n2Xf92Kj9S',
-          'ca_fMfG5nMQ0uvl3xOuEu10c',
-          'ca_2ihSlhWxvfDWltLI0euKA',
-          'ca_v9aP4t7Gtx9jSJxBypm0b',
-          'ca_vDfOaZUGV8p9M0G98ezcS',
-          'ca_TBAivqIcnNtBkEEawCZJr',
-          'ca_QLfXcw6DUR2GVmcf9Ke6z'
-        ]
+        agentOIds: getWorkspaceAgentIds() // Use shared agent IDs from workspace-agents.ts
       },
       offering: generateOffering(questionnaireData),
       runtimeContext: runtimeContextString,
