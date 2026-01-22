@@ -395,7 +395,7 @@ export async function POST(request: NextRequest) {
             }) || []
           };
           
-          const highlightedHtml = await highlightOutput(rawOutputContent, highlightingContext);
+          const highlightedHtml = await highlightOutput(rawOutputContent, highlightingContext, playCode);
           
           // Update execution with highlighted version
           await supabaseAdmin
