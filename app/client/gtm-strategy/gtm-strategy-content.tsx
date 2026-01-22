@@ -65,31 +65,53 @@ export default function GTMStrategyPageContent() {
       setError(null);
 
       // Get session token for authentication
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       const authToken = session?.access_token;
+
+      console.log('🔐 Frontend auth check:', {
+        hasSession: !!session,
+        hasToken: !!authToken,
+        tokenLength: authToken?.length || 0,
+        sessionError: sessionError?.message,
+        impersonateUserId: impersonateUserId || 'none'
+      });
+
+      if (!authToken) {
+        console.error('❌ No auth token available');
+        throw new Error('Authentication required. Please sign in again.');
+      }
 
       const url = impersonateUserId
         ? `/api/client/gtm-strategy?impersonate=${impersonateUserId}`
         : '/api/client/gtm-strategy';
 
+      console.log('📤 Fetching GTM Strategy:', { url, hasAuthToken: !!authToken });
+
       const response = await fetch(url, {
         credentials: 'include',
         headers: {
-          ...(authToken && { Authorization: `Bearer ${authToken}` })
+          Authorization: `Bearer ${authToken}`
         }
+      });
+
+      console.log('📥 GTM Strategy response:', { 
+        ok: response.ok, 
+        status: response.status,
+        statusText: response.statusText 
       });
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Failed to load GTM Strategy data');
+        console.error('❌ GTM Strategy error:', result);
+        throw new Error(result.error || result.details || 'Failed to load GTM Strategy data');
       }
 
       setData(result);
     } catch (err: any) {
-      console.error('Error loading GTM Strategy data:', err);
+      console.error('❌ Error loading GTM Strategy data:', err);
       setError(err.message || 'Failed to load GTM Strategy data');
-      toast.error('Failed to load GTM Strategy data');
+      toast.error(err.message || 'Failed to load GTM Strategy data');
     } finally {
       setLoading(false);
     }

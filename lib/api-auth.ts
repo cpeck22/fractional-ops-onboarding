@@ -18,8 +18,18 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<{ user
   const { searchParams } = new URL(request.url);
   const impersonateUserId = searchParams.get('impersonate');
 
+  // Enhanced logging for debugging
+  console.log('🔐 Auth check:', {
+    hasAuthHeader: !!authHeader,
+    hasToken: !!token,
+    tokenLength: token?.length || 0,
+    url: request.url,
+    impersonateUserId: impersonateUserId || 'none'
+  });
+
   if (token) {
     // Use token from Authorization header
+    console.log('🔑 Using token-based auth');
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -35,49 +45,84 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<{ user
     const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token);
     
     if (tokenError || !tokenUser) {
-      console.error('❌ Token auth error:', tokenError?.message);
+      console.error('❌ Token auth error:', {
+        error: tokenError?.message,
+        status: tokenError?.status,
+        name: tokenError?.name
+      });
       return { user: null, error: tokenError?.message || 'Unauthorized' };
     }
 
+    console.log('✅ Token auth successful:', { userId: tokenUser.id, email: tokenUser.email });
     // Note: We return the authenticated admin user, not the impersonated user
     // Routes should check admin status and use impersonateUserId from query params separately
     // This allows routes to verify admin access before using impersonated user ID
     return { user: tokenUser, error: null };
   } else {
     // Fallback to cookie-based auth
-    const cookieStore = cookies();
-    const cookieHeader = cookieStore.getAll()
-      .map(cookie => `${cookie.name}=${cookie.value}`)
-      .join('; ');
-    
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            cookie: cookieHeader || cookieStore.toString()
+    console.log('🍪 Falling back to cookie-based auth');
+    try {
+      const cookieStore = cookies();
+      const allCookies = cookieStore.getAll();
+      const cookieHeader = allCookies
+        .map(cookie => `${cookie.name}=${cookie.value}`)
+        .join('; ');
+      
+      console.log('🍪 Cookie check:', {
+        cookieCount: allCookies.length,
+        hasCookieHeader: !!cookieHeader,
+        cookieNames: allCookies.map(c => c.name)
+      });
+      
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              cookie: cookieHeader || cookieStore.toString()
+            }
           }
         }
-      }
-    );
-    
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    let user = session?.user || null;
-    
-    if (!user) {
-      const { data: { user: fetchedUser }, error: authError } = await supabase.auth.getUser();
-      user = fetchedUser || null;
+      );
       
-      if (authError || !user) {
-        console.error('❌ Cookie auth error:', authError?.message || sessionError?.message);
-        return { user: null, error: authError?.message || sessionError?.message || 'Unauthorized' };
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      let user = session?.user || null;
+      
+      console.log('🍪 Session check:', {
+        hasSession: !!session,
+        hasUser: !!user,
+        sessionError: sessionError?.message
+      });
+      
+      if (!user) {
+        const { data: { user: fetchedUser }, error: authError } = await supabase.auth.getUser();
+        user = fetchedUser || null;
+        
+        console.log('🍪 getUser check:', {
+          hasUser: !!user,
+          authError: authError?.message
+        });
+        
+        if (authError || !user) {
+          const errorMsg = authError?.message || sessionError?.message || 'Auth session missing!';
+          console.error('❌ Cookie auth error:', {
+            authError: authError?.message,
+            sessionError: sessionError?.message,
+            finalError: errorMsg
+          });
+          return { user: null, error: errorMsg };
+        }
       }
-    }
 
-    // Note: We return the authenticated admin user, not the impersonated user
-    // Routes should check admin status and use impersonateUserId from query params separately
-    // This allows routes to verify admin access before using impersonated user ID
-    return { user, error: null };
+      console.log('✅ Cookie auth successful:', { userId: user.id, email: user.email });
+      // Note: We return the authenticated admin user, not the impersonated user
+      // Routes should check admin status and use impersonateUserId from query params separately
+      // This allows routes to verify admin access before using impersonated user ID
+      return { user, error: null };
+    } catch (cookieError: any) {
+      console.error('❌ Cookie access error:', cookieError?.message);
+      return { user: null, error: cookieError?.message || 'Failed to access cookies' };
+    }
   }
 }

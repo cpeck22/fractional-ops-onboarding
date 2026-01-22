@@ -7,16 +7,33 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    // Log request details for debugging
+    const authHeader = request.headers.get('authorization');
+    const cookieHeader = request.headers.get('cookie');
+    console.log('📥 GTM Strategy request:', {
+      hasAuthHeader: !!authHeader,
+      hasCookies: !!cookieHeader,
+      url: request.url,
+      method: request.method
+    });
+
     // Get authenticated user
     const { user, error: authError } = await getAuthenticatedUser(request);
     
     if (authError || !user) {
-      console.error('❌ Auth error in gtm-strategy:', authError);
+      console.error('❌ Auth error in gtm-strategy:', {
+        error: authError,
+        hasAuthHeader: !!authHeader,
+        hasCookies: !!cookieHeader,
+        url: request.url
+      });
       return NextResponse.json(
         { success: false, error: 'Unauthorized', details: authError || 'Authentication failed' },
         { status: 401 }
       );
     }
+    
+    console.log('✅ Auth successful in gtm-strategy:', { userId: user.id, email: user.email });
     
     // Check for impersonation - if admin is impersonating, use impersonated user's workspace
     const { searchParams } = new URL(request.url);
