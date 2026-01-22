@@ -7,7 +7,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Image from 'next/image';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { LayoutDashboard, RefreshCw, Send, Heart, CheckCircle2, ChevronLeft, ChevronRight, Menu, X, Settings } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Send, Heart, CheckCircle2, ChevronLeft, ChevronRight, Menu, X, Settings, ChevronDown, ChevronUp, Target, FileText, BarChart3, Users, ListChecks, Building2 } from 'lucide-react';
 
 // Admin emails that can impersonate clients
 const ADMIN_EMAILS = [
@@ -31,6 +31,11 @@ export default function ClientLayout({
   const [hasWorkspace, setHasWorkspace] = useState<boolean | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    management: true,
+    allboundTactics: true,
+    commandCentre: true,
+  });
 
   useEffect(() => {
     // Check auth and handle impersonation
@@ -125,13 +130,47 @@ export default function ClientLayout({
     loadUserData();
   }, [router, searchParams]);
 
-  const navItems = [
-    { href: '/client', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/client/allbound', label: 'Allbound', icon: RefreshCw },
-    { href: '/client/outbound', label: 'Outbound', icon: Send },
-    { href: '/client/nurture', label: 'Nurture', icon: Heart },
-    { href: '/client/approvals', label: 'Approvals', icon: CheckCircle2 },
+  // Navigation structure with collapsible sections
+  const navigationSections = [
+    {
+      id: 'management',
+      label: 'Management',
+      icon: LayoutDashboard,
+      items: [
+        { href: '/client', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/client/sales-plan', label: 'Sales Plan', icon: FileText, comingSoon: true },
+        { href: '/client/gtm-strategy', label: 'GTM Strategy', icon: Target },
+        { href: '/client/sales-intelligence', label: 'Sales Intelligence', icon: BarChart3, comingSoon: true },
+      ],
+    },
+    {
+      id: 'allboundTactics',
+      label: 'Allbound Tactics',
+      icon: RefreshCw,
+      items: [
+        { href: '/client/allbound', label: 'Signal Based (Always On)', icon: RefreshCw },
+        { href: '/client/outbound', label: 'Campaigns', icon: Send },
+        { href: '/client/nurture', label: 'CRM Nurture', icon: Heart },
+        { href: '/client/account-based-marketing', label: 'Account-Based Marketing', icon: Building2, comingSoon: true },
+      ],
+    },
+    {
+      id: 'commandCentre',
+      label: 'Command Centre',
+      icon: ListChecks,
+      items: [
+        { href: '/client/prospect-lists', label: 'Prospect Lists (by Tactic)', icon: Users, comingSoon: true },
+        { href: '/client/approvals', label: 'Reviews & Approvals', icon: CheckCircle2 },
+      ],
+    },
   ];
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId],
+    }));
+  };
 
   return (
     <ProtectedRoute>
@@ -175,30 +214,79 @@ export default function ClientLayout({
             </div>
           </div>
 
-          <nav className="p-4 space-y-1 mt-4">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href || 
-                (item.href !== '/client' && pathname?.startsWith(item.href));
+          <nav className="p-4 space-y-2 mt-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+            {navigationSections.map((section) => {
+              const isExpanded = expandedSections[section.id];
+              const SectionIcon = section.icon;
               
-              // Add impersonate parameter to all links if impersonating
-              const href = impersonatedUserId 
-                ? `${item.href}${item.href.includes('?') ? '&' : '?'}impersonate=${impersonatedUserId}`
-                : item.href;
-              
-              const IconComponent = item.icon;
               return (
-                <Link
-                  key={item.href}
-                  href={href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    isActive
-                      ? 'bg-fo-primary text-white font-semibold shadow-sm'
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  }`}
-                >
-                  <IconComponent className="w-5 h-5 flex-shrink-0" strokeWidth={2} />
-                  {sidebarOpen && <span className="text-sm font-medium">{item.label}</span>}
-                </Link>
+                <div key={section.id} className="space-y-1">
+                  {/* Section Header */}
+                  <button
+                    onClick={() => toggleSection(section.id)}
+                    className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <SectionIcon className="w-5 h-5 flex-shrink-0" strokeWidth={2} />
+                      {sidebarOpen && <span className="text-sm font-semibold">{section.label}</span>}
+                    </div>
+                    {sidebarOpen && (
+                      isExpanded ? (
+                        <ChevronUp className="w-4 h-4" strokeWidth={2} />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" strokeWidth={2} />
+                      )
+                    )}
+                  </button>
+                  
+                  {/* Section Items */}
+                  {isExpanded && sidebarOpen && (
+                    <div className="ml-4 space-y-1 border-l-2 border-gray-700 pl-2">
+                      {section.items.map((item) => {
+                        const isActive = pathname === item.href || 
+                          (item.href !== '/client' && pathname?.startsWith(item.href));
+                        
+                        // Add impersonate parameter to all links if impersonating
+                        const href = impersonatedUserId 
+                          ? `${item.href}${item.href.includes('?') ? '&' : '?'}impersonate=${impersonatedUserId}`
+                          : item.href;
+                        
+                        const ItemIcon = item.icon;
+                        return (
+                          <Link
+                            key={item.href}
+                            href={href}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all ${
+                              isActive
+                                ? 'bg-fo-primary text-white font-semibold shadow-sm'
+                                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                            } ${item.comingSoon ? 'opacity-60 cursor-not-allowed' : ''}`}
+                            onClick={(e) => {
+                              if (item.comingSoon) {
+                                e.preventDefault();
+                              }
+                            }}
+                          >
+                            <ItemIcon className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
+                            <span className="text-sm font-medium flex-1">{item.label}</span>
+                            {item.comingSoon && (
+                              <span className="text-xs bg-gray-600 px-2 py-0.5 rounded">SOON</span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                  
+                  {/* Collapsed view - show section icon only */}
+                  {!sidebarOpen && (
+                    <div className="ml-0">
+                      <div className="flex items-center justify-center px-4 py-2">
+                        <SectionIcon className="w-5 h-5 text-gray-300" strokeWidth={2} />
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </nav>
@@ -247,10 +335,15 @@ export default function ClientLayout({
                 </button>
                 <h2 className="text-xl font-semibold text-fo-dark">
                   {pathname === '/client' && 'Dashboard'}
-                  {pathname === '/client/allbound' && 'Allbound Plays'}
-                  {pathname === '/client/outbound' && 'Outbound Plays'}
-                  {pathname === '/client/nurture' && 'Nurture Plays'}
-                  {pathname === '/client/approvals' && 'Approvals'}
+                  {pathname === '/client/sales-plan' && 'Sales Plan'}
+                  {pathname === '/client/gtm-strategy' && 'GTM Strategy'}
+                  {pathname === '/client/sales-intelligence' && 'Sales Intelligence'}
+                  {pathname === '/client/allbound' && 'Signal Based (Always On)'}
+                  {pathname === '/client/outbound' && 'Campaigns'}
+                  {pathname === '/client/nurture' && 'CRM Nurture'}
+                  {pathname === '/client/account-based-marketing' && 'Account-Based Marketing'}
+                  {pathname === '/client/prospect-lists' && 'Prospect Lists (by Tactic)'}
+                  {pathname === '/client/approvals' && 'Reviews & Approvals'}
                   {pathname?.startsWith('/client/approve/') && 'Review Approval'}
                   {pathname?.match(/\/client\/(allbound|outbound|nurture)\/\d+/) && 'Play Execution'}
                 </h2>
