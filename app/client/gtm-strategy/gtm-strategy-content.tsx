@@ -56,7 +56,12 @@ export default function GTMStrategyPageContent() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadGTMStrategyData();
+    // Wait a bit for auth to initialize, then load data
+    const timer = setTimeout(() => {
+      loadGTMStrategyData();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [impersonateUserId]);
 
   const loadGTMStrategyData = async () => {
@@ -64,11 +69,20 @@ export default function GTMStrategyPageContent() {
       setLoading(true);
       setError(null);
 
+      // First check if user is authenticated
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error('❌ User not authenticated:', userError?.message);
+        throw new Error('Authentication required. Please sign in again.');
+      }
+
       // Get session token for authentication
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       const authToken = session?.access_token;
 
       console.log('🔐 Frontend auth check:', {
+        hasUser: !!user,
+        userId: user?.id,
         hasSession: !!session,
         hasToken: !!authToken,
         tokenLength: authToken?.length || 0,
@@ -77,15 +91,40 @@ export default function GTMStrategyPageContent() {
       });
 
       if (!authToken) {
-        console.error('❌ No auth token available');
-        throw new Error('Authentication required. Please sign in again.');
+        console.error('❌ No auth token available, trying to refresh session...');
+        // Try to refresh the session
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError || !refreshedSession?.access_token) {
+          console.error('❌ Failed to refresh session:', refreshError?.message);
+          throw new Error('Authentication required. Please sign in again.');
+        }
+        const refreshedToken = refreshedSession.access_token;
+        console.log('✅ Session refreshed, token length:', refreshedToken?.length || 0);
+        
+        const url = impersonateUserId
+          ? `/api/client/gtm-strategy?impersonate=${impersonateUserId}`
+          : '/api/client/gtm-strategy';
+
+        const response = await fetch(url, {
+          credentials: 'include',
+          headers: {
+            Authorization: `Bearer ${refreshedToken}`
+          }
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || result.details || 'Failed to load GTM Strategy data');
+        }
+        setData(result);
+        return;
       }
 
       const url = impersonateUserId
         ? `/api/client/gtm-strategy?impersonate=${impersonateUserId}`
         : '/api/client/gtm-strategy';
 
-      console.log('📤 Fetching GTM Strategy:', { url, hasAuthToken: !!authToken });
+      console.log('📤 Fetching GTM Strategy:', { url, hasAuthToken: !!authToken, tokenLength: authToken.length });
 
       const response = await fetch(url, {
         credentials: 'include',
