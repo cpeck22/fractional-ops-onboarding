@@ -56,12 +56,23 @@ export default function GTMStrategyPageContent() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Wait a bit for auth to initialize, then load data
-    const timer = setTimeout(() => {
+    // Wait for auth to initialize, then load data
+    const initializeAndLoad = async () => {
+      // First verify user is authenticated
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error('❌ User not authenticated in useEffect:', userError?.message);
+        setError('Authentication required. Please sign in again.');
+        setLoading(false);
+        return;
+      }
+      
+      // Small delay to ensure session is ready
+      await new Promise(resolve => setTimeout(resolve, 100));
       loadGTMStrategyData();
-    }, 100);
+    };
     
-    return () => clearTimeout(timer);
+    initializeAndLoad();
   }, [impersonateUserId]);
 
   const loadGTMStrategyData = async () => {
