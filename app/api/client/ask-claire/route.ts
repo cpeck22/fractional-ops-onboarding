@@ -99,10 +99,47 @@ export async function POST(request: NextRequest) {
     const workspaceApiKey = workspaceData.workspace_api_key;
     const query = formatConversationHistory(conversationHistory, message);
 
+    // Find Context Agent in the workspace (it gets duplicated, so we need to find the workspace-specific ID)
+    let contextAgentId = CONTEXT_AGENT_ID; // Fallback to template ID
+    
+    try {
+      const agentsResponse = await axios.get(
+        'https://app.octavehq.com/api/v2/agents/list',
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'api_key': workspaceApiKey
+          },
+          params: { limit: 100 }
+        }
+      );
+
+      const allAgents = agentsResponse.data?.data || agentsResponse.data?.agents || [];
+      
+      // Look for Context Agent - it might be named with "context" or have the template ID pattern
+      const contextAgent = allAgents.find((agent: any) => {
+        const agentName = (agent.name || '').toLowerCase();
+        const agentType = (agent.type || '').toLowerCase();
+        return agentName.includes('context') || 
+               agentType === 'context' ||
+               agent.oId === CONTEXT_AGENT_ID;
+      });
+
+      if (contextAgent) {
+        contextAgentId = contextAgent.oId;
+        console.log(`✅ Found Context Agent in workspace: ${contextAgent.name} (${contextAgentId})`);
+      } else {
+        console.warn(`⚠️ Context Agent not found in workspace, using template ID: ${CONTEXT_AGENT_ID}`);
+      }
+    } catch (agentError: any) {
+      console.warn('⚠️ Error finding Context Agent, using template ID:', agentError.message);
+      // Continue with template ID as fallback
+    }
+
     const response = await axios.post(
       OCTAVE_CONTEXT_AGENT_URL,
       {
-        agentOId: CONTEXT_AGENT_ID,
+        agentOId: contextAgentId,
         query: query,
       },
       {
