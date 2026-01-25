@@ -193,6 +193,208 @@ export async function POST(request: NextRequest) {
     console.log(`   Product OID: ${productOId || 'Not found'}`);
     console.log(`   API Key: ${workspaceApiKey ? 'Present' : 'Missing'}`);
 
+    if (!workspaceApiKey) {
+      return NextResponse.json(
+        { error: 'Workspace API key not found in response' },
+        { status: 500 }
+      );
+    }
+
+    // ============================================
+    // STEP 4: Find Context Agent ID in new workspace
+    // ============================================
+    let contextAgentId = null;
+    try {
+      console.log('🔍 Finding Context Agent in new workspace...');
+      const allAgents = [];
+      let offset = 0;
+      const limit = 50;
+      let hasNext = true;
+      
+      while (hasNext) {
+        const agentsResponse = await axios.get(
+          'https://app.octavehq.com/api/v2/agents/list',
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'api_key': workspaceApiKey
+            },
+            params: {
+              offset,
+              limit,
+              orderField: 'createdAt',
+              orderDirection: 'DESC'
+            }
+          }
+        );
+        
+        const pageAgents = agentsResponse.data?.data || [];
+        allAgents.push(...pageAgents);
+        hasNext = agentsResponse.data?.hasNext || false;
+        offset += limit;
+        
+        if (!hasNext) break;
+      }
+
+      // Look for Context Agent by type
+      const contextAgent = allAgents.find((agent: any) => {
+        const agentType = (agent.type || '').toUpperCase();
+        return agentType === 'CONTEXT';
+      });
+
+      if (contextAgent) {
+        contextAgentId = contextAgent.oId;
+        console.log(`✅ Found Context Agent: ${contextAgent.name} (${contextAgentId})`);
+      } else {
+        console.warn(`⚠️ Context Agent not found in workspace. Searched ${allAgents.length} agents.`);
+      }
+    } catch (agentError: any) {
+      console.error('❌ Error finding Context Agent:', agentError.message);
+      // Continue anyway - we'll update what we can
+    }
+
+    // ============================================
+    // STEP 5: Extract personas and use cases from response
+    // ============================================
+    const personas = response.data?.data?.personas || [];
+    const useCases = response.data?.data?.useCases || [];
+    
+    console.log('👥 Extracted personas:', personas.length);
+    console.log('🎯 Extracted use cases:', useCases.length);
+
+    // ============================================
+    // STEP 6: Fetch full service offering from Octave
+    // ============================================
+    let fullServiceOffering: any = generateOffering(questionnaireData); // Fallback
+    
+    if (productOId && workspaceApiKey) {
+      console.log('🎯 Fetching full Service Offering from Octave...');
+      try {
+        const productResponse = await axios.get(
+          `https://app.octavehq.com/api/v2/product/get?oId=${productOId}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'api_key': workspaceApiKey
+            }
+          }
+        );
+
+        if (productResponse.data) {
+          fullServiceOffering = productResponse.data;
+          console.log('✅ Fetched full Service Offering');
+        }
+      } catch (productError: any) {
+        console.warn('⚠️ Failed to fetch full product (non-critical):', productError.message);
+      }
+    }
+
+    // ============================================
+    // STEP 7: Update existing octave_outputs record in Supabase
+    // ============================================
+    console.log('💾 Updating Supabase with new workspace connection...');
+    try {
+      const updateData: any = {
+        workspace_oid: workspaceOId,
+        workspace_api_key: workspaceApiKey,
+        product_oid: productOId,
+        personas: personas,
+        use_cases: useCases,
+        service_offering: fullServiceOffering,
+        company_name: companyName,
+        company_domain: companyDomain
+      };
+
+      // Add Context Agent ID if found
+      if (contextAgentId) {
+        updateData.workspace_context_agent_id = contextAgentId;
+      }
+
+      // Find the most recent octave_outputs record for this user and update it
+      const { data: existingRecord, error: findError } = await supabaseAdmin
+        .from('octave_outputs')
+        .select('id')
+        .eq('user_id', resolvedUserId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (findError && findError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('❌ Error finding existing record:', findError);
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Failed to find existing workspace record',
+            details: findError.message
+          },
+          { status: 500 }
+        );
+      }
+
+      if (existingRecord) {
+        // Update existing record
+        const { error: updateError } = await supabaseAdmin
+          .from('octave_outputs')
+          .update(updateData)
+          .eq('id', existingRecord.id);
+
+        if (updateError) {
+          console.error('❌ Error updating workspace in Supabase:', updateError);
+          return NextResponse.json(
+            { 
+              success: false,
+              error: 'Failed to update workspace connection in database',
+              details: updateError.message
+            },
+            { status: 500 }
+          );
+        }
+        console.log('✅ Successfully updated existing workspace connection in Supabase');
+      } else {
+        // Insert new record if none exists
+        const { error: insertError } = await supabaseAdmin
+          .from('octave_outputs')
+          .insert({
+            user_id: resolvedUserId,
+            ...updateData,
+            campaign_ideas: [],
+            prospect_list: null,
+            cold_emails: null,
+            linkedin_posts: null,
+            linkedin_dms: null,
+            newsletters: null,
+            call_prep: null,
+            youtube_scripts: null,
+            client_references: [],
+            segments: [],
+            competitors: []
+          });
+
+        if (insertError) {
+          console.error('❌ Error inserting workspace in Supabase:', insertError);
+          return NextResponse.json(
+            { 
+              success: false,
+              error: 'Failed to save workspace connection in database',
+              details: insertError.message
+            },
+            { status: 500 }
+          );
+        }
+        console.log('✅ Successfully inserted new workspace connection in Supabase');
+      }
+    } catch (dbError: any) {
+      console.error('❌ Database update error:', dbError);
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Failed to update workspace connection',
+          details: dbError.message
+        },
+        { status: 500 }
+      );
+    }
+
     // ============================================
     // SUCCESS
     // ============================================
@@ -200,10 +402,11 @@ export async function POST(request: NextRequest) {
     console.log(`   User: ${userEmail} (${resolvedUserId})`);
     console.log(`   Company: ${companyName}`);
     console.log(`   Workspace: ${workspaceName}`);
+    console.log(`   Context Agent ID: ${contextAgentId || 'Not found'}`);
 
     return NextResponse.json({
       success: true,
-      message: `Workspace successfully regenerated for ${companyName}`,
+      message: `Workspace successfully regenerated and connected for ${companyName}`,
       userEmail,
       userId: resolvedUserId,
       companyName,
@@ -211,7 +414,10 @@ export async function POST(request: NextRequest) {
       workspaceOId,
       productOId,
       workspaceName,
-      workspaceUrl
+      workspaceUrl,
+      contextAgentId: contextAgentId || null,
+      personasCount: personas.length,
+      useCasesCount: useCases.length
     });
 
   } catch (error: any) {
