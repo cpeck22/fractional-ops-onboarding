@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getAuthenticatedUser } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // Admin emails that can impersonate clients
 const ADMIN_EMAILS = [

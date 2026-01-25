@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
@@ -39,6 +39,7 @@ export default function ApprovalsPageContent() {
   const [executions, setExecutions] = useState<Execution[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const deletedIdsRef = useRef<Set<string>>(new Set()); // Track deleted IDs to filter them out
   const [stats, setStats] = useState({
     pending: 0,
     approved: 0,
@@ -76,14 +77,18 @@ export default function ApprovalsPageContent() {
       const data = await response.json();
 
       if (data.success) {
-        console.log(`✅ Loaded ${data.executions?.length || 0} executions`);
-        setExecutions(data.executions || []);
+        // Filter out any deleted items even if server returns them (stale data protection)
+        const filteredExecutions = (data.executions || []).filter(
+          (e: Execution) => !deletedIdsRef.current.has(e.id)
+        );
+        console.log(`✅ Loaded ${data.executions?.length || 0} executions, ${filteredExecutions.length} after filtering deleted items`);
+        setExecutions(filteredExecutions);
         
-        // Calculate stats
-        const pending = data.executions.filter((e: Execution) => e.status === 'pending_approval').length;
-        const approved = data.executions.filter((e: Execution) => e.status === 'approved').length;
-        const rejected = data.executions.filter((e: Execution) => e.status === 'rejected').length;
-        const draft = data.executions.filter((e: Execution) => e.status === 'draft').length;
+        // Calculate stats from filtered executions
+        const pending = filteredExecutions.filter((e: Execution) => e.status === 'pending_approval').length;
+        const approved = filteredExecutions.filter((e: Execution) => e.status === 'approved').length;
+        const rejected = filteredExecutions.filter((e: Execution) => e.status === 'rejected').length;
+        const draft = filteredExecutions.filter((e: Execution) => e.status === 'draft').length;
 
         setStats({ pending, approved, rejected, draft });
       } else {
@@ -140,8 +145,23 @@ export default function ApprovalsPageContent() {
     console.log(`🗑️ Deleting draft: ${executionId} (${playName})`);
     setDeletingId(executionId);
     
-    // Optimistically remove from UI immediately
-    setExecutions(prev => prev.filter(e => e.id !== executionId));
+    // Store the item being deleted in case we need to restore it
+    const itemToDelete = executions.find(e => e.id === executionId);
+    
+    // Add to deleted IDs ref to filter it out even after reload
+    deletedIdsRef.current.add(executionId);
+    
+    // Optimistically remove from UI immediately and update stats
+    setExecutions(prev => {
+      const filtered = prev.filter(e => e.id !== executionId);
+      // Update stats immediately
+      const draftCount = filtered.filter((e: Execution) => e.status === 'draft').length;
+      setStats(prevStats => ({
+        ...prevStats,
+        draft: draftCount
+      }));
+      return filtered;
+    });
     
     try {
       // Get session token for authentication
@@ -166,18 +186,43 @@ export default function ApprovalsPageContent() {
 
       if (result.success) {
         toast.success('Draft deleted successfully');
-        // Reload the approvals list to ensure consistency
-        await loadApprovals();
+        // Don't reload immediately - optimistic update is already applied
+        // Only reload if we need to sync with server (optional background refresh)
+        // The optimistic update should be sufficient for immediate UI feedback
       } else {
-        // If deletion failed, restore the item in the UI
+        // If deletion failed, remove from deleted IDs and restore the item in the UI
+        deletedIdsRef.current.delete(executionId);
         console.error(`❌ Delete failed: ${result.error}`);
         toast.error(result.error || 'Failed to delete draft');
-        // Reload to get the correct state
+        if (itemToDelete) {
+          setExecutions(prev => [...prev, itemToDelete].sort((a, b) => 
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          ));
+          // Restore stats
+          setStats(prevStats => ({
+            ...prevStats,
+            draft: prevStats.draft + 1
+          }));
+        }
+        // Still reload to get the correct state
         await loadApprovals();
       }
     } catch (error) {
+      // If deletion failed, remove from deleted IDs and restore the item
+      deletedIdsRef.current.delete(executionId);
       console.error('❌ Error deleting draft:', error);
       toast.error('Failed to delete draft');
+      // Restore the item if we have it
+      if (itemToDelete) {
+        setExecutions(prev => [...prev, itemToDelete].sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        ));
+        // Restore stats
+        setStats(prevStats => ({
+          ...prevStats,
+          draft: prevStats.draft + 1
+        }));
+      }
       // Reload to get the correct state
       await loadApprovals();
     } finally {
