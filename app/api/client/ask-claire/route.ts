@@ -75,13 +75,13 @@ export async function POST(request: NextRequest) {
     }
 
     const workspaceApiKey = workspaceData.workspace_api_key;
-    const runtimeContext = formatConversationHistory(conversationHistory, message);
+    const query = formatConversationHistory(conversationHistory, message);
 
     const response = await axios.post(
       OCTAVE_CONTEXT_AGENT_URL,
       {
         agentOId: CONTEXT_AGENT_ID,
-        runtimeContext: runtimeContext,
+        query: query,
       },
       {
         headers: {
