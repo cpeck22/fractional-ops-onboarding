@@ -11,7 +11,6 @@ const ADMIN_EMAILS = [
   'corey@fractionalops.com',
 ];
 
-const CONTEXT_AGENT_ID = 'ca_z4M5gc4srgrZ4NrhOCBFA';
 const OCTAVE_CONTEXT_AGENT_URL = 'https://app.octavehq.com/api/v2/agents/context/run';
 
 function formatConversationHistory(conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>, newMessage: string): string {
@@ -100,40 +99,80 @@ export async function POST(request: NextRequest) {
     const query = formatConversationHistory(conversationHistory, message);
 
     // Find Context Agent in the workspace (it gets duplicated, so we need to find the workspace-specific ID)
-    let contextAgentId = CONTEXT_AGENT_ID; // Fallback to template ID
+    // Use same pagination pattern as execute-play route
+    let contextAgentId = null;
+    let contextAgentName = null;
     
     try {
-      const agentsResponse = await axios.get(
-        'https://app.octavehq.com/api/v2/agents/list',
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'api_key': workspaceApiKey
-          },
-          params: { limit: 100 }
-        }
-      );
-
-      const allAgents = agentsResponse.data?.data || agentsResponse.data?.agents || [];
+      // List agents with pagination (same as execute-play route)
+      const allAgents = [];
+      let offset = 0;
+      const limit = 50;
+      let hasNext = true;
       
-      // Look for Context Agent - it might be named with "context" or have the template ID pattern
+      while (hasNext) {
+        const agentsResponse = await axios.get(
+          'https://app.octavehq.com/api/v2/agents/list',
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'api_key': workspaceApiKey
+            },
+            params: {
+              offset,
+              limit,
+              orderField: 'createdAt',
+              orderDirection: 'DESC'
+            }
+          }
+        );
+        
+        const pageAgents = agentsResponse.data?.data || [];
+        allAgents.push(...pageAgents);
+        hasNext = agentsResponse.data?.hasNext || false;
+        offset += limit;
+        
+        if (!hasNext) break;
+      }
+
+      // Look for Context Agent by type (should be 'CONTEXT' type)
       const contextAgent = allAgents.find((agent: any) => {
-        const agentName = (agent.name || '').toLowerCase();
-        const agentType = (agent.type || '').toLowerCase();
-        return agentName.includes('context') || 
-               agentType === 'context' ||
-               agent.oId === CONTEXT_AGENT_ID;
+        const agentType = (agent.type || '').toUpperCase();
+        return agentType === 'CONTEXT';
       });
 
       if (contextAgent) {
         contextAgentId = contextAgent.oId;
-        console.log(`✅ Found Context Agent in workspace: ${contextAgent.name} (${contextAgentId})`);
+        contextAgentName = contextAgent.name;
+        console.log(`✅ Found Context Agent in workspace: ${contextAgentName} (${contextAgentId})`);
       } else {
-        console.warn(`⚠️ Context Agent not found in workspace, using template ID: ${CONTEXT_AGENT_ID}`);
+        console.error(`❌ Context Agent not found in workspace. Searched ${allAgents.length} agents.`);
+        console.error('Available agent types:', [...new Set(allAgents.map((a: any) => a.type))]);
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: 'Context Agent not found in your workspace. Please contact Fractional Ops to set up the Context Agent.'
+          },
+          { status: 404 }
+        );
       }
     } catch (agentError: any) {
-      console.warn('⚠️ Error finding Context Agent, using template ID:', agentError.message);
-      // Continue with template ID as fallback
+      console.error('❌ Error finding Context Agent:', agentError);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Failed to find Context Agent in workspace',
+          details: agentError.message
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!contextAgentId) {
+      return NextResponse.json(
+        { success: false, error: 'Context Agent ID not found' },
+        { status: 500 }
+      );
     }
 
     const response = await axios.post(
