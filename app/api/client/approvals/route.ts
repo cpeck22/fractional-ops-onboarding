@@ -91,17 +91,51 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // CRITICAL FIX: Verify each execution actually exists in the database
+    // This filters out any stale/deleted rows that might be returned due to caching/replication
+    const verifiedExecutions = [];
+    if (executions && executions.length > 0) {
+      console.log(`🔍 Verifying ${executions.length} executions exist in database...`);
+      
+      // Batch verify all execution IDs at once for efficiency
+      const executionIds = executions.map((e: any) => e.id);
+      const { data: existingExecutions, error: verifyError } = await supabaseAdmin
+        .from('play_executions')
+        .select('id')
+        .eq('user_id', effectiveUserId)
+        .in('id', executionIds);
+      
+      if (verifyError) {
+        console.error('❌ Error verifying executions:', verifyError);
+        // If verification fails, return all executions (fallback)
+        verifiedExecutions.push(...executions);
+      } else {
+        const existingIds = new Set(existingExecutions?.map((e: any) => e.id) || []);
+        
+        // Filter to only include executions that still exist
+        for (const execution of executions) {
+          if (existingIds.has(execution.id)) {
+            verifiedExecutions.push(execution);
+          } else {
+            console.log(`⚠️ Filtered out deleted/stale execution: ${execution.id}`);
+          }
+        }
+        
+        console.log(`✅ Verified: ${verifiedExecutions.length} of ${executions.length} executions still exist`);
+      }
+    }
+
     // Log execution IDs for debugging
-    const executionIds = executions?.map((e: any) => e.id) || [];
-    const draftCount = executions?.filter((e: any) => e.status === 'draft').length || 0;
+    const verifiedIds = verifiedExecutions?.map((e: any) => e.id) || [];
+    const draftCount = verifiedExecutions?.filter((e: any) => e.status === 'draft').length || 0;
     
-    console.log(`📊 Fetched ${executions?.length || 0} executions for user ${effectiveUserId} (status: ${status || 'all'}, category: ${playCategory || 'all'})`);
+    console.log(`📊 Returning ${verifiedExecutions?.length || 0} verified executions for user ${effectiveUserId} (status: ${status || 'all'}, category: ${playCategory || 'all'})`);
     console.log(`📋 Draft count: ${draftCount}`);
-    console.log(`🆔 Execution IDs: ${executionIds.slice(0, 10).join(', ')}${executionIds.length > 10 ? '...' : ''}`);
+    console.log(`🆔 Execution IDs: ${verifiedIds.slice(0, 10).join(', ')}${verifiedIds.length > 10 ? '...' : ''}`);
 
     return NextResponse.json({
       success: true,
-      executions: executions || []
+      executions: verifiedExecutions || []
     });
 
   } catch (error: any) {
@@ -112,4 +146,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
