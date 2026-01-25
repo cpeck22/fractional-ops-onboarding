@@ -65,11 +65,33 @@ export async function POST(request: NextRequest) {
       .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (workspaceError || !workspaceData?.workspace_api_key) {
+    if (workspaceError) {
+      console.error('❌ Error fetching workspace:', {
+        error: workspaceError.message,
+        effectiveUserId,
+        impersonateUserId,
+        isImpersonating: !!impersonateUserId
+      });
       return NextResponse.json(
-        { success: false, error: 'Claire API key missing, please contact Fractional Ops to fix.', details: workspaceError?.message },
+        { success: false, error: 'Failed to fetch workspace data', details: workspaceError.message },
+        { status: 500 }
+      );
+    }
+
+    if (!workspaceData?.workspace_api_key) {
+      const errorMsg = impersonateUserId 
+        ? `No workspace found for impersonated user ${impersonateUserId}. Please ensure the user has completed onboarding.`
+        : 'Claire API key missing, please contact Fractional Ops to fix.';
+      console.error('❌ No workspace API key found:', {
+        effectiveUserId,
+        impersonateUserId,
+        hasWorkspaceData: !!workspaceData,
+        isImpersonating: !!impersonateUserId
+      });
+      return NextResponse.json(
+        { success: false, error: errorMsg },
         { status: 404 }
       );
     }
