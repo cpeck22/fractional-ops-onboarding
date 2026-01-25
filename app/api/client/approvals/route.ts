@@ -102,6 +102,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         executions: []
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       });
     }
 
@@ -151,13 +157,26 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       executions: executions || []
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
 
   } catch (error: any) {
     console.error('❌ Error fetching approvals:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch approvals', details: error.message },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
     );
   }
 }
