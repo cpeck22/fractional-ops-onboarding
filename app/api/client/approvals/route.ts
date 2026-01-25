@@ -49,8 +49,67 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Build query
-    let query = supabaseAdmin
+    // STEP 1: Query ONLY IDs first (simpler query, less likely to be cached)
+    // This gives us the list of execution IDs that match our filters
+    let idQuery = supabaseAdmin
+      .from('play_executions')
+      .select('id, status, play_id')
+      .eq('user_id', effectiveUserId)
+      .order('created_at', { ascending: false });
+
+    // Apply status filter
+    if (status) {
+      idQuery = idQuery.eq('status', status);
+    }
+
+    // Apply category filter if needed (requires join, but we'll filter after)
+    let categoryFilteredIds: string[] | null = null;
+    if (playCategory) {
+      // For category filter, we need to join with claire_plays
+      // But we'll do this in a separate query to avoid caching issues
+      const categoryQuery = supabaseAdmin
+        .from('play_executions')
+        .select('id, claire_plays!inner(category)')
+        .eq('user_id', effectiveUserId)
+        .eq('claire_plays.category', playCategory);
+      
+      if (status) {
+        categoryQuery.eq('status', status);
+      }
+      
+      const { data: categoryData } = await categoryQuery;
+      categoryFilteredIds = categoryData?.map((e: any) => e.id) || [];
+    }
+
+    const { data: idData, error: idError } = await idQuery;
+
+    if (idError) {
+      console.error('❌ Error fetching execution IDs:', idError);
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch approvals', details: idError.message },
+        { status: 500 }
+      );
+    }
+
+    // Filter by category if needed
+    let executionIds = idData?.map((e: any) => e.id) || [];
+    if (categoryFilteredIds && categoryFilteredIds.length > 0) {
+      executionIds = executionIds.filter((id: string) => categoryFilteredIds!.includes(id));
+    }
+
+    if (executionIds.length === 0) {
+      console.log(`📊 No executions found for user ${effectiveUserId}`);
+      return NextResponse.json({
+        success: true,
+        executions: []
+      });
+    }
+
+    console.log(`🔍 Found ${executionIds.length} execution IDs, fetching full data...`);
+
+    // STEP 2: Query full data ONLY for verified IDs
+    // This ensures we only get data for executions that actually exist
+    const { data: executions, error: executionError } = await supabaseAdmin
       .from('play_executions')
       .select(`
         *,
@@ -70,72 +129,28 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('user_id', effectiveUserId)
+      .in('id', executionIds)
       .order('created_at', { ascending: false });
 
-    // Apply filters
-    if (status) {
-      query = query.eq('status', status);
-    }
-
-    if (playCategory) {
-      query = query.eq('claire_plays.category', playCategory);
-    }
-
-    const { data: executions, error } = await query;
-
-    if (error) {
-      console.error('❌ Error fetching approvals:', error);
+    if (executionError) {
+      console.error('❌ Error fetching execution details:', executionError);
       return NextResponse.json(
-        { success: false, error: 'Failed to fetch approvals', details: error.message },
+        { success: false, error: 'Failed to fetch approvals', details: executionError.message },
         { status: 500 }
       );
     }
 
-    // CRITICAL FIX: Verify each execution actually exists in the database
-    // This filters out any stale/deleted rows that might be returned due to caching/replication
-    const verifiedExecutions = [];
-    if (executions && executions.length > 0) {
-      console.log(`🔍 Verifying ${executions.length} executions exist in database...`);
-      
-      // Batch verify all execution IDs at once for efficiency
-      const executionIds = executions.map((e: any) => e.id);
-      const { data: existingExecutions, error: verifyError } = await supabaseAdmin
-        .from('play_executions')
-        .select('id')
-        .eq('user_id', effectiveUserId)
-        .in('id', executionIds);
-      
-      if (verifyError) {
-        console.error('❌ Error verifying executions:', verifyError);
-        // If verification fails, return all executions (fallback)
-        verifiedExecutions.push(...executions);
-      } else {
-        const existingIds = new Set(existingExecutions?.map((e: any) => e.id) || []);
-        
-        // Filter to only include executions that still exist
-        for (const execution of executions) {
-          if (existingIds.has(execution.id)) {
-            verifiedExecutions.push(execution);
-          } else {
-            console.log(`⚠️ Filtered out deleted/stale execution: ${execution.id}`);
-          }
-        }
-        
-        console.log(`✅ Verified: ${verifiedExecutions.length} of ${executions.length} executions still exist`);
-      }
-    }
-
     // Log execution IDs for debugging
-    const verifiedIds = verifiedExecutions?.map((e: any) => e.id) || [];
-    const draftCount = verifiedExecutions?.filter((e: any) => e.status === 'draft').length || 0;
+    const verifiedIds = executions?.map((e: any) => e.id) || [];
+    const draftCount = executions?.filter((e: any) => e.status === 'draft').length || 0;
     
-    console.log(`📊 Returning ${verifiedExecutions?.length || 0} verified executions for user ${effectiveUserId} (status: ${status || 'all'}, category: ${playCategory || 'all'})`);
+    console.log(`📊 Returning ${executions?.length || 0} executions for user ${effectiveUserId} (status: ${status || 'all'}, category: ${playCategory || 'all'})`);
     console.log(`📋 Draft count: ${draftCount}`);
     console.log(`🆔 Execution IDs: ${verifiedIds.slice(0, 10).join(', ')}${verifiedIds.length > 10 ? '...' : ''}`);
 
     return NextResponse.json({
       success: true,
-      executions: verifiedExecutions || []
+      executions: executions || []
     });
 
   } catch (error: any) {
