@@ -11,7 +11,6 @@ const ADMIN_EMAILS = [
   'corey@fractionalops.com',
 ];
 
-const CONTEXT_AGENT_ID = 'ca_z4M5gc4srgrZ4NrhOCBFA';
 const OCTAVE_CONTEXT_AGENT_URL = 'https://app.octavehq.com/api/v2/agents/context/run';
 
 export async function POST(
@@ -59,14 +58,21 @@ export async function POST(
       );
     }
 
-    // Get workspace data for Octave elements
+    // Get workspace data for Octave elements (including Context Agent ID)
     const { data: workspaceData } = await supabaseAdmin
       .from('octave_outputs')
-      .select('personas, use_cases, client_references, company_domain, company_name')
+      .select('personas, use_cases, client_references, company_domain, company_name, workspace_context_agent_id')
       .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
+
+    if (!workspaceData?.workspace_context_agent_id) {
+      return NextResponse.json(
+        { success: false, error: 'Context Agent not configured for your workspace. Please contact Fractional Ops to regenerate your workspace.' },
+        { status: 404 }
+      );
+    }
 
     // Build comprehensive prompt for Context Agent
     const campaignBrief = `
@@ -145,11 +151,11 @@ OUTPUT FORMAT: Return a JSON object with this exact structure:
 }
 `;
 
-    // Call Context Agent
+    // Call Context Agent using stored workspace-specific ID
     const response = await axios.post(
       OCTAVE_CONTEXT_AGENT_URL,
       {
-        agentOId: CONTEXT_AGENT_ID,
+        agentOId: workspaceData.workspace_context_agent_id,
         runtimeContext: campaignBrief,
       },
       {

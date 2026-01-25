@@ -12,7 +12,6 @@ const ADMIN_EMAILS = [
   'corey@fractionalops.com',
 ];
 
-const CONTEXT_AGENT_ID = 'ca_z4M5gc4srgrZ4NrhOCBFA';
 const OCTAVE_CONTEXT_AGENT_URL = 'https://app.octavehq.com/api/v2/agents/context/run';
 const OCTAVE_BASE_URL = 'https://app.octavehq.com/api/v2/agents';
 
@@ -63,14 +62,21 @@ export async function POST(
 
     const intermediary = campaign.intermediary_outputs || {};
 
-    // Get workspace data
+    // Get workspace data (including Context Agent ID)
     const { data: workspaceData } = await supabaseAdmin
       .from('octave_outputs')
-      .select('personas, use_cases, client_references, company_domain, company_name')
+      .select('personas, use_cases, client_references, company_domain, company_name, workspace_context_agent_id')
       .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
+
+    if (!workspaceData?.workspace_context_agent_id) {
+      return NextResponse.json(
+        { success: false, error: 'Context Agent not configured for your workspace. Please contact Fractional Ops to regenerate your workspace.' },
+        { status: 404 }
+      );
+    }
 
     // 1. Generate Campaign Copy (3 email sequence)
     const emailPrompt = `
@@ -128,7 +134,7 @@ OUTPUT FORMAT: Return JSON with this structure:
     const emailResponse = await axios.post(
       OCTAVE_CONTEXT_AGENT_URL,
       {
-        agentOId: CONTEXT_AGENT_ID,
+        agentOId: workspaceData.workspace_context_agent_id,
         runtimeContext: emailPrompt,
       },
       {
@@ -273,7 +279,7 @@ Include instructions at the top: "Please add this as a sequence in your CRM or c
         const fallbackResponse = await axios.post(
           OCTAVE_CONTEXT_AGENT_URL,
           {
-            agentOId: CONTEXT_AGENT_ID,
+            agentOId: workspaceData.workspace_context_agent_id,
             runtimeContext: nurtureContext
           },
           {

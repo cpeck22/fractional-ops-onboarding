@@ -184,7 +184,8 @@ export async function POST(request: NextRequest) {
       linkedinPosts: {},
       linkedinDMs: {},
       newsletters: {},
-      youtube: {}
+      youtube: {},
+      contextAgent: null // ✅ Context Agent ID for workspace
     };
     
     if (workspaceApiKey) {
@@ -351,6 +352,10 @@ export async function POST(request: NextRequest) {
             } else {
               console.log(`    ⏭️  Skipped (CONTENT agent, but doesn't match our criteria)`);
             }
+          } else if (agentType === 'CONTEXT') {
+            // ✅ Context Agent - store the workspace-specific ID
+            newAgentIds.contextAgent = agentOId;
+            console.log(`    ✅ MAPPED as CONTEXT AGENT: ${agent.name} (${agentOId})`);
           } else {
             console.log(`    ⏭️  Skipped (type: ${agentType})`);
           }
@@ -379,6 +384,7 @@ export async function POST(request: NextRequest) {
         console.log('   - Leadership:', newAgentIds.newsletters.leadership || '❌');
         console.log('✅ YouTube Scripts:');
         console.log('   - Long-Form:', newAgentIds.youtube.longForm || '❌');
+        console.log('✅ Context Agent:', newAgentIds.contextAgent || '❌ NOT FOUND');
         console.log('================================');
         
         // Count missing agents
@@ -551,6 +557,7 @@ export async function POST(request: NextRequest) {
             user_id: effectiveUserId,
             workspace_oid: workspaceOId,
             workspace_api_key: workspaceApiKey, // ✅ Save workspace API key for agent execution later
+            workspace_context_agent_id: newAgentIds.contextAgent || null, // ✅ Save workspace-specific Context Agent ID
             product_oid: productOId, // ✅ Save product OId for Phase 2
             company_name: companyName,
             company_domain: companyDomain,

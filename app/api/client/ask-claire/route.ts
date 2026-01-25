@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     const { data: workspaceData, error: workspaceError } = await supabaseAdmin
       .from('octave_outputs')
-      .select('workspace_api_key')
+      .select('workspace_api_key, workspace_context_agent_id')
       .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -96,84 +96,22 @@ export async function POST(request: NextRequest) {
     }
 
     const workspaceApiKey = workspaceData.workspace_api_key;
+    const contextAgentId = workspaceData.workspace_context_agent_id;
     const query = formatConversationHistory(conversationHistory, message);
 
-    // Find Context Agent in the workspace (it gets duplicated, so we need to find the workspace-specific ID)
-    // Use same pagination pattern as execute-play route
-    let contextAgentId = null;
-    let contextAgentName = null;
-    
-    try {
-      // List agents with pagination (same as execute-play route)
-      const allAgents = [];
-      let offset = 0;
-      const limit = 50;
-      let hasNext = true;
-      
-      while (hasNext) {
-        const agentsResponse = await axios.get(
-          'https://app.octavehq.com/api/v2/agents/list',
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'api_key': workspaceApiKey
-            },
-            params: {
-              offset,
-              limit,
-              orderField: 'createdAt',
-              orderDirection: 'DESC'
-            }
-          }
-        );
-        
-        const pageAgents = agentsResponse.data?.data || [];
-        allAgents.push(...pageAgents);
-        hasNext = agentsResponse.data?.hasNext || false;
-        offset += limit;
-        
-        if (!hasNext) break;
-      }
-
-      // Look for Context Agent by type (should be 'CONTEXT' type)
-      const contextAgent = allAgents.find((agent: any) => {
-        const agentType = (agent.type || '').toUpperCase();
-        return agentType === 'CONTEXT';
-      });
-
-      if (contextAgent) {
-        contextAgentId = contextAgent.oId;
-        contextAgentName = contextAgent.name;
-        console.log(`✅ Found Context Agent in workspace: ${contextAgentName} (${contextAgentId})`);
-      } else {
-        console.error(`❌ Context Agent not found in workspace. Searched ${allAgents.length} agents.`);
-        console.error('Available agent types:', [...new Set(allAgents.map((a: any) => a.type))]);
-        return NextResponse.json(
-          { 
-            success: false, 
-            error: 'Context Agent not found in your workspace. Please contact Fractional Ops to set up the Context Agent.'
-          },
-          { status: 404 }
-        );
-      }
-    } catch (agentError: any) {
-      console.error('❌ Error finding Context Agent:', agentError);
+    // Use stored Context Agent ID from database (set during workspace creation)
+    if (!contextAgentId) {
+      console.error('❌ Context Agent ID not found in workspace data');
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Failed to find Context Agent in workspace',
-          details: agentError.message
+          error: 'Context Agent not configured for your workspace. Please contact Fractional Ops to regenerate your workspace.'
         },
-        { status: 500 }
+        { status: 404 }
       );
     }
 
-    if (!contextAgentId) {
-      return NextResponse.json(
-        { success: false, error: 'Context Agent ID not found' },
-        { status: 500 }
-      );
-    }
+    console.log(`✅ Using stored Context Agent ID: ${contextAgentId}`);
 
     const response = await axios.post(
       OCTAVE_CONTEXT_AGENT_URL,
