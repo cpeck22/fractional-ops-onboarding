@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Target, Loader2, Users, Briefcase, Building2, Layers, BookOpen, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -55,27 +55,7 @@ export default function GTMStrategyPageContent() {
   const [data, setData] = useState<GTMStrategyData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Wait for auth to initialize, then load data
-    const initializeAndLoad = async () => {
-      // First verify user is authenticated
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        console.error('❌ User not authenticated in useEffect:', userError?.message);
-        setError('Authentication required. Please sign in again.');
-        setLoading(false);
-        return;
-      }
-      
-      // Small delay to ensure session is ready
-      await new Promise(resolve => setTimeout(resolve, 100));
-      loadGTMStrategyData();
-    };
-    
-    initializeAndLoad();
-  }, [impersonateUserId]);
-
-  const loadGTMStrategyData = async () => {
+  const loadGTMStrategyData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -165,7 +145,27 @@ export default function GTMStrategyPageContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [impersonateUserId]);
+
+  useEffect(() => {
+    // Wait for auth to initialize, then load data
+    const initializeAndLoad = async () => {
+      // First verify user is authenticated
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error('❌ User not authenticated in useEffect:', userError?.message);
+        setError('Authentication required. Please sign in again.');
+        setLoading(false);
+        return;
+      }
+      
+      // Small delay to ensure session is ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+      loadGTMStrategyData();
+    };
+    
+    initializeAndLoad();
+  }, [impersonateUserId, loadGTMStrategyData]);
 
   if (loading) {
     return (

@@ -30,7 +30,8 @@ export async function loadQuestionnaireDataForUser(userId: string): Promise<Ques
   }
   
   // Transform flat data back to nested structure
-  const questionnaireData: QuestionnaireData = {
+  // Use 'any' type to allow legacy properties for backward compatibility
+  const questionnaireData: any = {
     companyInfo: {
       companyName: '',
       companyDomain: ''
@@ -85,10 +86,10 @@ export async function loadQuestionnaireDataForUser(userId: string): Promise<Ques
       additionalFiles: ''
     },
     // Legacy mappings for backward compatibility
-    basicInfo: {} as any,
-    icp: {} as any,
-    callToAction: {} as any,
-    brand: {} as any
+    basicInfo: {},
+    icp: {},
+    callToAction: {},
+    brand: {}
   };
 
   // Transform flat rows to nested structure
@@ -188,5 +189,6 @@ export async function loadQuestionnaireDataForUser(userId: string): Promise<Ques
     throw new Error('Missing required questionnaire data: companyName and companyDomain are required');
   }
 
-  return questionnaireData;
+  // Return as QuestionnaireData (legacy properties are only used internally for migration)
+  return questionnaireData as QuestionnaireData;
 }

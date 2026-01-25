@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase, signOut } from '@/lib/supabase';
 import Image from 'next/image';
@@ -26,11 +26,7 @@ export default function AgentManagementPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [copiedAgentId, setCopiedAgentId] = useState<string | null>(null);
 
-  useEffect(() => {
-    checkAdminAccess();
-  }, []);
-
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -51,7 +47,11 @@ export default function AgentManagementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    checkAdminAccess();
+  }, [checkAdminAccess]);
 
   const copyToClipboard = (text: string, agentId: string) => {
     navigator.clipboard.writeText(text);
