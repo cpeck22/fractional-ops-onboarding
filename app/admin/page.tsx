@@ -7,7 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Logo from '../Fractional-Ops_Symbol_Main.png';
 import toast from 'react-hot-toast';
-import { LayoutDashboard, RefreshCw, Target, Users, Lock, ArrowRight, Check, Lightbulb, Bot } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Target, Users, Lock, ArrowRight, Check, Lightbulb, Bot, Building2 } from 'lucide-react';
 
 // Admin emails that can access this page
 const ADMIN_EMAILS = [
@@ -40,6 +40,14 @@ const adminTools: AdminTool[] = [
     description: 'Regenerate specific agent outputs for a client (Call Prep, etc.)',
     icon: RefreshCw,
     href: '/admin/rerun-agent',
+    color: 'from-fo-primary to-fo-secondary'
+  },
+  {
+    id: 'regenerate-workspace',
+    title: 'Regenerate Workspace',
+    description: 'Regenerate a client workspace using their existing questionnaire answers',
+    icon: Building2,
+    href: '/admin/regenerate-workspace',
     color: 'from-fo-primary to-fo-secondary'
   },
   {

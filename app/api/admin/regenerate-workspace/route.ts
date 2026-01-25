@@ -18,14 +18,18 @@ export const maxDuration = 300; // 5 minutes timeout
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await request.json();
+    const { userId, email } = await request.json();
 
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    if (!userId && !email) {
+      return NextResponse.json({ error: 'User ID or email is required' }, { status: 400 });
     }
 
     console.log('🔄 ===== ADMIN REGENERATE WORKSPACE REQUEST =====');
-    console.log('👤 User ID:', userId);
+    if (userId) {
+      console.log('👤 User ID:', userId);
+    } else {
+      console.log('📧 Email:', email);
+    }
 
     // Initialize Supabase admin client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -39,7 +43,7 @@ export async function POST(request: NextRequest) {
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // ============================================
-    // STEP 1: Get user email
+    // STEP 1: Get user (by userId or email)
     // ============================================
     console.log('🔍 Looking up user...');
     const { data: { users }, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
@@ -49,17 +53,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to lookup user' }, { status: 500 });
     }
 
-    const user = users?.find(u => u.id === userId);
+    const user = userId 
+      ? users?.find(u => u.id === userId)
+      : users?.find(u => u.email?.toLowerCase() === email?.toLowerCase());
     
     if (!user) {
-      console.error('❌ User not found:', userId);
+      const identifier = userId || email;
+      console.error('❌ User not found:', identifier);
       return NextResponse.json({ 
-        error: `No user found with ID: ${userId}` 
+        error: `No user found with ${userId ? 'ID' : 'email'}: ${identifier}` 
       }, { status: 404 });
     }
 
+    const resolvedUserId = user.id;
     const userEmail = user.email || 'noemail@example.com';
-    console.log('✅ Found user:', userEmail);
+    console.log('✅ Found user:', userEmail, `(${resolvedUserId})`);
 
     // ============================================
     // STEP 2: Load questionnaire data
@@ -67,7 +75,7 @@ export async function POST(request: NextRequest) {
     console.log('📋 Loading questionnaire data...');
     let questionnaireData: QuestionnaireData;
     try {
-      questionnaireData = await loadQuestionnaireDataForUser(userId);
+      questionnaireData = await loadQuestionnaireDataForUser(resolvedUserId);
       console.log('✅ Questionnaire data loaded');
       console.log(`   Company: ${questionnaireData.companyInfo?.companyName || 'Unknown'}`);
       console.log(`   Domain: ${questionnaireData.companyInfo?.companyDomain || 'Unknown'}`);
@@ -189,7 +197,7 @@ export async function POST(request: NextRequest) {
     // SUCCESS
     // ============================================
     console.log('🎉 ===== WORKSPACE REGENERATION COMPLETE =====');
-    console.log(`   User: ${userEmail} (${userId})`);
+    console.log(`   User: ${userEmail} (${resolvedUserId})`);
     console.log(`   Company: ${companyName}`);
     console.log(`   Workspace: ${workspaceName}`);
 
@@ -197,7 +205,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: `Workspace successfully regenerated for ${companyName}`,
       userEmail,
-      userId,
+      userId: resolvedUserId,
       companyName,
       companyDomain,
       workspaceOId,

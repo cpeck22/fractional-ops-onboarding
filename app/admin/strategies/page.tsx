@@ -35,13 +35,6 @@ export default function AdminStrategiesPage() {
   const [confirmRegenerate, setConfirmRegenerate] = useState<{ email: string; companyName: string; userId: string } | null>(null);
   const [regeneratingRowId, setRegeneratingRowId] = useState<string | null>(null);
   const [regeneratingEmail, setRegeneratingEmail] = useState<string>('');
-  
-  // Workspace regeneration state
-  const [isRegeneratingWorkspace, setIsRegeneratingWorkspace] = useState(false);
-  const [workspaceRegenerateStatus, setWorkspaceRegenerateStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-  const [confirmRegenerateWorkspace, setConfirmRegenerateWorkspace] = useState<{ email: string; companyName: string; userId: string } | null>(null);
-  const [regeneratingWorkspaceRowId, setRegeneratingWorkspaceRowId] = useState<string | null>(null);
-  
   const router = useRouter();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -217,49 +210,6 @@ export default function AdminStrategiesPage() {
     }
   };
 
-  const handleRegenerateWorkspace = async (userId: string) => {
-    setIsRegeneratingWorkspace(true);
-    setWorkspaceRegenerateStatus(null);
-    setConfirmRegenerateWorkspace(null);
-
-    try {
-      console.log('🔄 Regenerating workspace for user:', userId);
-      
-      const response = await fetch('/api/admin/regenerate-workspace', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setWorkspaceRegenerateStatus({ 
-          type: 'success', 
-          message: `✅ Workspace re-generated!` 
-        });
-        // Auto-hide success message after 5 seconds
-        setTimeout(() => {
-          setWorkspaceRegenerateStatus(null);
-        }, 5000);
-      } else {
-        setWorkspaceRegenerateStatus({ 
-          type: 'error', 
-          message: `❌ ${data.error || 'Failed to regenerate workspace'}` 
-        });
-      }
-    } catch (error: any) {
-      console.error('❌ Regenerate workspace error:', error);
-      setWorkspaceRegenerateStatus({ 
-        type: 'error', 
-        message: `❌ Error: ${error.message || 'Unknown error occurred'}` 
-      });
-    } finally {
-      setIsRegeneratingWorkspace(false);
-      setRegeneratingWorkspaceRowId(null);
-    }
-  };
-
   const handleRowRegenerateClick = (strategy: Strategy) => {
     setConfirmRegenerate({
       email: strategy.user_email,
@@ -267,15 +217,6 @@ export default function AdminStrategiesPage() {
       userId: strategy.user_id
     });
     setRegeneratingRowId(strategy.user_id);
-  };
-
-  const handleRowRegenerateWorkspaceClick = (strategy: Strategy) => {
-    setConfirmRegenerateWorkspace({
-      email: strategy.user_email,
-      companyName: strategy.company_name || 'Unknown Company',
-      userId: strategy.user_id
-    });
-    setRegeneratingWorkspaceRowId(strategy.user_id);
   };
 
   // Filter strategies by search term (handle null/undefined values)
@@ -343,24 +284,6 @@ export default function AdminStrategiesPage() {
         </div>
       )}
 
-      {/* Loading Overlay for Workspace Regeneration */}
-      {isRegeneratingWorkspace && regeneratingWorkspaceRowId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md mx-4 shadow-xl">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Regenerating Workspace</h3>
-              <p className="text-gray-600 mb-4">
-                This process takes 1-2 minutes. Please don&apos;t close this page.
-              </p>
-              <p className="text-sm text-gray-500">
-                Company: {confirmRegenerateWorkspace?.companyName || 'Unknown'}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Confirmation Modal for Strategy */}
       {confirmRegenerate && !isRegenerating && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -399,74 +322,6 @@ export default function AdminStrategiesPage() {
               >
                 <span>🔄</span>
                 <span>Confirm Regenerate</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Confirmation Modal for Workspace */}
-      {confirmRegenerateWorkspace && !isRegeneratingWorkspace && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Confirm Workspace Regeneration</h3>
-            <div className="mb-6">
-              <p className="text-gray-700 mb-2">
-                <strong>Company:</strong> {confirmRegenerateWorkspace.companyName}
-              </p>
-              <p className="text-gray-700 mb-4">
-                <strong>Email:</strong> {confirmRegenerateWorkspace.email}
-              </p>
-              <p className="text-sm text-gray-600 mb-2">
-                This will regenerate the workspace using the client&apos;s existing questionnaire answers.
-              </p>
-              <p className="text-sm text-orange-600 font-medium">
-                ⚠️ Make sure you&apos;ve deleted the workspace in Octave first!
-              </p>
-            </div>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => {
-                  setConfirmRegenerateWorkspace(null);
-                  setRegeneratingWorkspaceRowId(null);
-                }}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
-                disabled={isRegeneratingWorkspace}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  if (confirmRegenerateWorkspace) {
-                    handleRegenerateWorkspace(confirmRegenerateWorkspace.userId);
-                  }
-                }}
-                disabled={isRegeneratingWorkspace}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed inline-flex items-center gap-2"
-              >
-                <span>🏢</span>
-                <span>Confirm Regenerate Workspace</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Workspace Regeneration Success/Error Popup */}
-      {workspaceRegenerateStatus && (
-        <div className="fixed top-4 right-4 z-50 max-w-md">
-          <div className={`p-4 rounded-lg shadow-lg ${
-            workspaceRegenerateStatus.type === 'success' 
-              ? 'bg-green-50 border-2 border-green-500 text-green-800' 
-              : 'bg-red-50 border-2 border-red-500 text-red-800'
-          }`}>
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-lg">{workspaceRegenerateStatus.message}</p>
-              <button
-                onClick={() => setWorkspaceRegenerateStatus(null)}
-                className="ml-4 text-gray-500 hover:text-gray-700"
-              >
-                ✕
               </button>
             </div>
           </div>
@@ -705,24 +560,6 @@ export default function AdminStrategiesPage() {
                               <>
                                 <span>🔄</span>
                                 <span>Regenerate</span>
-                              </>
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleRowRegenerateWorkspaceClick(strategy)}
-                            disabled={isRegeneratingWorkspace || regeneratingWorkspaceRowId === strategy.user_id}
-                            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-medium text-sm inline-flex items-center gap-2"
-                            title="Regenerate Workspace"
-                          >
-                            {regeneratingWorkspaceRowId === strategy.user_id ? (
-                              <>
-                                <span className="animate-spin">⏳</span>
-                                <span>Regenerating...</span>
-                              </>
-                            ) : (
-                              <>
-                                <span>🏢</span>
-                                <span>Regenerate Workspace</span>
                               </>
                             )}
                           </button>
