@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { getAuthenticatedUser } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 // Admin emails that can impersonate clients
 const ADMIN_EMAILS = [
@@ -92,7 +91,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Log execution IDs for debugging
+    const executionIds = executions?.map((e: any) => e.id) || [];
+    const draftCount = executions?.filter((e: any) => e.status === 'draft').length || 0;
+    
     console.log(`📊 Fetched ${executions?.length || 0} executions for user ${effectiveUserId} (status: ${status || 'all'}, category: ${playCategory || 'all'})`);
+    console.log(`📋 Draft count: ${draftCount}`);
+    console.log(`🆔 Execution IDs: ${executionIds.slice(0, 10).join(', ')}${executionIds.length > 10 ? '...' : ''}`);
 
     return NextResponse.json({
       success: true,

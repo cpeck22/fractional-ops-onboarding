@@ -321,6 +321,7 @@ export async function DELETE(
       .from('play_executions')
       .delete()
       .eq('id', executionId)
+      .eq('user_id', effectiveUserId) // Double-check user ownership
       .select();
 
     if (deleteError) {
@@ -331,7 +332,47 @@ export async function DELETE(
       );
     }
 
-    console.log(`✅ Execution deleted successfully: ${executionId}, deleted rows: ${deleteData?.length || 0}`);
+    // Verify deletion actually happened
+    if (!deleteData || deleteData.length === 0) {
+      console.error(`⚠️ Delete returned no rows for execution ${executionId} - may not have existed or already deleted`);
+      // Verify if it still exists
+      const { data: stillExists } = await supabaseAdmin
+        .from('play_executions')
+        .select('id')
+        .eq('id', executionId)
+        .single();
+      
+      if (stillExists) {
+        console.error(`❌ Execution ${executionId} still exists after delete attempt!`);
+        return NextResponse.json(
+          { success: false, error: 'Delete operation did not complete successfully' },
+          { status: 500 }
+        );
+      } else {
+        console.log(`✅ Execution ${executionId} was already deleted or never existed`);
+        return NextResponse.json({
+          success: true,
+          message: 'Execution deleted successfully'
+        });
+      }
+    }
+
+    console.log(`✅ Execution deleted successfully: ${executionId}, deleted rows: ${deleteData.length}`);
+    
+    // Double-check deletion by querying again
+    const { data: verifyDeleted } = await supabaseAdmin
+      .from('play_executions')
+      .select('id')
+      .eq('id', executionId)
+      .single();
+    
+    if (verifyDeleted) {
+      console.error(`❌ CRITICAL: Execution ${executionId} still exists after delete!`);
+      return NextResponse.json(
+        { success: false, error: 'Delete operation did not complete successfully' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
