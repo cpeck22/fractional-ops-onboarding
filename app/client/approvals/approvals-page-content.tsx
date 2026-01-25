@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
-import { Clock, CheckCircle2, XCircle, FileText, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, FileText, AlertTriangle, ArrowRight, Trash2 } from 'lucide-react';
 
 interface Execution {
   id: string;
@@ -38,6 +38,7 @@ export default function ApprovalsPageContent() {
 
   const [executions, setExecutions] = useState<Execution[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [stats, setStats] = useState({
     pending: 0,
     approved: 0,
@@ -112,6 +113,48 @@ export default function ApprovalsPageContent() {
   const isOverdue = (dueDate: string) => {
     if (!dueDate) return false;
     return new Date(dueDate) < new Date();
+  };
+
+  const handleDeleteDraft = async (executionId: string, playName: string) => {
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to delete this draft?\n\nPlay: ${playName}\n\nThis action cannot be undone.`
+    );
+    
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingId(executionId);
+    try {
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
+      const deleteUrl = addImpersonateParam(`/api/client/executions/${executionId}`, impersonateUserId);
+      const response = await fetch(deleteUrl, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('Draft deleted successfully');
+        // Reload the approvals list
+        loadApprovals();
+      } else {
+        toast.error(result.error || 'Failed to delete draft');
+      }
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+      toast.error('Failed to delete draft');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   if (loading) {
@@ -301,14 +344,15 @@ export default function ApprovalsPageContent() {
                     : `/client/approve/${approval?.shareable_token || execution.id}`
                   );
               
+              const isDraft = execution.status === 'draft';
+              
               return (
-                <Link
+                <div
                   key={execution.id}
-                  href={href}
                   className="block p-6 border border-fo-border rounded-lg hover:bg-fo-bg-light transition-colors bg-white"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                    <Link href={href} className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <span className="text-sm font-mono font-bold text-fo-primary bg-fo-primary/10 px-2 py-1 rounded">
                           {execution.claire_plays?.code || 'Unknown'}
@@ -349,11 +393,31 @@ export default function ApprovalsPageContent() {
                           &ldquo;{approval.comments}&rdquo;
                         </p>
                       )}
-                    </div>
+                    </Link>
                     
-                    <ArrowRight className="w-5 h-5 text-gray-400" strokeWidth={2} />
+                    <div className="flex items-center gap-2 ml-4">
+                      {isDraft && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDeleteDraft(execution.id, execution.claire_plays?.name || 'Unknown Play');
+                          }}
+                          disabled={deletingId === execution.id}
+                          className="p-2 text-fo-tertiary-4 hover:bg-fo-tertiary-4/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Delete draft"
+                        >
+                          {deletingId === execution.id ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-fo-tertiary-4"></div>
+                          ) : (
+                            <Trash2 className="w-5 h-5" strokeWidth={2} />
+                          )}
+                        </button>
+                      )}
+                      <ArrowRight className="w-5 h-5 text-gray-400" strokeWidth={2} />
+                    </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>

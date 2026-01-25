@@ -222,3 +222,105 @@ export async function PUT(
   }
 }
 
+/**
+ * DELETE - Delete an execution (only allowed for drafts)
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const executionId = params.id;
+
+    if (!executionId) {
+      return NextResponse.json(
+        { success: false, error: 'Execution ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Get authenticated user
+    const { user, error: authError } = await getAuthenticatedUser(request);
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Check for impersonation - if admin is impersonating, verify admin access
+    const { searchParams } = new URL(request.url);
+    const impersonateUserId = searchParams.get('impersonate');
+    let effectiveUserId = user.id;
+    if (impersonateUserId) {
+      const isAdmin = ADMIN_EMAILS.some(
+        email => email.toLowerCase() === user.email?.toLowerCase()
+      );
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized: Admin access required for impersonation' },
+          { status: 403 }
+        );
+      }
+      effectiveUserId = impersonateUserId;
+    }
+
+    // Verify execution belongs to user (or impersonated user) and is a draft
+    const { data: existingExecution, error: verifyError } = await supabaseAdmin
+      .from('play_executions')
+      .select('id, user_id, status')
+      .eq('id', executionId)
+      .eq('user_id', effectiveUserId)
+      .single();
+
+    if (verifyError || !existingExecution) {
+      return NextResponse.json(
+        { success: false, error: 'Execution not found or unauthorized' },
+        { status: 404 }
+      );
+    }
+
+    // Only allow deletion of drafts
+    if (existingExecution.status !== 'draft') {
+      return NextResponse.json(
+        { success: false, error: 'Only draft executions can be deleted' },
+        { status: 400 }
+      );
+    }
+
+    // Delete the execution (cascade will handle related records like play_approvals)
+    const { error: deleteError } = await supabaseAdmin
+      .from('play_executions')
+      .delete()
+      .eq('id', executionId);
+
+    if (deleteError) {
+      console.error('❌ Error deleting execution:', deleteError);
+      return NextResponse.json(
+        { success: false, error: 'Failed to delete execution' },
+        { status: 500 }
+      );
+    }
+
+    console.log('✅ Execution deleted successfully:', executionId);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Execution deleted successfully'
+    });
+
+  } catch (error: any) {
+    console.error('❌ Error deleting execution:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete execution', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
