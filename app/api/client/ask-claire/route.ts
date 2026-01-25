@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     const { data: workspaceData, error: workspaceError } = await supabaseAdmin
       .from('octave_outputs')
-      .select('workspace_api_key, workspace_context_agent_id')
+      .select('workspace_api_key, workspace_context_agent_id, product_oid')
       .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -112,13 +112,24 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`✅ Using stored Context Agent ID: ${contextAgentId}`);
+    
+    // Build request body - Context Agent API needs productOId to link agent to product
+    const requestBody: any = {
+      agentOId: contextAgentId,
+      query: query,
+    };
+    
+    // Add productOId if available (Context Agent must be linked to a product)
+    if (workspaceData?.product_oid) {
+      requestBody.productOId = workspaceData.product_oid;
+      console.log(`✅ Including productOId: ${workspaceData.product_oid}`);
+    } else {
+      console.warn('⚠️ No productOId found - Context Agent may not be linked to product');
+    }
 
     const response = await axios.post(
       OCTAVE_CONTEXT_AGENT_URL,
-      {
-        agentOId: contextAgentId,
-        query: query,
-      },
+      requestBody,
       {
         headers: {
           'Content-Type': 'application/json',
