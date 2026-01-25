@@ -55,17 +55,28 @@ export default function ApprovalsPageContent() {
       const params = new URLSearchParams();
       if (statusFilter !== 'all') params.append('status', statusFilter);
       if (categoryFilter !== 'all') params.append('category', categoryFilter);
+      // Add cache-busting timestamp
+      params.append('_t', Date.now().toString());
 
       const url = addImpersonateParam(`/api/client/approvals?${params.toString()}`, impersonateUserId);
+      console.log(`🔄 Loading approvals: ${url}`);
+      
       const response = await fetch(url, {
+        method: 'GET',
+        cache: 'no-store', // Prevent browser caching
         credentials: 'include',
         headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
           ...(authToken && { Authorization: `Bearer ${authToken}` })
         }
       });
+      
       const data = await response.json();
 
       if (data.success) {
+        console.log(`✅ Loaded ${data.executions?.length || 0} executions`);
         setExecutions(data.executions || []);
         
         // Calculate stats
@@ -76,11 +87,12 @@ export default function ApprovalsPageContent() {
 
         setStats({ pending, approved, rejected, draft });
       } else {
+        console.error('❌ Failed to load approvals:', data.error);
         toast.error('Failed to load approvals');
       }
       setLoading(false);
     } catch (error) {
-      console.error('Error loading approvals:', error);
+      console.error('❌ Error loading approvals:', error);
       toast.error('Failed to load approvals');
       setLoading(false);
     }
@@ -125,33 +137,49 @@ export default function ApprovalsPageContent() {
       return;
     }
 
+    console.log(`🗑️ Deleting draft: ${executionId} (${playName})`);
     setDeletingId(executionId);
+    
+    // Optimistically remove from UI immediately
+    setExecutions(prev => prev.filter(e => e.id !== executionId));
+    
     try {
       // Get session token for authentication
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
 
       const deleteUrl = addImpersonateParam(`/api/client/executions/${executionId}`, impersonateUserId);
+      console.log(`🗑️ DELETE request to: ${deleteUrl}`);
+      
       const response = await fetch(deleteUrl, {
         method: 'DELETE',
+        cache: 'no-store',
         credentials: 'include',
         headers: {
+          'Cache-Control': 'no-cache',
           ...(authToken && { Authorization: `Bearer ${authToken}` })
         }
       });
 
       const result = await response.json();
+      console.log(`🗑️ DELETE response (${response.status}):`, result);
 
       if (result.success) {
         toast.success('Draft deleted successfully');
-        // Reload the approvals list
-        loadApprovals();
+        // Reload the approvals list to ensure consistency
+        await loadApprovals();
       } else {
+        // If deletion failed, restore the item in the UI
+        console.error(`❌ Delete failed: ${result.error}`);
         toast.error(result.error || 'Failed to delete draft');
+        // Reload to get the correct state
+        await loadApprovals();
       }
     } catch (error) {
-      console.error('Error deleting draft:', error);
+      console.error('❌ Error deleting draft:', error);
       toast.error('Failed to delete draft');
+      // Reload to get the correct state
+      await loadApprovals();
     } finally {
       setDeletingId(null);
     }

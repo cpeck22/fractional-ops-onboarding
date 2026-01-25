@@ -271,6 +271,8 @@ export async function DELETE(
       effectiveUserId = impersonateUserId;
     }
 
+    console.log(`🗑️ DELETE request for execution: ${executionId}, user: ${effectiveUserId}, admin: ${user.email}`);
+
     // Verify execution belongs to user (or impersonated user) and is a draft
     const { data: existingExecution, error: verifyError } = await supabaseAdmin
       .from('play_executions')
@@ -279,15 +281,35 @@ export async function DELETE(
       .eq('user_id', effectiveUserId)
       .single();
 
-    if (verifyError || !existingExecution) {
+    if (verifyError) {
+      console.error(`❌ Error verifying execution ${executionId}:`, verifyError);
+      // Check if it's a "not found" error (PGRST116) or other error
+      if (verifyError.code === 'PGRST116') {
+        console.log(`⚠️ Execution ${executionId} not found - may already be deleted`);
+        return NextResponse.json(
+          { success: false, error: 'Execution not found or already deleted' },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(
+        { success: false, error: 'Execution not found or unauthorized', details: verifyError.message },
+        { status: 404 }
+      );
+    }
+
+    if (!existingExecution) {
+      console.log(`⚠️ Execution ${executionId} not found for user ${effectiveUserId}`);
       return NextResponse.json(
         { success: false, error: 'Execution not found or unauthorized' },
         { status: 404 }
       );
     }
 
+    console.log(`📋 Execution found: ${executionId}, status: ${existingExecution.status}, user: ${existingExecution.user_id}`);
+
     // Only allow deletion of drafts
     if (existingExecution.status !== 'draft') {
+      console.log(`⚠️ Attempted to delete non-draft execution ${executionId} with status: ${existingExecution.status}`);
       return NextResponse.json(
         { success: false, error: 'Only draft executions can be deleted' },
         { status: 400 }
@@ -295,20 +317,21 @@ export async function DELETE(
     }
 
     // Delete the execution (cascade will handle related records like play_approvals)
-    const { error: deleteError } = await supabaseAdmin
+    const { error: deleteError, data: deleteData } = await supabaseAdmin
       .from('play_executions')
       .delete()
-      .eq('id', executionId);
+      .eq('id', executionId)
+      .select();
 
     if (deleteError) {
-      console.error('❌ Error deleting execution:', deleteError);
+      console.error(`❌ Error deleting execution ${executionId}:`, deleteError);
       return NextResponse.json(
-        { success: false, error: 'Failed to delete execution' },
+        { success: false, error: 'Failed to delete execution', details: deleteError.message },
         { status: 500 }
       );
     }
 
-    console.log('✅ Execution deleted successfully:', executionId);
+    console.log(`✅ Execution deleted successfully: ${executionId}, deleted rows: ${deleteData?.length || 0}`);
 
     return NextResponse.json({
       success: true,

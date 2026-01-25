@@ -84,12 +84,14 @@ export async function GET(request: NextRequest) {
     const { data: executions, error } = await query;
 
     if (error) {
-      console.error('Error fetching approvals:', error);
+      console.error('❌ Error fetching approvals:', error);
       return NextResponse.json(
-        { success: false, error: 'Failed to fetch approvals' },
+        { success: false, error: 'Failed to fetch approvals', details: error.message },
         { status: 500 }
       );
     }
+
+    console.log(`📊 Fetched ${executions?.length || 0} executions for user ${effectiveUserId} (status: ${status || 'all'}, category: ${playCategory || 'all'})`);
 
     return NextResponse.json({
       success: true,
