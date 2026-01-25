@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getAuthenticatedUser } from '@/lib/api-auth';
 
+// CRITICAL: Force dynamic rendering - prevents Next.js/Vercel from caching this route
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // Admin emails that can impersonate clients
 const ADMIN_EMAILS = [
