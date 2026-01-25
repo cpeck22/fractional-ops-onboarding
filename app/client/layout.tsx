@@ -7,7 +7,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Image from 'next/image';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { LayoutDashboard, RefreshCw, Send, Heart, CheckCircle2, ChevronLeft, ChevronRight, Menu, X, Settings, ChevronDown, ChevronUp, Target, FileText, BarChart3, Users, ListChecks, Building2 } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Send, Heart, CheckCircle2, ChevronLeft, ChevronRight, Menu, X, Settings, ChevronDown, ChevronUp, Target, FileText, BarChart3, Users, ListChecks, Building2, MessageCircle } from 'lucide-react';
 
 // Admin emails that can impersonate clients
 const ADMIN_EMAILS = [
@@ -140,6 +140,7 @@ export default function ClientLayout({
         { href: '/client', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/client/sales-plan', label: 'Sales Plan', icon: FileText, comingSoon: true },
         { href: '/client/gtm-strategy', label: 'GTM Strategy', icon: Target },
+        { href: '/client/ask-claire', label: 'Ask Claire', icon: MessageCircle },
         { href: '/client/sales-intelligence', label: 'Sales Intelligence', icon: BarChart3, comingSoon: true },
       ],
     },

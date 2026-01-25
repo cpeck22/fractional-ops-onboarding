@@ -159,6 +159,10 @@ export const WORKSPACE_AGENTS: WorkspaceAgent[] = [
     id: 'ca_QLfXcw6DUR2GVmcf9Ke6z',
     category: 'Additional',
   },
+  {
+    id: 'ca_z4M5gc4srgrZ4NrhOCBFA',
+    category: 'Context Agent',
+  },
 ];
 
 /**
