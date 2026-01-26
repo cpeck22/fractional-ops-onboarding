@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import axios from 'axios';
 import { getAuthenticatedUser } from '@/lib/api-auth';
+import { generateCampaignContent, parseJsonResponse } from '@/lib/campaign-generation';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,8 +10,6 @@ const ADMIN_EMAILS = [
   'sharifali1000@gmail.com',
   'corey@fractionalops.com',
 ];
-
-const OCTAVE_CONTEXT_AGENT_URL = 'https://app.octavehq.com/api/v2/agents/context/run';
 
 export async function POST(
   request: NextRequest,
@@ -58,23 +56,16 @@ export async function POST(
       );
     }
 
-    // Get workspace data for Octave elements (including Context Agent ID)
+    // Get workspace data for Octave elements
     const { data: workspaceData } = await supabaseAdmin
       .from('octave_outputs')
-      .select('personas, use_cases, client_references, company_domain, company_name, workspace_context_agent_id')
+      .select('personas, use_cases, client_references, company_domain, company_name')
       .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
 
-    if (!workspaceData?.workspace_context_agent_id) {
-      return NextResponse.json(
-        { success: false, error: 'Context Agent not configured for your workspace. Please contact Fractional Ops to regenerate your workspace.' },
-        { status: 404 }
-      );
-    }
-
-    // Build comprehensive prompt for Context Agent
+    // Build comprehensive prompt based on strategic requirements
     const campaignBrief = `
 CAMPAIGN BRIEF FOR OUTBOUND CAMPAIGN CREATION
 
@@ -91,107 +82,119 @@ ${campaign.additional_brief || 'None provided'}
 
 ---
 
-YOUR TASK: Generate the following intermediary campaign elements based on the campaign brief above:
+CRITICAL INSTRUCTIONS:
+99.99% of the intermediary outputs MUST be generated from the campaign brief above. Only use Octave Strategic Elements if specific information is missing from the brief.
 
-1. LIST BUILDING STRATEGY: A 2-10 sentence description of the accounts and prospects we're reaching out to. Include:
-   - Account criteria (industry, size, location, revenue, etc.)
-   - Prospect criteria (job titles, decision makers, personas)
-   - Any specific instructions from the brief (buildings, addresses, conference lists, websites to scrape, communities, groups)
+YOUR TASK: Generate the following intermediary campaign elements based EXCLUSIVELY on the campaign brief above:
 
-2. HOOK (Shared Touchpoint): The hook is 99% of the time a shared touchpoint that builds trust immediately. Identify:
-   - Location-based (city, region)
-   - Conference-based (trade show, event)
-   - Community-based (groups, associations)
-   - Industry-based (specific language only people in that industry understand)
-   - Technology-based (specific tech stack, tools)
+1. LIST BUILDING STRATEGY (2-10 sentences):
+   Describe the accounts and prospects we're reaching out to. Include:
+   - Account criteria: industry, size, location, revenue, etc.
+   - Prospect criteria: job titles, decision makers, personas
+   - Specific instructions from brief: buildings, addresses, conference lists, websites to scrape, communities, groups
+   - Use personas from Octave Strategic Elements ONLY if not specified in brief
+   The list building strategy should be tailored and specific, relying heavily on personas from Octave Strategic Elements if needed, but primarily driven by the campaign brief.
+
+2. HOOK (Shared Touchpoint) - 1-2 sentences:
+   The hook is 99% of the time a shared touchpoint that builds trust immediately. CRITICAL: Identify the shared touchpoint from the brief:
+   - Location-based (city, region) - e.g., "I saw you're based in Chicago"
+   - Conference-based (trade show, event) - e.g., "I saw you exhibit at CES"
+   - Community-based (groups, associations) - e.g., "I noticed you're part of the EOS community"
+   - Industry-based (specific language only people in that industry understand) - e.g., "IP law partners", "CVIP compliance"
+   - Technology-based (specific tech stack, tools) - e.g., "NLPatent Visualize"
    - Company description-based (very specific language from the brief)
-   The hook should be 1-2 sentences that call out this shared touchpoint in the first line.
+   The hook MUST call out this shared touchpoint in the FIRST LINE. This is critical for building trust in cold outbound.
 
-3. ATTRACTION OFFER: A high-value, low-friction offer with:
+3. ATTRACTION OFFER:
+   A high-value, low-friction offer. Structure:
    - Headline: Name of the offer (e.g., "Free Innovation Assessment", "Claire AICRO")
-   - Value Bullets: 3-5 bullet points of amazing outcomes (saves time, makes money, saves money, increases status)
-   - Ease Bullets: 1-2 bullet points showing how easy it is to get (e.g., "5 minutes at your convenience", "30-minute call where you leave with...")
+   - Value Bullets: 3-5 bullet points of amazing outcomes:
+     * Saves time
+     * Makes money
+     * Saves money
+     * Increases status
+   - Ease Bullets: 1-2 bullet points showing how easy it is to get:
+     * "5 minutes at your convenience"
+     * "30-minute call where you leave with [tangible deliverable]"
+   If offer isn't explicitly described in brief, you may reference previous offers, but prioritize what's in the brief.
 
-4. ASSET: The landing page, blog post, white paper, tool, or link associated with the campaign. Output:
-   - If link provided in brief: The URL
-   - If described but no link: Description of where to find it
-   - If no asset mentioned: Generate a Lovable prompt to create the landing page (include brand guidelines from ${workspaceData?.company_domain || 'company domain'} and campaign description)
+4. ASSET:
+   The landing page, blog post, white paper, tool, or link associated with the campaign.
+   - If link provided in brief: Output the URL
+   - If described but no link: Description of where to find it (e.g., "This asset already exists. You can find it at [location]")
+   - If no asset mentioned: Generate a Lovable prompt to create the landing page
+   
+   LOVABLE PROMPT FORMAT (if no asset found):
+   "No asset provided in campaign brief. Lovable prompt provided below.
+   
+   We are building an outbound campaign landing page asset for the following campaign: [5 sentence description of who we're targeting, what the attraction offer is, and why it is a successful campaign. Include case studies if relevant.]
+   
+   Use the brand guidelines from ${workspaceData?.company_domain || '[company domain]'} and make sure the micro-deliverable asset is easily readable."
 
-5. CASE STUDIES (Optional): List relevant case studies from the strategic elements library. For each:
+5. CASE STUDIES (Optional):
+   List relevant case studies from Octave Strategic Elements Library. For each:
    - Client name (or "Able to be named" / "Not allowed to be name-dropped")
-   - Description with results, statistics, testimonials, timelines, transformations, revenue/profit/EBITDA/valuation details
+   - Description with: results, statistics, testimonials, timelines, transformations, revenue/profit/EBITDA/valuation details
    - Industry-specific language and high-trust details
+   Only include case studies that are relevant to the campaign brief.
 
-${workspaceData?.personas ? `Available Personas: ${JSON.stringify(workspaceData.personas.slice(0, 5))}` : ''}
-${workspaceData?.use_cases ? `Available Use Cases: ${JSON.stringify(workspaceData.use_cases.slice(0, 5))}` : ''}
-${workspaceData?.client_references ? `Available Client References: ${JSON.stringify(workspaceData.client_references.slice(0, 5))}` : ''}
+AVAILABLE OCTAVE STRATEGIC ELEMENTS (use ONLY if information missing from brief):
+${workspaceData?.personas ? `Personas: ${JSON.stringify(workspaceData.personas.slice(0, 10), null, 2)}` : 'No personas available'}
+${workspaceData?.use_cases ? `Use Cases: ${JSON.stringify(workspaceData.use_cases.slice(0, 10), null, 2)}` : 'No use cases available'}
+${workspaceData?.client_references ? `Client References: ${JSON.stringify(workspaceData.client_references.slice(0, 10), null, 2)}` : 'No client references available'}
 
-OUTPUT FORMAT: Return a JSON object with this exact structure:
+OUTPUT FORMAT: Return a JSON object with this EXACT structure (no markdown, pure JSON):
 {
-  "listBuildingStrategy": "...",
-  "hook": "...",
+  "listBuildingStrategy": "2-10 sentence description of accounts and prospects...",
+  "hook": "1-2 sentences calling out shared touchpoint in first line",
   "attractionOffer": {
-    "headline": "...",
-    "valueBullets": ["...", "...", "..."],
-    "easeBullets": ["...", "..."]
+    "headline": "Name of the offer",
+    "valueBullets": ["Outcome 1", "Outcome 2", "Outcome 3"],
+    "easeBullets": ["How easy it is to get"]
   },
   "asset": {
     "type": "link" | "description" | "lovable_prompt",
-    "content": "...",
-    "url": "..." (if type is "link")
+    "content": "URL, description, or Lovable prompt",
+    "url": "https://..." (only if type is "link")
   },
   "caseStudies": [
     {
-      "clientName": "...",
+      "clientName": "Company Name or 'Able to be named'",
       "canNameDrop": true,
-      "description": "...",
-      "results": "..."
+      "description": "Description with results, statistics, testimonials...",
+      "results": "Specific results, revenue, profit, EBITDA, valuation details"
     }
   ]
 }
 `;
 
-    // Call Context Agent using stored workspace-specific ID
-    const response = await axios.post(
-      OCTAVE_CONTEXT_AGENT_URL,
-      {
-        agentOId: workspaceData.workspace_context_agent_id,
-        runtimeContext: campaignBrief,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'api_key': campaign.workspace_api_key,
-        },
-        timeout: 120000 // 2 minute timeout
-      }
-    );
-
-    const agentResponse = response.data?.output || response.data?.text || response.data?.message || '';
+    // Generate using OpenAI instead of Context Agent
+    console.log('🎨 Generating intermediary outputs using OpenAI...');
+    const response = await generateCampaignContent(campaignBrief, {
+      model: 'gpt-4o-mini',
+      temperature: 0.3,
+      maxTokens: 4000
+    });
     
-    // Try to parse JSON from response
+    // Parse JSON response
     let intermediaryOutputs: any = {};
     try {
-      // Extract JSON from markdown code blocks if present
-      const jsonMatch = agentResponse.match(/```json\s*([\s\S]*?)\s*```/) || 
-                       agentResponse.match(/```\s*([\s\S]*?)\s*```/) ||
-                       [null, agentResponse];
-      const jsonStr = jsonMatch[1] || agentResponse;
-      intermediaryOutputs = JSON.parse(jsonStr);
-    } catch (parseError) {
-      // If JSON parsing fails, try to extract structured data from text
-      console.warn('⚠️ Failed to parse JSON, attempting text extraction');
+      intermediaryOutputs = parseJsonResponse(response);
+    } catch (parseError: any) {
+      console.error('❌ Failed to parse JSON response:', parseError);
+      console.error('Raw response:', response.substring(0, 500));
+      // Fallback: try to extract structured data from text
       intermediaryOutputs = {
-        listBuildingStrategy: extractSection(agentResponse, 'LIST BUILDING STRATEGY', 'HOOK'),
-        hook: extractSection(agentResponse, 'HOOK', 'ATTRACTION OFFER'),
+        listBuildingStrategy: extractSection(response, 'LIST BUILDING STRATEGY', 'HOOK'),
+        hook: extractSection(response, 'HOOK', 'ATTRACTION OFFER'),
         attractionOffer: {
-          headline: extractSection(agentResponse, 'ATTRACTION OFFER', 'Value'),
-          valueBullets: extractBullets(agentResponse, 'Value'),
-          easeBullets: extractBullets(agentResponse, 'Ease')
+          headline: extractSection(response, 'ATTRACTION OFFER', 'Value'),
+          valueBullets: extractBullets(response, 'Value'),
+          easeBullets: extractBullets(response, 'Ease')
         },
         asset: {
           type: 'description',
-          content: extractSection(agentResponse, 'ASSET', 'CASE STUDIES')
+          content: extractSection(response, 'ASSET', 'CASE STUDIES')
         },
         caseStudies: []
       };
