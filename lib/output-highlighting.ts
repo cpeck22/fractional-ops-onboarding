@@ -184,18 +184,35 @@ Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identif
 **CRITICAL: DO NOT wrap your response in markdown code blocks. Return ONLY the content with XML tags, nothing else. Do not use triple backticks or any markdown formatting.**`;
 
   try {
-    console.log('🎨 Starting output highlighting with OpenAI...');
+    console.log('🎨 ===== STARTING OUTPUT HIGHLIGHTING =====');
+    console.log(`📝 Input content length: ${outputContent.length} characters`);
+    console.log(`🎯 Play code: ${playCode || 'GENERIC (no play code)'}`);
+    console.log(`👥 Context: ${runtimeContext.personas?.length || 0} personas, ${runtimeContext.useCases?.length || 0} use cases, ${runtimeContext.clientReferences?.length || 0} references`);
+    
     if (playCode && playConfig) {
-      console.log(`📋 Using play-specific prompt for play ${playCode} (Agent: ${playConfig.agentId})`);
-      console.log(`📊 Variables to highlight: ${Object.keys(playConfig.variableMappings).length} total`);
+      console.log(`✅ Play-specific config found for play ${playCode}`);
+      console.log(`   Agent ID: ${playConfig.agentId}`);
+      console.log(`   Total variables: ${Object.keys(playConfig.variableMappings).length}`);
       const varCounts = Object.values(playConfig.variableMappings).reduce((acc, cat) => {
         acc[cat] = (acc[cat] || 0) + 1;
         return acc;
       }, {} as Record<HighlightCategory, number>);
-      console.log(`   - Persona: ${varCounts.persona || 0}, Outcome: ${varCounts.usecase_outcome || 0}, Blocker: ${varCounts.usecase_blocker || 0}, CTA: ${varCounts.cta_leadmagnet || 0}, Personalization: ${varCounts.personalization || 0}`);
+      console.log(`   Variable breakdown:`);
+      console.log(`     - Persona: ${varCounts.persona || 0}`);
+      console.log(`     - Segment: ${varCounts.segment || 0}`);
+      console.log(`     - Use Case Outcome: ${varCounts.usecase_outcome || 0}`);
+      console.log(`     - Use Case Blocker: ${varCounts.usecase_blocker || 0}`);
+      console.log(`     - CTA/Lead Magnet: ${varCounts.cta_leadmagnet || 0}`);
+      console.log(`     - Personalization: ${varCounts.personalization || 0}`);
     } else {
-      console.log('⚠️ No play-specific prompt found, using generic highlighting');
+      console.warn('⚠️ No play-specific prompt found, using generic highlighting');
+      if (playCode) {
+        console.warn(`   Play code ${playCode} was provided but no config found - check play-prompts.ts`);
+      }
     }
+    
+    console.log(`🤖 Calling OpenAI API (gpt-4o-mini)...`);
+    const startTime = Date.now();
     
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -213,17 +230,64 @@ Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identif
       max_tokens: 4000
     });
 
+    const duration = Date.now() - startTime;
+    console.log(`⏱️ OpenAI API call completed in ${duration}ms`);
+
     let highlightedContent = completion.choices[0]?.message?.content || outputContent;
+    console.log(`📄 Raw response length: ${highlightedContent.length} characters`);
     
     // Strip markdown code blocks if LLM added them (e.g., ```xml ... ```)
+    const beforeStrip = highlightedContent.length;
     highlightedContent = highlightedContent.replace(/^```xml\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+    if (beforeStrip !== highlightedContent.length) {
+      console.log(`🧹 Stripped markdown code blocks (${beforeStrip} → ${highlightedContent.length} chars)`);
+    }
     
-    console.log('✅ Highlighting completed successfully');
+    // Check if highlights were actually applied
+    const hasHighlightsResult = /<(persona|segment|usecase_outcome|usecase_blocker|cta_leadmagnet|personalization)>/i.test(highlightedContent);
+    console.log(`🔍 Highlights detected in output: ${hasHighlightsResult ? 'YES ✅' : 'NO ❌'}`);
+    
+    if (hasHighlightsResult) {
+      // Count highlight tags
+      const personaCount = (highlightedContent.match(/<persona>/gi) || []).length;
+      const segmentCount = (highlightedContent.match(/<segment>/gi) || []).length;
+      const outcomeCount = (highlightedContent.match(/<usecase_outcome>/gi) || []).length;
+      const blockerCount = (highlightedContent.match(/<usecase_blocker>/gi) || []).length;
+      const ctaCount = (highlightedContent.match(/<cta_leadmagnet>/gi) || []).length;
+      const personalizationCount = (highlightedContent.match(/<personalization>/gi) || []).length;
+      console.log(`📊 Highlight tag counts:`);
+      console.log(`     - Persona: ${personaCount}`);
+      console.log(`     - Segment: ${segmentCount}`);
+      console.log(`     - Use Case Outcome: ${outcomeCount}`);
+      console.log(`     - Use Case Blocker: ${blockerCount}`);
+      console.log(`     - CTA/Lead Magnet: ${ctaCount}`);
+      console.log(`     - Personalization: ${personalizationCount}`);
+      console.log(`     - Total: ${personaCount + segmentCount + outcomeCount + blockerCount + ctaCount + personalizationCount}`);
+    } else {
+      console.warn(`⚠️ WARNING: No highlight tags found in OpenAI response!`);
+      console.warn(`   This could mean:`);
+      console.warn(`   1. The LLM didn't find any matches`);
+      console.warn(`   2. The LLM returned plain text instead of XML`);
+      console.warn(`   3. The prompt wasn't clear enough`);
+      console.warn(`   Response preview (first 500 chars): ${highlightedContent.substring(0, 500)}`);
+    }
+    
+    console.log('✅ ===== HIGHLIGHTING COMPLETED =====');
     
     return highlightedContent;
     
   } catch (error: any) {
-    console.error('❌ Error highlighting output:', error.message);
+    console.error('❌ ===== HIGHLIGHTING ERROR =====');
+    console.error(`   Error message: ${error.message}`);
+    console.error(`   Error type: ${error.constructor.name}`);
+    if (error.response) {
+      console.error(`   API response status: ${error.response.status}`);
+      console.error(`   API response data:`, JSON.stringify(error.response.data, null, 2));
+    }
+    if (error.stack) {
+      console.error(`   Stack trace:`, error.stack);
+    }
+    console.error('❌ ===== END ERROR =====');
     // Return original content if highlighting fails
     return outputContent;
   }

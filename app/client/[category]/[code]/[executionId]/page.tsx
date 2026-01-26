@@ -45,6 +45,9 @@ export default function PlayExecutionPage() {
   const [refining, setRefining] = useState(false);
   const [saving, setSaving] = useState(false);
   const [highlightsEnabled, setHighlightsEnabled] = useState(true); // Default ON
+  const [highlightingStatus, setHighlightingStatus] = useState<'idle' | 'in_progress' | 'completed' | 'completed_no_highlights' | 'failed'>('idle');
+  const [highlightingError, setHighlightingError] = useState<string | null>(null);
+  const [reHighlighting, setReHighlighting] = useState(false);
 
   // Form state
   const [selectedPersona, setSelectedPersona] = useState<string>('');
@@ -103,12 +106,18 @@ export default function PlayExecutionPage() {
         const executionResult = await executionResponse.json();
         
         if (executionResult.success && executionResult.execution) {
+          const execOutput = executionResult.execution.output || {};
           setExecution({
             id: executionResult.execution.id,
-            output: executionResult.execution.output,
+            output: execOutput,
             status: executionResult.execution.status
           });
-          setEditedOutput(executionResult.execution.output?.content || JSON.stringify(executionResult.execution.output, null, 2));
+          setEditedOutput(execOutput.content || JSON.stringify(execOutput, null, 2));
+          
+          // Set highlighting status
+          const status = execOutput.highlighting_status || 'idle';
+          setHighlightingStatus(status);
+          setHighlightingError(execOutput.highlighting_error || null);
           
           // Pre-fill form with runtime context if available
           if (executionResult.execution.runtime_context) {
@@ -140,6 +149,94 @@ export default function PlayExecutionPage() {
   useEffect(() => {
     loadPlayAndWorkspaceData();
   }, [loadPlayAndWorkspaceData]);
+
+  // Poll for updated highlighting if status is in_progress
+  useEffect(() => {
+    if (!executionId || highlightingStatus !== 'in_progress') return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const authToken = session?.access_token;
+        const executionUrl = addImpersonateParam(`/api/client/executions/${executionId}`, impersonateUserId);
+        const response = await fetch(executionUrl, {
+          credentials: 'include',
+          headers: {
+            ...(authToken && { Authorization: `Bearer ${authToken}` })
+          }
+        });
+        const result = await response.json();
+        
+        if (result.success && result.execution) {
+          const execOutput = result.execution.output || {};
+          const newStatus = execOutput.highlighting_status || 'idle';
+          
+          if (newStatus !== highlightingStatus) {
+            console.log(`🔄 Highlighting status changed: ${highlightingStatus} → ${newStatus}`);
+            setHighlightingStatus(newStatus);
+            setHighlightingError(execOutput.highlighting_error || null);
+            setExecution({
+              ...execution!,
+              output: execOutput
+            });
+            
+            if (newStatus === 'completed' || newStatus === 'completed_no_highlights') {
+              toast.success('Highlighting completed!');
+            } else if (newStatus === 'failed') {
+              toast.error('Highlighting failed. Click "Re-highlight" to try again.');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error polling for highlighting updates:', error);
+      }
+    }, 2000); // Poll every 2 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [executionId, highlightingStatus, impersonateUserId, execution]);
+
+  const handleReHighlight = async () => {
+    if (!executionId) {
+      toast.error('No execution ID found');
+      return;
+    }
+
+    setReHighlighting(true);
+    setHighlightingError(null);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+      const highlightUrl = addImpersonateParam(`/api/client/executions/${executionId}/highlight`, impersonateUserId);
+      
+      const response = await fetch(highlightUrl, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setHighlightingStatus('in_progress');
+        toast.success('Highlighting started...');
+        // Polling will pick up the status change
+      } else {
+        setHighlightingStatus('failed');
+        setHighlightingError(result.error || 'Unknown error');
+        toast.error(result.error || 'Failed to start highlighting');
+      }
+    } catch (error: any) {
+      console.error('Error triggering re-highlight:', error);
+      setHighlightingStatus('failed');
+      setHighlightingError(error.message || 'Failed to trigger highlighting');
+      toast.error('Failed to trigger highlighting');
+    } finally {
+      setReHighlighting(false);
+    }
+  };
 
   const handleExecute = async () => {
     if (!selectedPersona || selectedUseCases.length === 0) {
@@ -524,10 +621,55 @@ Please output the exact same output but take the feedback the CEO provided in th
             {/* Output Display */}
           <div className="bg-white rounded-lg shadow-sm border border-fo-border p-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-fo-dark">Generated Output</h2>
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold text-fo-dark">Generated Output</h2>
+                {/* Highlighting Status Indicator */}
+                {executionId && (
+                  <div className="mt-2 flex items-center gap-2 text-sm">
+                    {highlightingStatus === 'in_progress' && (
+                      <span className="text-blue-600 flex items-center gap-1">
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                        Highlighting in progress...
+                      </span>
+                    )}
+                    {highlightingStatus === 'completed' && (
+                      <span className="text-green-600">✓ Highlighting completed</span>
+                    )}
+                    {highlightingStatus === 'completed_no_highlights' && (
+                      <span className="text-yellow-600">⚠ Highlighting completed but no highlights detected</span>
+                    )}
+                    {highlightingStatus === 'failed' && (
+                      <span className="text-red-600">✗ Highlighting failed</span>
+                    )}
+                    {highlightingError && (
+                      <span className="text-red-600 text-xs">({highlightingError})</span>
+                    )}
+                  </div>
+                )}
+              </div>
               <div className="flex gap-2">
                 {!editing && (
                   <>
+                    {executionId && (highlightingStatus === 'failed' || highlightingStatus === 'completed_no_highlights' || highlightingStatus === 'idle') && (
+                      <button
+                        onClick={handleReHighlight}
+                        disabled={reHighlighting}
+                        className="px-4 py-2 rounded-lg transition-all inline-flex items-center gap-2 bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Re-run highlighting"
+                      >
+                        {reHighlighting ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            Re-highlighting...
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-4 h-4" strokeWidth={2} />
+                            Re-highlight
+                          </>
+                        )}
+                      </button>
+                    )}
                     <button
                       onClick={() => setHighlightsEnabled(!highlightsEnabled)}
                       className={`px-4 py-2 rounded-lg transition-all inline-flex items-center gap-2 ${
