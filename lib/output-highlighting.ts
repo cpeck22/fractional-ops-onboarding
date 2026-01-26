@@ -261,81 +261,123 @@ Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identif
     console.log(`🤖 Calling OpenAI API (gpt-4o-mini)...`);
     const startTime = Date.now();
     
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert content analyst specializing in identifying semantic relationships between marketing content and input elements. Your ONLY job is to wrap text segments with XML tags. You MUST preserve every single character of the original content - do not add, remove, or modify any text, headers, labels, or structure. Only wrap matching segments with tags."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.1, // Low temperature for consistency
-      max_tokens: 4000
-    });
-
-    const duration = Date.now() - startTime;
-    console.log(`⏱️ OpenAI API call completed in ${duration}ms`);
-
-    let highlightedContent = completion.choices[0]?.message?.content || outputContent;
-    console.log(`📄 Raw response length: ${highlightedContent.length} characters`);
+    // Calculate max_tokens based on input size
+    // Rough estimate: 1 token ≈ 4 characters, but highlighted output can be longer
+    // For 18980 chars input, that's ~4750 tokens, highlighted might be ~6000-8000 tokens
+    // OpenAI max is 16384 for gpt-4o-mini, use 16000 to be safe
+    const inputTokens = Math.ceil(outputContent.length / 4);
+    const estimatedMaxTokens = Math.min(16000, Math.max(8000, inputTokens * 2));
+    console.log(`📊 Input tokens estimate: ~${inputTokens}, max_tokens set to: ${estimatedMaxTokens}`);
     
-    // Strip markdown code blocks if LLM added them (e.g., ```xml ... ```)
-    const beforeStrip = highlightedContent.length;
-    highlightedContent = highlightedContent.replace(/^```xml\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
-    if (beforeStrip !== highlightedContent.length) {
-      console.log(`🧹 Stripped markdown code blocks (${beforeStrip} → ${highlightedContent.length} chars)`);
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout
+    
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert content analyst specializing in identifying semantic relationships between marketing content and input elements. Your ONLY job is to wrap text segments with XML tags. You MUST preserve every single character of the original content - do not add, remove, or modify any text, headers, labels, or structure. Only wrap matching segments with tags."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.1, // Low temperature for consistency
+        max_tokens: estimatedMaxTokens
+      }, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      const duration = Date.now() - startTime;
+      console.log(`⏱️ OpenAI API call completed in ${duration}ms`);
+      
+      let highlightedContent = completion.choices[0]?.message?.content || outputContent;
+      console.log(`📄 Raw response length: ${highlightedContent.length} characters`);
+      
+      // Strip markdown code blocks if LLM added them (e.g., ```xml ... ```)
+      const beforeStrip = highlightedContent.length;
+      highlightedContent = highlightedContent.replace(/^```xml\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+      if (beforeStrip !== highlightedContent.length) {
+        console.log(`🧹 Stripped markdown code blocks (${beforeStrip} → ${highlightedContent.length} chars)`);
+      }
+      
+      // Check if highlights were actually applied
+      const hasHighlightsResult = /<(persona|segment|usecase_outcome|usecase_blocker|cta_leadmagnet|personalization)>/i.test(highlightedContent);
+      console.log(`🔍 Highlights detected in output: ${hasHighlightsResult ? 'YES ✅' : 'NO ❌'}`);
+      
+      if (hasHighlightsResult) {
+        // Count highlight tags
+        const personaCount = (highlightedContent.match(/<persona>/gi) || []).length;
+        const segmentCount = (highlightedContent.match(/<segment>/gi) || []).length;
+        const outcomeCount = (highlightedContent.match(/<usecase_outcome>/gi) || []).length;
+        const blockerCount = (highlightedContent.match(/<usecase_blocker>/gi) || []).length;
+        const ctaCount = (highlightedContent.match(/<cta_leadmagnet>/gi) || []).length;
+        const personalizationCount = (highlightedContent.match(/<personalization>/gi) || []).length;
+        console.log(`📊 Highlight tag counts:`);
+        console.log(`     - Persona: ${personaCount}`);
+        console.log(`     - Segment: ${segmentCount}`);
+        console.log(`     - Use Case Outcome: ${outcomeCount}`);
+        console.log(`     - Use Case Blocker: ${blockerCount}`);
+        console.log(`     - CTA/Lead Magnet: ${ctaCount}`);
+        console.log(`     - Personalization: ${personalizationCount}`);
+        console.log(`     - Total: ${personaCount + segmentCount + outcomeCount + blockerCount + ctaCount + personalizationCount}`);
+      } else {
+        console.warn(`⚠️ WARNING: No highlight tags found in OpenAI response!`);
+        console.warn(`   This could mean:`);
+        console.warn(`   1. The LLM didn't find any matches`);
+        console.warn(`   2. The LLM returned plain text instead of XML`);
+        console.warn(`   3. The prompt wasn't clear enough`);
+        console.warn(`   Response preview (first 500 chars): ${highlightedContent.substring(0, 500)}`);
+      }
+      
+      console.log('✅ ===== HIGHLIGHTING COMPLETED =====');
+      
+      return highlightedContent;
+      
+    } catch (error: any) {
+      clearTimeout(timeoutId); // Clean up timeout if error occurred
+      
+      // Check if it's a timeout/abort error
+      if (error.name === 'AbortError' || error.message?.includes('timeout') || error.message?.includes('aborted')) {
+        console.error('❌ ===== HIGHLIGHTING TIMEOUT =====');
+        console.error(`   OpenAI API call timed out after 90 seconds`);
+        console.error(`   Input content length: ${outputContent.length} characters`);
+        console.error(`   This may be due to very large output content`);
+        console.error('❌ ===== END TIMEOUT ERROR =====');
+        throw new Error('Highlighting timeout - output content may be too large. Try re-highlighting or contact support.');
+      }
+      
+      console.error('❌ ===== HIGHLIGHTING ERROR =====');
+      console.error(`   Error message: ${error.message}`);
+      console.error(`   Error type: ${error.constructor.name}`);
+      console.error(`   Error name: ${error.name}`);
+      if (error.response) {
+        console.error(`   API response status: ${error.response.status}`);
+        console.error(`   API response data:`, JSON.stringify(error.response.data, null, 2));
+      }
+      if (error.stack) {
+        console.error(`   Stack trace:`, error.stack);
+      }
+      console.error('❌ ===== END ERROR =====');
+      // Re-throw error so outer catch can handle it
+      throw error;
     }
-    
-    // Check if highlights were actually applied
-    const hasHighlightsResult = /<(persona|segment|usecase_outcome|usecase_blocker|cta_leadmagnet|personalization)>/i.test(highlightedContent);
-    console.log(`🔍 Highlights detected in output: ${hasHighlightsResult ? 'YES ✅' : 'NO ❌'}`);
-    
-    if (hasHighlightsResult) {
-      // Count highlight tags
-      const personaCount = (highlightedContent.match(/<persona>/gi) || []).length;
-      const segmentCount = (highlightedContent.match(/<segment>/gi) || []).length;
-      const outcomeCount = (highlightedContent.match(/<usecase_outcome>/gi) || []).length;
-      const blockerCount = (highlightedContent.match(/<usecase_blocker>/gi) || []).length;
-      const ctaCount = (highlightedContent.match(/<cta_leadmagnet>/gi) || []).length;
-      const personalizationCount = (highlightedContent.match(/<personalization>/gi) || []).length;
-      console.log(`📊 Highlight tag counts:`);
-      console.log(`     - Persona: ${personaCount}`);
-      console.log(`     - Segment: ${segmentCount}`);
-      console.log(`     - Use Case Outcome: ${outcomeCount}`);
-      console.log(`     - Use Case Blocker: ${blockerCount}`);
-      console.log(`     - CTA/Lead Magnet: ${ctaCount}`);
-      console.log(`     - Personalization: ${personalizationCount}`);
-      console.log(`     - Total: ${personaCount + segmentCount + outcomeCount + blockerCount + ctaCount + personalizationCount}`);
-    } else {
-      console.warn(`⚠️ WARNING: No highlight tags found in OpenAI response!`);
-      console.warn(`   This could mean:`);
-      console.warn(`   1. The LLM didn't find any matches`);
-      console.warn(`   2. The LLM returned plain text instead of XML`);
-      console.warn(`   3. The prompt wasn't clear enough`);
-      console.warn(`   Response preview (first 500 chars): ${highlightedContent.substring(0, 500)}`);
+  } catch (outerError: any) {
+    // Outer catch - handles any errors from the highlighting process
+    console.error('❌ ===== OUTER HIGHLIGHTING ERROR =====');
+    console.error(`   Error message: ${outerError.message}`);
+    console.error(`   Error type: ${outerError.constructor.name}`);
+    if (outerError.stack) {
+      console.error(`   Stack trace:`, outerError.stack);
     }
-    
-    console.log('✅ ===== HIGHLIGHTING COMPLETED =====');
-    
-    return highlightedContent;
-    
-  } catch (error: any) {
-    console.error('❌ ===== HIGHLIGHTING ERROR =====');
-    console.error(`   Error message: ${error.message}`);
-    console.error(`   Error type: ${error.constructor.name}`);
-    if (error.response) {
-      console.error(`   API response status: ${error.response.status}`);
-      console.error(`   API response data:`, JSON.stringify(error.response.data, null, 2));
-    }
-    if (error.stack) {
-      console.error(`   Stack trace:`, error.stack);
-    }
-    console.error('❌ ===== END ERROR =====');
-    // Return original content if highlighting fails
+    console.error('❌ ===== END OUTER ERROR =====');
+    // Return original content if highlighting fails completely
     return outputContent;
   }
 }

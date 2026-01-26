@@ -365,115 +365,111 @@ export async function POST(request: NextRequest) {
       // Don't fail the request, just log the error
     }
     
-    // Trigger highlighting asynchronously (fire and forget) to avoid timeout
-    // This runs in the background and updates the execution when complete
+    // Do highlighting synchronously to ensure it completes
+    // Use Promise.race with timeout to prevent hanging
     if (execution?.id) {
-      console.log(`🎨 Starting async highlighting for execution ${execution.id}, play ${playCode}`);
-      // Don't await - let this run in background
-      (async () => {
+      console.log(`🎨 Starting highlighting for execution ${execution.id}, play ${playCode}`);
+      try {
+        // Fetch full workspace data to get persona/use case details for highlighting
+        console.log(`📋 Fetching workspace data for highlighting (user: ${effectiveUserId})...`);
+        const { data: fullWorkspaceData, error: workspaceError } = await supabaseAdmin
+          .from('octave_outputs')
+          .select('personas, use_cases, client_references')
+          .eq('user_id', effectiveUserId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (workspaceError) {
+          console.error(`❌ Error fetching workspace data for highlighting:`, workspaceError);
+          throw workspaceError;
+        }
+        
+        console.log(`📊 Workspace data loaded: ${fullWorkspaceData?.personas?.length || 0} personas, ${fullWorkspaceData?.use_cases?.length || 0} use cases, ${fullWorkspaceData?.client_references?.length || 0} references`);
+        
+        // Map runtime context to full details for highlighting
+        const highlightingContext = {
+          personas: runtimeContext.personas?.map((p: any) => {
+            const fullPersona = fullWorkspaceData?.personas?.find((wp: any) => wp.oId === p.oId);
+            return fullPersona || p;
+          }) || [],
+          useCases: runtimeContext.useCases?.map((uc: any) => {
+            const fullUseCase = fullWorkspaceData?.use_cases?.find((wuc: any) => wuc.oId === uc.oId);
+            return fullUseCase || uc;
+          }) || [],
+          clientReferences: runtimeContext.clientReferences?.map((r: any) => {
+            const fullRef = fullWorkspaceData?.client_references?.find((wr: any) => wr.oId === r.oId);
+            return fullRef || r;
+          }) || []
+        };
+        
+        console.log(`🎯 Highlighting context: ${highlightingContext.personas.length} personas, ${highlightingContext.useCases.length} use cases, ${highlightingContext.clientReferences.length} references`);
+        console.log(`📝 Output content length: ${rawOutputContent.length} characters`);
+        console.log(`🔍 Play code: ${playCode}`);
+        
+        // Run highlighting with timeout protection
+        const highlightingPromise = highlightOutput(rawOutputContent, highlightingContext, playCode);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Highlighting timeout after 90 seconds')), 90000)
+        );
+        
+        const highlightedHtml = await Promise.race([highlightingPromise, timeoutPromise]) as string;
+        
+        console.log(`✅ Highlighting completed, result length: ${highlightedHtml.length} characters`);
+        console.log(`🔍 Checking if highlights were applied: ${hasHighlights(highlightedHtml) ? 'YES' : 'NO'}`);
+        
+        // Update execution with highlighted version
+        const { error: updateError } = await supabaseAdmin
+          .from('play_executions')
+          .update({
+            output: {
+              ...output,
+              highlighted_html: highlightedHtml,
+              highlighting_status: hasHighlights(highlightedHtml) ? 'completed' : 'completed_no_highlights',
+              highlighting_error: null
+            }
+          })
+          .eq('id', execution.id);
+        
+        if (updateError) {
+          console.error(`❌ Error updating execution with highlighted HTML:`, updateError);
+          throw updateError;
+        }
+        
+        console.log(`✅ Output highlighted and saved for execution ${execution.id}`);
+        console.log(`🎉 ===== HIGHLIGHTING COMPLETE =====`);
+      } catch (highlightError: any) {
+        console.error(`❌ ===== HIGHLIGHTING ERROR =====`);
+        console.error(`   Execution ID: ${execution?.id}`);
+        console.error(`   Error message: ${highlightError.message}`);
+        console.error(`   Error type: ${highlightError.constructor.name}`);
+        if (highlightError.stack) {
+          console.error(`   Stack trace:`, highlightError.stack);
+        }
+        if (highlightError.response) {
+          console.error(`   API response status: ${highlightError.response.status}`);
+          console.error(`   API response data:`, JSON.stringify(highlightError.response.data, null, 2));
+        }
+        console.error(`❌ ===== END ERROR =====`);
+        
+        // Update execution with error status so frontend can show it
         try {
-          console.log(`📋 Fetching workspace data for highlighting (user: ${effectiveUserId})...`);
-          // Fetch full workspace data to get persona/use case details for highlighting
-          const { data: fullWorkspaceData, error: workspaceError } = await supabaseAdmin
-            .from('octave_outputs')
-            .select('personas, use_cases, client_references')
-            .eq('user_id', effectiveUserId)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
-          
-          if (workspaceError) {
-            console.error(`❌ Error fetching workspace data for highlighting:`, workspaceError);
-            throw workspaceError;
-          }
-          
-          console.log(`📊 Workspace data loaded: ${fullWorkspaceData?.personas?.length || 0} personas, ${fullWorkspaceData?.use_cases?.length || 0} use cases, ${fullWorkspaceData?.client_references?.length || 0} references`);
-          
-          // Map runtime context to full details for highlighting
-          const highlightingContext = {
-            personas: runtimeContext.personas?.map((p: any) => {
-              const fullPersona = fullWorkspaceData?.personas?.find((wp: any) => wp.oId === p.oId);
-              return fullPersona || p;
-            }) || [],
-            useCases: runtimeContext.useCases?.map((uc: any) => {
-              const fullUseCase = fullWorkspaceData?.use_cases?.find((wuc: any) => wuc.oId === uc.oId);
-              return fullUseCase || uc;
-            }) || [],
-            clientReferences: runtimeContext.clientReferences?.map((r: any) => {
-              const fullRef = fullWorkspaceData?.client_references?.find((wr: any) => wr.oId === r.oId);
-              return fullRef || r;
-            }) || []
-          };
-          
-          console.log(`🎯 Highlighting context: ${highlightingContext.personas.length} personas, ${highlightingContext.useCases.length} use cases, ${highlightingContext.clientReferences.length} references`);
-          console.log(`📝 Output content length: ${rawOutputContent.length} characters`);
-          console.log(`🔍 Play code: ${playCode}`);
-          
-          const highlightedHtml = await highlightOutput(rawOutputContent, highlightingContext, playCode);
-          
-          console.log(`✅ Highlighting completed, result length: ${highlightedHtml.length} characters`);
-          console.log(`🔍 Checking if highlights were applied: ${hasHighlights(highlightedHtml) ? 'YES' : 'NO'}`);
-          
-          // Update execution with highlighted version
-          const { error: updateError } = await supabaseAdmin
+          await supabaseAdmin
             .from('play_executions')
             .update({
               output: {
                 ...output,
-                highlighted_html: highlightedHtml
+                highlighting_error: highlightError.message || 'Unknown error occurred',
+                highlighting_status: 'failed'
               }
             })
             .eq('id', execution.id);
-          
-          if (updateError) {
-            console.error(`❌ Error updating execution with highlighted HTML:`, updateError);
-            throw updateError;
-          }
-          
-          console.log(`✅ Output highlighted and saved asynchronously for execution ${execution.id}`);
-          console.log(`🎉 ===== ASYNC HIGHLIGHTING COMPLETE =====`);
-        } catch (highlightError: any) {
-          console.error(`❌ ===== ASYNC HIGHLIGHTING ERROR =====`);
-          console.error(`   Execution ID: ${execution?.id}`);
-          console.error(`   Error message: ${highlightError.message}`);
-          console.error(`   Error type: ${highlightError.constructor.name}`);
-          if (highlightError.stack) {
-            console.error(`   Stack trace:`, highlightError.stack);
-          }
-          if (highlightError.response) {
-            console.error(`   API response status: ${highlightError.response.status}`);
-            console.error(`   API response data:`, JSON.stringify(highlightError.response.data, null, 2));
-          }
-          console.error(`❌ ===== END ERROR =====`);
-          
-          // Update execution with error status so frontend can show it
-          try {
-            const { error: saveError } = await supabaseAdmin
-              .from('play_executions')
-              .update({
-                output: {
-                  ...output,
-                  highlighting_error: highlightError.message || 'Unknown error occurred',
-                  highlighting_status: 'failed'
-                }
-              })
-              .eq('id', execution.id);
-            
-            if (saveError) {
-              console.error(`❌ Failed to save highlighting error status:`, saveError);
-            } else {
-              console.log(`⚠️ Saved highlighting error status to execution ${execution.id}`);
-            }
-          } catch (saveError: any) {
-            console.error(`❌ Failed to save highlighting error status:`, saveError.message);
-          }
+          console.log(`⚠️ Saved highlighting error status to execution ${execution.id}`);
+        } catch (saveError: any) {
+          console.error(`❌ Failed to save highlighting error status:`, saveError.message);
         }
-      })().catch(err => {
-        console.error(`❌ ===== UNHANDLED BACKGROUND HIGHLIGHTING ERROR =====`);
-        console.error(`   Execution ID: ${execution?.id}`);
-        console.error(`   Error:`, err);
-        console.error(`❌ ===== END UNHANDLED ERROR =====`);
-      });
+        // Don't fail the request - execution is already saved
+      }
     } else {
       console.warn(`⚠️ Cannot start highlighting: execution ID is missing`);
     }
