@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
 import OutboundCampaignsListContent from './campaigns-list-content';
 
+export const dynamic = 'force-dynamic';
+
 export default function OutboundCampaignsPage() {
   return (
     <Suspense fallback={
