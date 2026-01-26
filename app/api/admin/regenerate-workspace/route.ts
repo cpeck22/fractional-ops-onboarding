@@ -311,17 +311,16 @@ export async function POST(request: NextRequest) {
         updateData.workspace_context_agent_id = contextAgentId;
       }
 
-      // Find the most recent octave_outputs record for this user and update it
-      const { data: existingRecord, error: findError } = await supabaseAdmin
+      // Find ALL octave_outputs records for this user and update the most recent one
+      // (Update all to ensure consistency, but prioritize most recent)
+      const { data: allRecords, error: findError } = await supabaseAdmin
         .from('octave_outputs')
-        .select('id, workspace_api_key')
+        .select('id, workspace_api_key, created_at')
         .eq('user_id', resolvedUserId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order('created_at', { ascending: false });
 
-      if (findError && findError.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('❌ Error finding existing record:', findError);
+      if (findError) {
+        console.error('❌ Error finding existing records:', findError);
         return NextResponse.json(
           { 
             success: false,
@@ -332,17 +331,20 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (existingRecord) {
-        const oldApiKey = existingRecord.workspace_api_key;
-        console.log(`🔄 Updating API key: ${oldApiKey?.substring(0, 15)}... → ${workspaceApiKey?.substring(0, 15)}...`);
-        console.log(`📝 Updating record ID: ${existingRecord.id}`);
+      if (allRecords && allRecords.length > 0) {
+        const mostRecentRecord = allRecords[0];
+        const oldApiKey = mostRecentRecord.workspace_api_key;
+        console.log(`📊 Found ${allRecords.length} record(s) for user`);
+        console.log(`🔄 Updating most recent record (ID: ${mostRecentRecord.id})`);
+        console.log(`   Old API key: ${oldApiKey?.substring(0, 15)}...`);
+        console.log(`   New API key: ${workspaceApiKey?.substring(0, 15)}...`);
         
-        // Update existing record by ID
+        // Update the most recent record by ID
         const { error: updateError, data: updatedData } = await supabaseAdmin
           .from('octave_outputs')
           .update(updateData)
-          .eq('id', existingRecord.id)
-          .select('workspace_api_key')
+          .eq('id', mostRecentRecord.id)
+          .select('workspace_api_key, id')
           .single();
 
         if (updateError) {
@@ -360,9 +362,16 @@ export async function POST(request: NextRequest) {
         // Verify the update worked
         const updatedApiKey = updatedData?.workspace_api_key;
         if (updatedApiKey === workspaceApiKey) {
-          console.log('✅ Successfully updated existing workspace connection in Supabase');
-          console.log(`   ✅ API key verified in database: ${updatedApiKey?.substring(0, 15)}...`);
+          console.log('✅ Successfully updated workspace connection in Supabase');
+          console.log(`   ✅ Record ID: ${updatedData.id}`);
+          console.log(`   ✅ API key verified: ${updatedApiKey?.substring(0, 15)}...`);
           console.log(`   ✅ Routes will now use new workspace`);
+          
+          // If there are multiple records, log a warning
+          if (allRecords.length > 1) {
+            console.warn(`⚠️ WARNING: User has ${allRecords.length} records. Only the most recent was updated.`);
+            console.warn(`   Other records may still have old API keys.`);
+          }
         } else {
           console.error('❌ API key update verification failed!');
           console.error(`   Expected: ${workspaceApiKey?.substring(0, 15)}...`);
