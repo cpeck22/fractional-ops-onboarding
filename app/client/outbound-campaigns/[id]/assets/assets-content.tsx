@@ -32,23 +32,6 @@ export default function FinalAssetsPageContent() {
   const [nurtureSequence, setNurtureSequence] = useState('');
   const [asset, setAsset] = useState<any>({});
 
-  useEffect(() => {
-    loadCampaign();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [campaignId]);
-
-  // Reload campaign if finalAssets are missing but status indicates they should exist
-  useEffect(() => {
-    if (campaign && campaign.status === 'assets_generated' && !campaign.finalAssets?.campaignCopy) {
-      console.log('🔄 Final assets missing but status is assets_generated, reloading...');
-      // Wait a bit then reload to ensure database has updated
-      const timer = setTimeout(() => {
-        loadCampaign();
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [campaign]);
-
   const loadCampaign = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -129,6 +112,24 @@ export default function FinalAssetsPageContent() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadCampaign();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaignId]);
+
+  // Reload campaign if finalAssets are missing but status indicates they should exist
+  useEffect(() => {
+    if (campaign && campaign.status === 'assets_generated' && !campaign.finalAssets?.campaignCopy) {
+      console.log('🔄 Final assets missing but status is assets_generated, reloading...');
+      // Wait a bit then reload to ensure database has updated
+      const timer = setTimeout(() => {
+        loadCampaign();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaign]);
 
   const generateAssets = async () => {
     setGenerating(true);
@@ -290,6 +291,25 @@ export default function FinalAssetsPageContent() {
     }
   };
 
+  const currentEmailData = campaignCopy[`email${currentEmail}`] || {};
+  const emailBody = highlightsEnabled && currentEmailData.highlightedBody
+    ? currentEmailData.highlightedBody
+    : currentEmailData.body || '';
+  
+  // Debug logging for email data (must be before early return)
+  useEffect(() => {
+    const emailData = campaignCopy[`email${currentEmail}`] || {};
+    console.log('📧 Current email data check:', {
+      currentEmail,
+      emailKey: `email${currentEmail}`,
+      hasEmailData: !!campaignCopy[`email${currentEmail}`],
+      emailData: campaignCopy[`email${currentEmail}`],
+      campaignCopyKeys: Object.keys(campaignCopy),
+      hasSubject: !!emailData.subject,
+      hasBody: !!emailData.body
+    });
+  }, [currentEmail, campaignCopy]);
+
   if (loading || generating) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -302,24 +322,6 @@ export default function FinalAssetsPageContent() {
       </div>
     );
   }
-
-  const currentEmailData = campaignCopy[`email${currentEmail}`] || {};
-  const emailBody = highlightsEnabled && currentEmailData.highlightedBody
-    ? currentEmailData.highlightedBody
-    : currentEmailData.body || '';
-  
-  // Debug logging for email data
-  useEffect(() => {
-    console.log('📧 Current email data check:', {
-      currentEmail,
-      emailKey: `email${currentEmail}`,
-      hasEmailData: !!campaignCopy[`email${currentEmail}`],
-      emailData: campaignCopy[`email${currentEmail}`],
-      campaignCopyKeys: Object.keys(campaignCopy),
-      hasSubject: !!currentEmailData.subject,
-      hasBody: !!currentEmailData.body
-    });
-  }, [currentEmail, campaignCopy]);
 
   const backUrl = impersonateUserId
     ? `/client/outbound-campaigns/${campaignId}/intermediary?impersonate=${impersonateUserId}`
