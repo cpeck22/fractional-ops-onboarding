@@ -128,6 +128,15 @@ export async function POST(request: NextRequest) {
       console.warn('⚠️ No serviceOId found in service_offering - Context Agent may not be linked to service');
     }
 
+    // Log full request details
+    console.log('📤 FULL OCTAVE API REQUEST:');
+    console.log('URL:', OCTAVE_CONTEXT_AGENT_URL);
+    console.log('Headers:', {
+      'Content-Type': 'application/json',
+      'api_key': workspaceApiKey ? `${workspaceApiKey.substring(0, 10)}...${workspaceApiKey.substring(workspaceApiKey.length - 4)}` : 'MISSING'
+    });
+    console.log('Request Body:', JSON.stringify(requestBody, null, 2));
+
     const response = await axios.post(
       OCTAVE_CONTEXT_AGENT_URL,
       requestBody,
@@ -139,24 +148,56 @@ export async function POST(request: NextRequest) {
       }
     );
 
+    // Log full response details
+    console.log('📥 FULL OCTAVE API RESPONSE:');
+    console.log('Status:', response.status);
+    console.log('Status Text:', response.statusText);
+    console.log('Response Headers:', JSON.stringify(response.headers, null, 2));
+    console.log('Response Data:', JSON.stringify(response.data, null, 2));
+
     // Extract Request ID from response (check headers and data)
     const requestId = response.headers['x-request-id'] 
       || response.headers['request-id'] 
+      || response.headers['X-Request-ID']
+      || response.headers['Request-ID']
       || response.data?.requestId 
       || response.data?.request_id 
       || response.data?.requestID
       || response.data?.data?.requestId
+      || response.data?.metadata?.requestId
+      || response.data?.metadata?.request_id
+      || response.data?.metadata?.requestID
       || null;
 
     // Log Request ID for debugging/tracking
-    if (requestId) {
-      console.log(`📋 Octave Request ID: ${requestId}`);
-    } else {
-      console.log(`⚠️ Octave Request ID not found in response. Available keys:`, {
-        responseHeaders: Object.keys(response.headers || {}),
-        responseDataKeys: response.data ? Object.keys(response.data) : [],
-        fullResponseData: JSON.stringify(response.data, null, 2).substring(0, 500)
+    console.log('🔍 REQUEST ID SEARCH:');
+    console.log('  Checking headers:', {
+      'x-request-id': response.headers['x-request-id'],
+      'request-id': response.headers['request-id'],
+      'X-Request-ID': response.headers['X-Request-ID'],
+      'Request-ID': response.headers['Request-ID']
+    });
+    console.log('  Checking response.data:', {
+      requestId: response.data?.requestId,
+      request_id: response.data?.request_id,
+      requestID: response.data?.requestID
+    });
+    if (response.data?.metadata) {
+      console.log('  Checking response.data.metadata:', JSON.stringify(response.data.metadata, null, 2));
+    }
+    if (response.data?.data) {
+      console.log('  Checking response.data.data:', {
+        requestId: response.data.data.requestId,
+        keys: Object.keys(response.data.data || {})
       });
+    }
+    
+    if (requestId) {
+      console.log(`✅ Octave Request ID Found: ${requestId}`);
+    } else {
+      console.log(`❌ Octave Request ID not found in response.`);
+      console.log('  All Response Headers:', JSON.stringify(response.headers, null, 2));
+      console.log('  All Response Data:', JSON.stringify(response.data, null, 2));
     }
 
     const responseText = response.data?.output || response.data?.text || response.data?.message || JSON.stringify(response.data);
