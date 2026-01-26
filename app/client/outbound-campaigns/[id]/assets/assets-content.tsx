@@ -45,8 +45,11 @@ export default function FinalAssetsPageContent() {
       console.log('🌐 Frontend: Fetching from URL:', url);
       
       const response = await fetch(url, {
+        cache: 'no-store',
         credentials: 'include',
         headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
           ...(authToken && { Authorization: `Bearer ${authToken}` })
         }
       });
