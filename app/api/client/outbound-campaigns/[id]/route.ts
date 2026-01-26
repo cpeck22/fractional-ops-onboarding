@@ -49,11 +49,11 @@ export async function GET(
     });
 
     // Force fresh read - don't use cache
+    // Match save route logic: query by ID only, then verify ownership
     const { data: campaign, error } = await supabaseAdmin
       .from('outbound_campaigns')
       .select('*')
       .eq('id', params.id)
-      .eq('user_id', effectiveUserId)
       .maybeSingle();
 
     console.log('📥 GET - RAW DATABASE RESPONSE:', JSON.stringify(campaign, null, 2));
@@ -91,6 +91,18 @@ export async function GET(
       return NextResponse.json(
         { success: false, error: 'Campaign not found' },
         { status: 404 }
+      );
+    }
+
+    // Verify ownership (match save route security check)
+    if (campaign.user_id !== effectiveUserId) {
+      console.error('❌ GET - Ownership mismatch:', {
+        campaignUserId: campaign.user_id,
+        effectiveUserId: effectiveUserId
+      });
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 403 }
       );
     }
 
