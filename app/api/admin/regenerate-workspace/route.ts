@@ -359,23 +359,43 @@ export async function POST(request: NextRequest) {
           );
         }
         
-        // Verify the update worked for all records
-        const allUpdated = updatedRecords?.every((record: any) => record.workspace_api_key === workspaceApiKey);
-        if (allUpdated && updatedRecords && updatedRecords.length > 0) {
-          console.log(`✅ Successfully updated ${updatedRecords.length} record(s) in Supabase`);
-          updatedRecords.forEach((record: any, index: number) => {
-            console.log(`   ✅ Record ${index + 1} (ID: ${record.id}): ${record.workspace_api_key?.substring(0, 15)}...`);
-          });
-          console.log(`   ✅ All records now use new workspace API key`);
-          console.log(`   ✅ Routes will now use new workspace`);
-        } else {
-          console.error('❌ API key update verification failed!');
-          console.error(`   Expected all records to have: ${workspaceApiKey?.substring(0, 15)}...`);
-          if (updatedRecords) {
-            updatedRecords.forEach((record: any) => {
-              console.error(`   Record ${record.id}: ${record.workspace_api_key?.substring(0, 15)}...`);
+        // ✅ CRITICAL: Verify the update worked with a separate query
+        // The .select() after .update() may not return all rows, so we query separately
+        console.log('🔍 Verifying update with separate query...');
+        const { data: verifyRecords, error: verifyError } = await supabaseAdmin
+          .from('octave_outputs')
+          .select('id, workspace_api_key, created_at')
+          .eq('user_id', resolvedUserId)
+          .order('created_at', { ascending: false });
+
+        if (verifyError) {
+          console.error('❌ Error verifying update:', verifyError);
+          console.error('   Update may have succeeded, but verification failed');
+        } else if (verifyRecords && verifyRecords.length > 0) {
+          const expectedCount = allRecords.length;
+          const actualCount = verifyRecords.length;
+          const allHaveNewKey = verifyRecords.every((r: any) => r.workspace_api_key === workspaceApiKey);
+          
+          if (allHaveNewKey && actualCount === expectedCount) {
+            console.log(`✅ Successfully updated ${actualCount} record(s) in Supabase`);
+            verifyRecords.forEach((record: any, index: number) => {
+              console.log(`   ✅ Record ${index + 1} (ID: ${record.id}): ${record.workspace_api_key?.substring(0, 15)}...`);
             });
+            console.log(`   ✅ All records now use new workspace API key: ${workspaceApiKey?.substring(0, 15)}...`);
+            console.log(`   ✅ Routes will now use new workspace`);
+          } else {
+            console.error('❌ API key update verification FAILED!');
+            console.error(`   Expected ${expectedCount} records, found ${actualCount}`);
+            console.error(`   Expected all to have: ${workspaceApiKey?.substring(0, 15)}...`);
+            verifyRecords.forEach((record: any) => {
+              const matches = record.workspace_api_key === workspaceApiKey ? '✅' : '❌';
+              console.error(`   ${matches} Record ${record.id}: ${record.workspace_api_key?.substring(0, 15)}...`);
+            });
+            // Don't fail the request, but log the issue
+            console.warn('⚠️ Some records may not have been updated correctly');
           }
+        } else {
+          console.error('❌ Verification query returned no records - update may have failed');
         }
       } else {
         // Insert new record if none exists
