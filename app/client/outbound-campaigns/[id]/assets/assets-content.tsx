@@ -41,7 +41,7 @@ export default function FinalAssetsPageContent() {
       const authToken = session?.access_token;
       console.log('🔐 Frontend: Auth session:', { hasSession: !!session, hasToken: !!authToken });
 
-      const url = addImpersonateParam(`/api/client/outbound-campaigns/${campaignId}`, impersonateUserId);
+      const url = addImpersonateParam(`/api/client/outbound-campaigns/${campaignId}?t=${Date.now()}`, impersonateUserId);
       console.log('🌐 Frontend: Fetching from URL:', url);
       
       const response = await fetch(url, {
@@ -240,7 +240,7 @@ export default function FinalAssetsPageContent() {
         setTimeout(() => {
           console.log('🔄 Reloading campaign after asset generation...');
           loadCampaign();
-        }, 2000);
+        }, 3000);
         
         toast.success('Campaign assets generated!');
       } else {

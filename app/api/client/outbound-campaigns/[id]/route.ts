@@ -156,7 +156,14 @@ export async function GET(
     console.log('📥 GET - campaign.finalAssets keys:', responseData.campaign.finalAssets ? Object.keys(responseData.campaign.finalAssets) : 'null/undefined');
     console.log('📥 GET - campaign.status:', responseData.campaign.status);
 
-    return NextResponse.json(responseData);
+    // Prevent caching - force fresh data
+    return NextResponse.json(responseData, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   } catch (error: any) {
     console.error('❌ Error in GET /api/client/outbound-campaigns/[id]:', error);
     return NextResponse.json(
