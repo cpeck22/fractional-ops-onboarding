@@ -88,6 +88,21 @@ export async function GET(
       );
     }
 
+    // Handle JSONB that might be returned as string
+    let finalAssets = campaign.final_assets;
+    if (typeof finalAssets === 'string') {
+      console.log('⚠️ GET - final_assets is a string, parsing...');
+      try {
+        finalAssets = JSON.parse(finalAssets);
+      } catch (e) {
+        console.error('❌ GET - Failed to parse final_assets string:', e);
+        finalAssets = {};
+      }
+    }
+    if (!finalAssets || (typeof finalAssets === 'object' && Object.keys(finalAssets).length === 0)) {
+      finalAssets = {};
+    }
+
     const responseData = {
       success: true,
       campaign: {
@@ -97,7 +112,7 @@ export async function GET(
         writtenStrategy: campaign.written_strategy,
         additionalBrief: campaign.additional_brief,
         intermediaryOutputs: campaign.intermediary_outputs || {},
-        finalAssets: campaign.final_assets || {},
+        finalAssets: finalAssets,
         status: campaign.status,
         createdAt: campaign.created_at,
         updatedAt: campaign.updated_at
@@ -116,6 +131,11 @@ export async function GET(
       } : null,
       responseStringified: JSON.stringify(responseData).substring(0, 500)
     });
+    console.log('📥 GET - FULL RESPONSE DATA:', JSON.stringify(responseData, null, 2));
+    console.log('📥 GET - campaign.finalAssets raw:', responseData.campaign.finalAssets);
+    console.log('📥 GET - campaign.finalAssets type:', typeof responseData.campaign.finalAssets);
+    console.log('📥 GET - campaign.finalAssets keys:', responseData.campaign.finalAssets ? Object.keys(responseData.campaign.finalAssets) : 'null/undefined');
+    console.log('📥 GET - campaign.status:', responseData.campaign.status);
 
     return NextResponse.json(responseData);
   } catch (error: any) {

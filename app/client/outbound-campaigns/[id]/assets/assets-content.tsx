@@ -69,6 +69,10 @@ export default function FinalAssetsPageContent() {
         finalAssetsIsUndefined: result.campaign?.finalAssets === undefined,
         fullResponse: JSON.stringify(result).substring(0, 1000)
       });
+      console.log('📥 Frontend: FULL RESPONSE OBJECT:', result);
+      console.log('📥 Frontend: result.campaign:', result.campaign);
+      console.log('📥 Frontend: result.campaign.finalAssets:', result.campaign?.finalAssets);
+      console.log('📥 Frontend: result.campaign.finalAssets stringified:', JSON.stringify(result.campaign?.finalAssets));
       
       if (result.success) {
         setCampaign(result.campaign);
