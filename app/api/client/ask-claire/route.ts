@@ -205,6 +205,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, response: responseText });
   } catch (error: any) {
     console.error('❌ Ask Claire API error:', error);
+    
+    // Explicitly check and log error structure
+    console.log('🔍 ERROR STRUCTURE CHECK:');
+    console.log('  error.response exists:', !!error.response);
+    console.log('  error.response?.data exists:', !!error.response?.data);
+    console.log('  error.response?.data keys:', error.response?.data ? Object.keys(error.response.data) : 'N/A');
+    
     if (error.response) {
       // Log full error response details
       console.log('📥 FULL OCTAVE API ERROR RESPONSE:');
@@ -213,15 +220,23 @@ export async function POST(request: NextRequest) {
       console.log('Response Headers:', JSON.stringify(error.response.headers, null, 2));
       console.log('Response Data:', JSON.stringify(error.response.data, null, 2));
       
-      // Extract metadata separately and log it explicitly
-      const metadata = error.response.data?._metadata || error.response.data?.metadata || null;
+      // Extract metadata separately and log it explicitly - check both _metadata and metadata
+      const responseData = error.response.data || {};
+      const metadata = responseData._metadata || responseData.metadata || null;
+      
+      console.log('🔍 METADATA EXTRACTION CHECK:');
+      console.log('  responseData._metadata exists:', !!responseData._metadata);
+      console.log('  responseData.metadata exists:', !!responseData.metadata);
+      console.log('  extracted metadata:', metadata);
+      
       if (metadata) {
         console.log('📋 ========== ERROR RESPONSE METADATA (EXTRACTED) ==========');
         console.log(JSON.stringify(metadata, null, 2));
         console.log('📋 ========== END METADATA ==========');
       } else {
         console.log('📋 No metadata found in error response');
-        console.log('📋 Available keys in error.response.data:', Object.keys(error.response.data || {}));
+        console.log('📋 Available keys in error.response.data:', Object.keys(responseData));
+        console.log('📋 Full error.response.data:', JSON.stringify(responseData, null, 2));
       }
       
       // Extract Request ID from error response if available
@@ -244,6 +259,11 @@ export async function POST(request: NextRequest) {
         { status: error.response.status || 500 }
       );
     }
+    console.log('❌ No error.response found - error structure:', {
+      hasResponse: !!error.response,
+      errorKeys: Object.keys(error),
+      errorMessage: error.message
+    });
     return NextResponse.json({ success: false, error: error.message || 'Unknown error occurred' }, { status: 500 });
   }
 }
