@@ -165,11 +165,48 @@ export default function IntermediaryOutputsPageContent() {
   };
 
   const handleGenerateAssets = async () => {
+    // Save intermediary outputs first
     await handleSave();
-    const nextUrl = impersonateUserId
-      ? `/client/outbound-campaigns/${campaignId}/assets?impersonate=${impersonateUserId}`
-      : `/client/outbound-campaigns/${campaignId}/assets`;
-    router.push(nextUrl);
+    
+    // Now call the generate-assets API endpoint directly
+    setGenerating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
+      const url = addImpersonateParam(`/api/client/outbound-campaigns/${campaignId}/generate-assets`, impersonateUserId);
+      console.log('🚀 Calling generate-assets API:', url);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        },
+        credentials: 'include'
+      });
+
+      const result = await response.json();
+      console.log('📥 Generate assets response:', result);
+      
+      if (result.success) {
+        toast.success('Campaign assets generated! Redirecting...');
+        // Small delay to ensure toast is visible, then navigate
+        setTimeout(() => {
+          const nextUrl = impersonateUserId
+            ? `/client/outbound-campaigns/${campaignId}/assets?impersonate=${impersonateUserId}`
+            : `/client/outbound-campaigns/${campaignId}/assets`;
+          router.push(nextUrl);
+        }, 500);
+      } else {
+        toast.error(result.error || result.details || 'Failed to generate assets');
+        setGenerating(false);
+      }
+    } catch (error: any) {
+      console.error('❌ Error generating assets:', error);
+      toast.error(`Failed to generate assets: ${error.message}`);
+      setGenerating(false);
+    }
   };
 
   if (loading) {
