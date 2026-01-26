@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import { getAuthenticatedUser } from '@/lib/api-auth';
 import { highlightOutput } from '@/lib/output-highlighting';
-import { generateCampaignContent, parseJsonResponse } from '@/lib/campaign-generation';
+import { generateCampaignContent, parseJsonResponse, createCleanedCampaignBrief } from '@/lib/campaign-generation';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,13 +62,28 @@ export async function POST(
 
     const intermediary = campaign.intermediary_outputs || {};
 
+    // Create cleaned campaign brief from meeting_transcript, written_strategy, and additional_brief
+    console.log('🧹 Creating cleaned campaign brief...');
+    const cleanedCampaignBrief = await createCleanedCampaignBrief(
+      campaign.campaign_name,
+      campaign.meeting_transcript,
+      campaign.written_strategy,
+      campaign.additional_brief
+    );
+    console.log('✅ Cleaned campaign brief:', {
+      length: cleanedCampaignBrief.length,
+      hasContent: cleanedCampaignBrief.length > 0,
+      preview: cleanedCampaignBrief.substring(0, 200)
+    });
+
     // ✅ COMPREHENSIVE VALIDATION AND LOGGING
     console.log('🚀 Starting asset generation for campaign:', campaign.campaign_name);
     console.log('🔍 Campaign validation:', {
       campaignId: campaign.id,
       hasWorkspaceApiKey: !!campaign.workspace_api_key,
       hasIntermediaryOutputs: !!campaign.intermediary_outputs,
-      intermediaryKeys: Object.keys(intermediary)
+      intermediaryKeys: Object.keys(intermediary),
+      hasCleanedBrief: cleanedCampaignBrief.length > 0
     });
 
     // Validate intermediary data
@@ -156,6 +171,7 @@ CAMPAIGN DETAILS:
 - Attraction Offer Value Bullets: ${intermediary.attractionOffer?.valueBullets?.join('\n- ') || 'Not specified'}
 - Attraction Offer Ease Bullets: ${intermediary.attractionOffer?.easeBullets?.join('\n- ') || 'Not specified'}
 - Asset Link: ${assetUrl}
+${cleanedCampaignBrief ? `\n---\n\nCLEANED CAMPAIGN BRIEF (Additional Context):\n${cleanedCampaignBrief}\n---` : ''}
 
 CRITICAL: You MUST use the SHARED HOOK in the FIRST LINE of each Email 1A, 1B, and 1C. The hook builds trust immediately.
 
@@ -486,6 +502,7 @@ CAMPAIGN CONTEXT:
 - Attraction Offer Value: ${intermediary.attractionOffer?.valueBullets?.join(', ') || ''}
 - Asset: ${intermediary.asset?.url || intermediary.asset?.content || ''}
 - List Building Strategy: ${intermediary.listBuildingStrategy || ''}
+${cleanedCampaignBrief ? `\n---\n\nCLEANED CAMPAIGN BRIEF (Additional Context):\n${cleanedCampaignBrief}\n---` : ''}
 
 The sequence should:
 - Continue until breakup email (if no response)
@@ -539,6 +556,7 @@ CAMPAIGN CONTEXT:
 - Attraction Offer Value: ${intermediary.attractionOffer?.valueBullets?.join(', ') || ''}
 - Asset: ${intermediary.asset?.url || intermediary.asset?.content || ''}
 - List Building Strategy: ${intermediary.listBuildingStrategy || ''}
+${cleanedCampaignBrief ? `\n---\n\nCLEANED CAMPAIGN BRIEF (Additional Context):\n${cleanedCampaignBrief}\n---` : ''}
 
 The sequence should:
 - Continue until breakup email (if no response)

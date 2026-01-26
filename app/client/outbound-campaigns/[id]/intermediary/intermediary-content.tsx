@@ -31,6 +31,39 @@ export default function IntermediaryOutputsPageContent() {
   const [asset, setAsset] = useState({ type: 'description', content: '', url: '' });
   const [caseStudies, setCaseStudies] = useState<any[]>([]);
 
+  // Helper function to check if any intermediary output field is empty
+  const hasEmptyFields = (intermediary: any): boolean => {
+    // Check list building strategy
+    if (!intermediary.listBuildingStrategy || intermediary.listBuildingStrategy.trim() === '') {
+      return true;
+    }
+    
+    // Check hook
+    if (!intermediary.hook || intermediary.hook.trim() === '') {
+      return true;
+    }
+    
+    // Check attraction offer
+    if (!intermediary.attractionOffer || 
+        !intermediary.attractionOffer.headline || 
+        intermediary.attractionOffer.headline.trim() === '' ||
+        !intermediary.attractionOffer.valueBullets || 
+        intermediary.attractionOffer.valueBullets.length === 0 ||
+        !intermediary.attractionOffer.valueBullets.some((bullet: string) => bullet.trim() !== '')) {
+      return true;
+    }
+    
+    // Check asset (at least one of url or content should exist)
+    if (!intermediary.asset || 
+        (!intermediary.asset.url || intermediary.asset.url.trim() === '') &&
+        (!intermediary.asset.content || intermediary.asset.content.trim() === '')) {
+      return true;
+    }
+    
+    // All required fields are present
+    return false;
+  };
+
   const loadCampaign = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -50,6 +83,8 @@ export default function IntermediaryOutputsPageContent() {
         
         // Load intermediary outputs if they exist
         const intermediary = result.campaign.intermediaryOutputs || {};
+        
+        // Set state from loaded intermediary outputs
         if (intermediary.listBuildingStrategy) {
           setListBuildingStrategy(intermediary.listBuildingStrategy);
         }
@@ -66,9 +101,24 @@ export default function IntermediaryOutputsPageContent() {
           setCaseStudies(intermediary.caseStudies);
         }
 
-        // Auto-generate if not already generated
-        if (result.campaign.status === 'draft' && !intermediary.listBuildingStrategy) {
+        // Only auto-generate if at least one required field is empty
+        const isEmpty = hasEmptyFields(intermediary);
+        console.log('🔍 Checking intermediary outputs on load:', {
+          hasIntermediary: !!intermediary && Object.keys(intermediary).length > 0,
+          isEmpty,
+          fields: {
+            listBuildingStrategy: !!intermediary.listBuildingStrategy,
+            hook: !!intermediary.hook,
+            attractionOffer: !!intermediary.attractionOffer?.headline,
+            asset: !!(intermediary.asset?.url || intermediary.asset?.content)
+          }
+        });
+        
+        if (isEmpty) {
+          console.log('🔄 At least one field is empty, auto-generating intermediary outputs...');
           generateIntermediary();
+        } else {
+          console.log('✅ All intermediary output fields are populated, skipping auto-generation');
         }
       } else {
         toast.error(result.error || 'Failed to load campaign');
@@ -191,13 +241,13 @@ export default function IntermediaryOutputsPageContent() {
       
       if (result.success) {
         toast.success('Campaign assets generated! Redirecting...');
-        // Small delay to ensure toast is visible, then navigate
+        // Longer delay to ensure database update completes before redirect
         setTimeout(() => {
           const nextUrl = impersonateUserId
             ? `/client/outbound-campaigns/${campaignId}/assets?impersonate=${impersonateUserId}`
             : `/client/outbound-campaigns/${campaignId}/assets`;
           router.push(nextUrl);
-        }, 500);
+        }, 1500);
       } else {
         toast.error(result.error || result.details || 'Failed to generate assets');
         setGenerating(false);

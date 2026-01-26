@@ -37,6 +37,18 @@ export default function FinalAssetsPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignId]);
 
+  // Reload campaign if finalAssets are missing but status indicates they should exist
+  useEffect(() => {
+    if (campaign && campaign.status === 'assets_generated' && !campaign.finalAssets?.campaignCopy) {
+      console.log('🔄 Final assets missing but status is assets_generated, reloading...');
+      // Wait a bit then reload to ensure database has updated
+      const timer = setTimeout(() => {
+        loadCampaign();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [campaign]);
+
   const loadCampaign = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -62,19 +74,29 @@ export default function FinalAssetsPageContent() {
           hasListBuilding: !!finalAssets.listBuildingInstructions,
           hasNurture: !!finalAssets.nurtureSequence,
           hasAsset: !!finalAssets.asset,
-          status: result.campaign.status
+          status: result.campaign.status,
+          finalAssetsExists: !!result.campaign.finalAssets,
+          finalAssetsType: typeof result.campaign.finalAssets,
+          finalAssetsKeys: result.campaign.finalAssets ? Object.keys(result.campaign.finalAssets) : []
         });
         
-        if (finalAssets.campaignCopy) {
+        // Always set state, even if empty, to ensure UI reflects current state
+        if (finalAssets.campaignCopy && Object.keys(finalAssets.campaignCopy).length > 0) {
+          console.log('✅ Setting campaign copy:', Object.keys(finalAssets.campaignCopy));
           setCampaignCopy(finalAssets.campaignCopy);
+        } else {
+          console.warn('⚠️ No campaign copy found in finalAssets');
         }
         if (finalAssets.listBuildingInstructions) {
+          console.log('✅ Setting list building instructions');
           setListBuildingInstructions(finalAssets.listBuildingInstructions);
         }
         if (finalAssets.nurtureSequence) {
+          console.log('✅ Setting nurture sequence');
           setNurtureSequence(finalAssets.nurtureSequence.content || finalAssets.nurtureSequence);
         }
         if (finalAssets.asset) {
+          console.log('✅ Setting asset');
           setAsset(finalAssets.asset);
         }
 
@@ -122,16 +144,31 @@ export default function FinalAssetsPageContent() {
           hasAsset: !!assets.asset
         });
         
-        setCampaignCopy(assets.campaignCopy || {});
-        setListBuildingInstructions(assets.listBuildingInstructions || '');
-        setNurtureSequence(assets.nurtureSequence?.content || assets.nurtureSequence || '');
-        setAsset(assets.asset || {});
+        // Ensure we have campaign copy before setting state
+        if (assets.campaignCopy && Object.keys(assets.campaignCopy).length > 0) {
+          setCampaignCopy(assets.campaignCopy);
+        }
+        if (assets.listBuildingInstructions) {
+          setListBuildingInstructions(assets.listBuildingInstructions);
+        }
+        if (assets.nurtureSequence) {
+          setNurtureSequence(assets.nurtureSequence.content || assets.nurtureSequence);
+        }
+        if (assets.asset) {
+          setAsset(assets.asset);
+        }
         
         // Update campaign state to reflect new assets
         setCampaign((prev: any) => ({
           ...prev,
-          finalAssets: assets
+          finalAssets: assets,
+          status: 'assets_generated'
         }));
+        
+        // Reload campaign to ensure we have the latest from database
+        setTimeout(() => {
+          loadCampaign();
+        }, 500);
         
         toast.success('Campaign assets generated!');
       } else {
