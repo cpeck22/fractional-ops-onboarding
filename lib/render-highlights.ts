@@ -37,6 +37,9 @@ export function renderHighlightedContent(highlightedXml: string): string {
   // Handle nested tags (if any) - process personalization first since it might be nested
   // This is a simple approach - for more complex nesting, consider a proper XML parser
   
+  // Convert newlines to <br/> tags for proper line break rendering
+  html = html.replace(/\n/g, '<br/>');
+  
   return html;
 }
 
