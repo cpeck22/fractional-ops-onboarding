@@ -70,6 +70,10 @@ export default function OutboundPlaysPageContent() {
     ? `/client/outbound-campaigns/new?impersonate=${impersonateUserId}`
     : '/client/outbound-campaigns/new';
 
+  const viewCampaignsUrl = impersonateUserId
+    ? `/client/outbound-campaigns?impersonate=${impersonateUserId}`
+    : '/client/outbound-campaigns';
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-6 flex justify-between items-center">
@@ -77,13 +81,21 @@ export default function OutboundPlaysPageContent() {
           <h1 className="text-2xl font-bold text-fo-dark mb-2">Outbound Campaigns</h1>
           <p className="text-fo-text-secondary">Create and manage your outbound campaigns</p>
         </div>
-        <Link
-          href={createCampaignUrl}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Create Campaign
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href={viewCampaignsUrl}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-fo-border text-fo-dark rounded-lg hover:bg-fo-light transition-colors"
+          >
+            View All Campaigns
+          </Link>
+          <Link
+            href={createCampaignUrl}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Create Campaign
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

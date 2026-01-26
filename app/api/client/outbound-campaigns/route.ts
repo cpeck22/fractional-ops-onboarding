@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
 
     const { data: campaigns, error } = await supabaseAdmin
       .from('outbound_campaigns')
-      .select('id, campaign_name, status, created_at, updated_at')
+      .select('*')
       .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false });
 
@@ -150,9 +150,51 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Parse JSONB fields and format response
+    const formattedCampaigns = (campaigns || []).map((campaign: any) => {
+      // Handle JSONB that might be returned as string
+      let finalAssets = campaign.final_assets;
+      if (typeof finalAssets === 'string') {
+        try {
+          finalAssets = JSON.parse(finalAssets);
+        } catch (e) {
+          console.error('❌ Failed to parse final_assets string:', e);
+          finalAssets = null;
+        }
+      }
+      if (finalAssets === null || finalAssets === undefined) {
+        finalAssets = {};
+      }
+
+      let intermediaryOutputs = campaign.intermediary_outputs;
+      if (typeof intermediaryOutputs === 'string') {
+        try {
+          intermediaryOutputs = JSON.parse(intermediaryOutputs);
+        } catch (e) {
+          intermediaryOutputs = {};
+        }
+      }
+      if (intermediaryOutputs === null || intermediaryOutputs === undefined) {
+        intermediaryOutputs = {};
+      }
+
+      return {
+        id: campaign.id,
+        campaignName: campaign.campaign_name,
+        meetingTranscript: campaign.meeting_transcript,
+        writtenStrategy: campaign.written_strategy,
+        additionalBrief: campaign.additional_brief,
+        intermediaryOutputs: intermediaryOutputs,
+        finalAssets: finalAssets,
+        status: campaign.status,
+        createdAt: campaign.created_at,
+        updatedAt: campaign.updated_at
+      };
+    });
+
     return NextResponse.json({
       success: true,
-      campaigns: campaigns || []
+      campaigns: formattedCampaigns
     });
   } catch (error: any) {
     console.error('❌ Error in GET /api/client/outbound-campaigns:', error);
