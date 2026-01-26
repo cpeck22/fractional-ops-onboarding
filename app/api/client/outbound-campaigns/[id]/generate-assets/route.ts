@@ -62,14 +62,83 @@ export async function POST(
 
     const intermediary = campaign.intermediary_outputs || {};
 
-    // Get workspace data
-    const { data: workspaceData } = await supabaseAdmin
+    // ✅ COMPREHENSIVE VALIDATION AND LOGGING
+    console.log('🚀 Starting asset generation for campaign:', campaign.campaign_name);
+    console.log('🔍 Campaign validation:', {
+      campaignId: campaign.id,
+      hasWorkspaceApiKey: !!campaign.workspace_api_key,
+      hasIntermediaryOutputs: !!campaign.intermediary_outputs,
+      intermediaryKeys: Object.keys(intermediary)
+    });
+
+    // Validate intermediary data
+    console.log('🔍 Intermediary outputs validation:', {
+      hasHook: !!intermediary.hook,
+      hasAttractionOffer: !!intermediary.attractionOffer,
+      hasListBuildingStrategy: !!intermediary.listBuildingStrategy,
+      hasAsset: !!intermediary.asset,
+      hookPreview: intermediary.hook?.substring(0, 50),
+      attractionOfferHeadline: intermediary.attractionOffer?.headline?.substring(0, 50)
+    });
+
+    if (!intermediary.hook || !intermediary.attractionOffer?.headline) {
+      console.error('❌ Missing required intermediary data');
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Missing required intermediary outputs. Please generate intermediary assets first.',
+          details: {
+            hasHook: !!intermediary.hook,
+            hasAttractionOffer: !!intermediary.attractionOffer?.headline,
+            intermediaryKeys: Object.keys(intermediary)
+          }
+        },
+        { status: 400 }
+      );
+    }
+
+    // Check OpenAI API key
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('❌ OPENAI_API_KEY not configured');
+      return NextResponse.json(
+        { success: false, error: 'OpenAI API key not configured' },
+        { status: 500 }
+      );
+    }
+    console.log('✅ OpenAI API key configured');
+
+    // Check workspace API key
+    if (!campaign.workspace_api_key) {
+      console.error('❌ Campaign missing workspace_api_key');
+      return NextResponse.json(
+        { success: false, error: 'Campaign missing workspace API key' },
+        { status: 400 }
+      );
+    }
+    console.log('✅ Workspace API key present');
+
+    // Get workspace data with proper error handling
+    let workspaceData: any = null;
+    const { data: workspaceDataResult, error: workspaceError } = await supabaseAdmin
       .from('octave_outputs')
       .select('personas, use_cases, client_references, company_domain, company_name')
       .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
+    
+    // Workspace data is optional (only needed for highlighting), so we don't fail if it's missing
+    if (workspaceError) {
+      console.warn('⚠️ Workspace data query failed (non-critical for generation):', workspaceError.message);
+      console.warn('⚠️ Highlighting may be limited, but generation will continue');
+    } else {
+      workspaceData = workspaceDataResult;
+      console.log('✅ Workspace data loaded:', {
+        hasPersonas: !!workspaceData?.personas,
+        hasUseCases: !!workspaceData?.use_cases,
+        hasReferences: !!workspaceData?.client_references
+      });
+    }
 
     // 1. Generate Campaign Copy (3 email sequence) using OpenAI
     const assetUrl = intermediary.asset?.url || intermediary.asset?.content || 'Not specified';
@@ -233,22 +302,28 @@ CRITICAL OUTPUT REQUIREMENTS:
 Return ONLY the JSON object, nothing else.
 `;
 
-    console.log('📧 Generating campaign copy using OpenAI...');
+    // 1. Generate Campaign Copy (3 email sequence) using OpenAI
+    console.log('📧 STEP 1: Generating campaign copy using OpenAI...');
     console.log('📋 Campaign details:', {
       campaignName: campaign.campaign_name,
       hook: intermediary.hook,
       attractionOffer: intermediary.attractionOffer?.headline,
-      assetUrl
+      assetUrl,
+      promptLength: emailPrompt.length
     });
     
     let campaignCopy: any = {};
     try {
+      console.log('⏳ Calling OpenAI API for email generation...');
+      const startTime = Date.now();
       const emailResponse = await generateCampaignContent(emailPrompt, {
         model: 'gpt-4o-mini',
         temperature: 0.4,
         maxTokens: 4000,
         responseFormat: { type: 'json_object' } // Request JSON format explicitly
       });
+      const elapsedTime = Date.now() - startTime;
+      console.log(`✅ OpenAI API call completed in ${elapsedTime}ms`);
       
       console.log('✅ OpenAI response received, length:', emailResponse.length);
       console.log('📄 Response preview (first 1000 chars):', emailResponse.substring(0, 1000));
@@ -311,12 +386,47 @@ Return ONLY the JSON object, nothing else.
       email3: { hasSubject: !!campaignCopy.email3?.subject, hasBody: !!campaignCopy.email3?.body }
     });
 
+    // Validate that we have actual email content (not just empty strings)
+    const hasValidEmails = 
+      campaignCopy.email1A?.subject && campaignCopy.email1A?.body &&
+      campaignCopy.email1B?.subject && campaignCopy.email1B?.body &&
+      campaignCopy.email1C?.subject && campaignCopy.email1C?.body &&
+      campaignCopy.email2?.subject && campaignCopy.email2?.body &&
+      campaignCopy.email3?.subject && campaignCopy.email3?.body;
+
+    if (!hasValidEmails) {
+      console.error('❌ Generated emails are missing required content');
+      console.error('Email validation:', {
+        email1A: { subject: !!campaignCopy.email1A?.subject, body: !!campaignCopy.email1A?.body },
+        email1B: { subject: !!campaignCopy.email1B?.subject, body: !!campaignCopy.email1B?.body },
+        email1C: { subject: !!campaignCopy.email1C?.subject, body: !!campaignCopy.email1C?.body },
+        email2: { subject: !!campaignCopy.email2?.subject, body: !!campaignCopy.email2?.body },
+        email3: { subject: !!campaignCopy.email3?.subject, body: !!campaignCopy.email3?.body }
+      });
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Failed to generate complete email content. Please check logs and try again.',
+          details: 'One or more emails are missing subject or body content'
+        },
+        { status: 500 }
+      );
+    }
+    console.log('✅ All emails validated successfully');
+
     // 2. List Building Instructions (use intermediary list strategy)
+    console.log('📋 STEP 2: Getting list building instructions from intermediary outputs...');
     const listBuildingInstructions = intermediary.listBuildingStrategy || 'List building strategy not generated.';
+    console.log('✅ List building instructions:', {
+      length: listBuildingInstructions.length,
+      preview: listBuildingInstructions.substring(0, 100)
+    });
 
     // 3. Nurture Sequence (using agent 1009)
+    console.log('🌱 STEP 3: Generating nurture sequence...');
     let nurtureSequence = '';
     try {
+      console.log('🔍 Searching for agent 1009 in Octave workspace...');
       // Find agent 1009 by name pattern (same pattern as execute-play route)
       const allAgents = [];
       let offset = 0;
@@ -324,6 +434,7 @@ Return ONLY the JSON object, nothing else.
       let hasNext = true;
 
       while (hasNext) {
+        console.log(`📡 Fetching agents page (offset: ${offset}, limit: ${limit})...`);
         const agentsResponse = await axios.get(
           `${OCTAVE_BASE_URL}/list`,
           {
@@ -349,6 +460,7 @@ Return ONLY the JSON object, nothing else.
       }
 
       // Search for agent matching "1009" pattern
+      console.log(`🔍 Searched ${allAgents.length} agents for pattern "1009"...`);
       const codePattern = '1009';
       let nurtureAgent = allAgents.find((agent: any) => {
         const agentName = (agent.name || '').toLowerCase();
@@ -358,6 +470,12 @@ Return ONLY the JSON object, nothing else.
       });
 
       if (nurtureAgent) {
+        console.log('✅ Found agent 1009:', {
+          oId: nurtureAgent.oId,
+          name: nurtureAgent.name
+        });
+        console.log('⏳ Calling Octave agent 1009 for nurture sequence generation...');
+        const startTime = Date.now();
         const nurtureContext = `
 Generate a 30-day nurture sequence for leads that reply to our outbound campaign but don't book a meeting.
 
@@ -399,9 +517,17 @@ Include instructions at the top: "Please add this as a sequence in your CRM or c
           }
         );
 
+        const elapsedTime = Date.now() - startTime;
+        console.log(`✅ Octave agent 1009 completed in ${elapsedTime}ms`);
         nurtureSequence = nurtureResponse.data?.data?.content || nurtureResponse.data?.output || '';
+        console.log('✅ Nurture sequence generated:', {
+          length: nurtureSequence.length,
+          preview: nurtureSequence.substring(0, 100)
+        });
       } else {
         console.warn('⚠️ Agent 1009 not found, using OpenAI as fallback');
+        console.log('⏳ Calling OpenAI for nurture sequence generation (fallback)...');
+        const startTime = Date.now();
         // Fallback to OpenAI
         const nurtureContext = `
 Generate a 30-day nurture sequence for leads that reply to our outbound campaign but don't book a meeting.
@@ -430,31 +556,60 @@ Include instructions at the top: "Please add this as a sequence in your CRM or c
             temperature: 0.4,
             maxTokens: 4000
           });
+          const elapsedTime = Date.now() - startTime;
+          console.log(`✅ OpenAI fallback completed in ${elapsedTime}ms`);
+          console.log('✅ Nurture sequence generated (OpenAI fallback):', {
+            length: nurtureSequence.length,
+            preview: nurtureSequence.substring(0, 100)
+          });
         } catch (fallbackError: any) {
           console.error('❌ OpenAI fallback failed:', fallbackError);
+          console.error('Error details:', {
+            message: fallbackError.message,
+            stack: fallbackError.stack
+          });
           nurtureSequence = 'Failed to generate nurture sequence. Please try again or contact support.';
         }
       }
     } catch (nurtureError: any) {
       console.error('⚠️ Error generating nurture sequence:', nurtureError);
+      console.error('Error details:', {
+        message: nurtureError.message,
+        stack: nurtureError.stack,
+        response: nurtureError.response?.data
+      });
       nurtureSequence = 'Failed to generate nurture sequence. Please try again or contact support.';
     }
 
     // 4. Asset (use from intermediary)
+    console.log('📎 STEP 4: Getting asset from intermediary outputs...');
     const asset = intermediary.asset || { type: 'description', content: 'No asset provided' };
+    console.log('✅ Asset:', {
+      type: asset.type,
+      hasUrl: !!asset.url,
+      hasContent: !!asset.content
+    });
 
     // Highlight campaign copy and nurture sequence
+    console.log('🎨 STEP 5: Highlighting campaign copy and nurture sequence...');
     const highlightingContext = {
       personas: workspaceData?.personas?.slice(0, 5) || [],
       useCases: workspaceData?.use_cases?.slice(0, 5) || [],
       clientReferences: workspaceData?.client_references?.slice(0, 5) || []
     };
+    console.log('📋 Highlighting context:', {
+      personasCount: highlightingContext.personas.length,
+      useCasesCount: highlightingContext.useCases.length,
+      referencesCount: highlightingContext.clientReferences.length
+    });
 
     // Highlight emails
+    console.log('⏳ Highlighting emails...');
     const highlightedCampaignCopy: any = {};
     for (const [key, email] of Object.entries(campaignCopy)) {
       if (email && typeof email === 'object' && 'body' in email) {
         const emailBody = typeof email.body === 'string' ? email.body : '';
+        console.log(`  Highlighting ${key}...`);
         const highlighted = await highlightOutput(emailBody, highlightingContext);
         highlightedCampaignCopy[key] = {
           ...email,
@@ -462,9 +617,12 @@ Include instructions at the top: "Please add this as a sequence in your CRM or c
         };
       }
     }
+    console.log('✅ Email highlighting completed');
 
     // Highlight nurture sequence
+    console.log('⏳ Highlighting nurture sequence...');
     const highlightedNurtureSequence = await highlightOutput(nurtureSequence, highlightingContext);
+    console.log('✅ Nurture sequence highlighting completed');
 
     const finalAssets = {
       campaignCopy: highlightedCampaignCopy,
@@ -476,14 +634,21 @@ Include instructions at the top: "Please add this as a sequence in your CRM or c
       asset
     };
 
+    console.log('📦 STEP 6: Finalizing assets structure...');
     console.log('📦 Final assets structure:', {
       campaignCopyKeys: Object.keys(highlightedCampaignCopy),
+      email1A: { hasSubject: !!highlightedCampaignCopy.email1A?.subject, hasBody: !!highlightedCampaignCopy.email1A?.body },
+      email1B: { hasSubject: !!highlightedCampaignCopy.email1B?.subject, hasBody: !!highlightedCampaignCopy.email1B?.body },
+      email1C: { hasSubject: !!highlightedCampaignCopy.email1C?.subject, hasBody: !!highlightedCampaignCopy.email1C?.body },
+      email2: { hasSubject: !!highlightedCampaignCopy.email2?.subject, hasBody: !!highlightedCampaignCopy.email2?.body },
+      email3: { hasSubject: !!highlightedCampaignCopy.email3?.subject, hasBody: !!highlightedCampaignCopy.email3?.body },
       listBuildingInstructionsLength: listBuildingInstructions.length,
       nurtureSequenceLength: nurtureSequence.length,
       assetType: asset.type
     });
 
     // Update campaign
+    console.log('💾 STEP 7: Saving final assets to database...');
     const { error: updateError } = await supabaseAdmin
       .from('outbound_campaigns')
       .update({
@@ -494,6 +659,11 @@ Include instructions at the top: "Please add this as a sequence in your CRM or c
 
     if (updateError) {
       console.error('❌ Error updating campaign:', updateError);
+      console.error('Update error details:', {
+        message: updateError.message,
+        details: updateError.details,
+        hint: updateError.hint
+      });
       return NextResponse.json(
         { success: false, error: 'Failed to save final assets', details: updateError.message },
         { status: 500 }
@@ -501,6 +671,15 @@ Include instructions at the top: "Please add this as a sequence in your CRM or c
     }
 
     console.log('✅ Campaign assets saved successfully');
+    console.log('🎉 Asset generation completed successfully!');
+    console.log('📊 Summary:', {
+      campaignId: params.id,
+      campaignName: campaign.campaign_name,
+      emailsGenerated: Object.keys(highlightedCampaignCopy).length,
+      hasListBuilding: listBuildingInstructions.length > 0,
+      hasNurtureSequence: nurtureSequence.length > 0,
+      hasAsset: !!asset
+    });
 
     return NextResponse.json({
       success: true,
