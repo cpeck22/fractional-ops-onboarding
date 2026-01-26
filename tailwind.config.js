@@ -28,7 +28,7 @@ module.exports = {
         'highlight-outcome': '#bbf7d0',      // Light green
         'highlight-blocker': '#fecdd3',      // Light pink/red
         'highlight-cta': '#fef3c7',          // Light yellow
-        'highlight-personalized': '#e9d5ff', // Light purple
+        'highlight-personalized': '#fed7aa', // Light orange
         // UI Colors for new design (matching Soly App style)
         'fo-sidebar-dark': '#1f2937',   // Dark gray for sidebar (darker, matching examples)
         'fo-bg-light': '#f3f4f6',       // Light gray for main background (matching examples)

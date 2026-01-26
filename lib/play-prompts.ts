@@ -12,7 +12,7 @@ export type HighlightCategory =
   | 'usecase_outcome'   // Light green - Desired outcomes
   | 'usecase_blocker'   // Light pink - Problems/blockers
   | 'cta_leadmagnet'    // Light yellow - CTAs and lead magnets
-  | 'personalization';  // Light purple - Personalized/Claire generated info
+  | 'personalization';  // Light orange - Personalized/Claire generated info
 
 export interface PlayPromptConfig {
   code: string;

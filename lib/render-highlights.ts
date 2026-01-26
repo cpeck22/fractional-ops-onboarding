@@ -29,7 +29,7 @@ export function renderHighlightedContent(highlightedXml: string): string {
     return `<span class="bg-highlight-cta text-fo-dark font-semibold px-1 rounded cursor-help" title="CTA (Lead Magnet): ${escapeHtml(content)}">${content}</span>`;
   });
   
-  // Claire Content Agent Personalization (light purple)
+  // Claire Content Agent Personalization (light orange)
   html = html.replace(/<personalization>(.*?)<\/personalization>/gi, (match, content) => {
     return `<span class="bg-highlight-personalized text-fo-dark font-semibold px-1 rounded cursor-help" title="Personalized / Claire Generated Info: ${escapeHtml(content)}">${content}</span>`;
   });
