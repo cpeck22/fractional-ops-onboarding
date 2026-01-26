@@ -293,10 +293,11 @@ export async function POST(request: NextRequest) {
     // STEP 7: Update existing octave_outputs record in Supabase
     // ============================================
     console.log('💾 Updating Supabase with new workspace connection...');
+    console.log(`🔑 New workspace_api_key: ${workspaceApiKey?.substring(0, 15)}...`);
     try {
       const updateData: any = {
         workspace_oid: workspaceOId,
-        workspace_api_key: workspaceApiKey,
+        workspace_api_key: workspaceApiKey, // ✅ CRITICAL: Update API key to new workspace
         product_oid: productOId,
         personas: personas,
         use_cases: useCases,
@@ -313,7 +314,7 @@ export async function POST(request: NextRequest) {
       // Find the most recent octave_outputs record for this user and update it
       const { data: existingRecord, error: findError } = await supabaseAdmin
         .from('octave_outputs')
-        .select('id')
+        .select('id, workspace_api_key')
         .eq('user_id', resolvedUserId)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -332,6 +333,9 @@ export async function POST(request: NextRequest) {
       }
 
       if (existingRecord) {
+        const oldApiKey = existingRecord.workspace_api_key;
+        console.log(`🔄 Updating API key: ${oldApiKey?.substring(0, 15)}... → ${workspaceApiKey?.substring(0, 15)}...`);
+        
         // Update existing record
         const { error: updateError } = await supabaseAdmin
           .from('octave_outputs')
@@ -350,6 +354,7 @@ export async function POST(request: NextRequest) {
           );
         }
         console.log('✅ Successfully updated existing workspace connection in Supabase');
+        console.log(`   ✅ API key updated in database - routes will now use new workspace`);
       } else {
         // Insert new record if none exists
         const { error: insertError } = await supabaseAdmin
