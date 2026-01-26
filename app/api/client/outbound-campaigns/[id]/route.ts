@@ -41,6 +41,13 @@ export async function GET(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    console.log('TESTING LOGS BELOW');
+    console.log('📥 GET /api/client/outbound-campaigns/[id] - Fetching campaign:', {
+      campaignId: params.id,
+      effectiveUserId,
+      userEmail: user.email
+    });
+
     const { data: campaign, error } = await supabaseAdmin
       .from('outbound_campaigns')
       .select('*')
@@ -48,14 +55,40 @@ export async function GET(
       .eq('user_id', effectiveUserId)
       .single();
 
+    console.log('📥 GET - Database query result:', {
+      error: error ? {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      } : null,
+      campaignFound: !!campaign,
+      campaignId: campaign?.id,
+      campaignStatus: campaign?.status,
+      hasFinalAssets: !!campaign?.final_assets,
+      finalAssetsType: typeof campaign?.final_assets,
+      finalAssetsIsNull: campaign?.final_assets === null,
+      finalAssetsIsUndefined: campaign?.final_assets === undefined,
+      finalAssetsKeys: campaign?.final_assets ? Object.keys(campaign.final_assets) : [],
+      finalAssetsCampaignCopyKeys: campaign?.final_assets?.campaignCopy ? Object.keys(campaign.final_assets.campaignCopy) : [],
+      finalAssetsEmail1A: campaign?.final_assets?.campaignCopy?.email1A ? {
+        hasSubject: !!campaign.final_assets.campaignCopy.email1A.subject,
+        subjectLength: campaign.final_assets.campaignCopy.email1A.subject?.length || 0,
+        hasBody: !!campaign.final_assets.campaignCopy.email1A.body,
+        bodyLength: campaign.final_assets.campaignCopy.email1A.body?.length || 0
+      } : null,
+      finalAssetsStringified: campaign?.final_assets ? JSON.stringify(campaign.final_assets).substring(0, 500) : 'null/undefined'
+    });
+
     if (error || !campaign) {
+      console.error('❌ GET - Campaign not found:', { error, campaignFound: !!campaign });
       return NextResponse.json(
         { success: false, error: 'Campaign not found' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       campaign: {
         id: campaign.id,
@@ -69,7 +102,22 @@ export async function GET(
         createdAt: campaign.created_at,
         updatedAt: campaign.updated_at
       }
+    };
+
+    console.log('📥 GET - Response being sent:', {
+      hasFinalAssets: !!responseData.campaign.finalAssets,
+      finalAssetsKeys: responseData.campaign.finalAssets ? Object.keys(responseData.campaign.finalAssets) : [],
+      finalAssetsCampaignCopyKeys: responseData.campaign.finalAssets?.campaignCopy ? Object.keys(responseData.campaign.finalAssets.campaignCopy) : [],
+      finalAssetsEmail1A: responseData.campaign.finalAssets?.campaignCopy?.email1A ? {
+        hasSubject: !!responseData.campaign.finalAssets.campaignCopy.email1A.subject,
+        subjectLength: responseData.campaign.finalAssets.campaignCopy.email1A.subject?.length || 0,
+        hasBody: !!responseData.campaign.finalAssets.campaignCopy.email1A.body,
+        bodyLength: responseData.campaign.finalAssets.campaignCopy.email1A.body?.length || 0
+      } : null,
+      responseStringified: JSON.stringify(responseData).substring(0, 500)
     });
+
+    return NextResponse.json(responseData);
   } catch (error: any) {
     console.error('❌ Error in GET /api/client/outbound-campaigns/[id]:', error);
     return NextResponse.json(

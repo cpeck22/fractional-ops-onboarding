@@ -34,10 +34,16 @@ export default function FinalAssetsPageContent() {
 
   const loadCampaign = async () => {
     try {
+      console.log('TESTING LOGS BELOW');
+      console.log('🔄 Frontend: loadCampaign called', { campaignId, impersonateUserId });
+      
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
+      console.log('🔐 Frontend: Auth session:', { hasSession: !!session, hasToken: !!authToken });
 
       const url = addImpersonateParam(`/api/client/outbound-campaigns/${campaignId}`, impersonateUserId);
+      console.log('🌐 Frontend: Fetching from URL:', url);
+      
       const response = await fetch(url, {
         credentials: 'include',
         headers: {
@@ -45,55 +51,93 @@ export default function FinalAssetsPageContent() {
         }
       });
 
+      console.log('📡 Frontend: Fetch response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
       const result = await response.json();
-      console.log('📥 Load campaign response:', result);
+      console.log('📥 Frontend: Load campaign response:', {
+        success: result.success,
+        hasCampaign: !!result.campaign,
+        campaignStatus: result.campaign?.status,
+        hasFinalAssets: !!result.campaign?.finalAssets,
+        finalAssetsType: typeof result.campaign?.finalAssets,
+        finalAssetsIsNull: result.campaign?.finalAssets === null,
+        finalAssetsIsUndefined: result.campaign?.finalAssets === undefined,
+        fullResponse: JSON.stringify(result).substring(0, 1000)
+      });
       
       if (result.success) {
         setCampaign(result.campaign);
         
         const finalAssets = result.campaign.finalAssets || {};
-        console.log('📦 Final assets from campaign:', {
+        console.log('📦 Frontend: Final assets from campaign:', {
           campaignCopyKeys: finalAssets.campaignCopy ? Object.keys(finalAssets.campaignCopy) : 'none',
           hasListBuilding: !!finalAssets.listBuildingInstructions,
+          listBuildingLength: finalAssets.listBuildingInstructions?.length || 0,
           hasNurture: !!finalAssets.nurtureSequence,
+          nurtureType: typeof finalAssets.nurtureSequence,
+          hasNurtureContent: !!finalAssets.nurtureSequence?.content,
+          nurtureContentLength: finalAssets.nurtureSequence?.content?.length || 0,
           hasAsset: !!finalAssets.asset,
+          assetType: finalAssets.asset?.type,
           status: result.campaign.status,
           finalAssetsExists: !!result.campaign.finalAssets,
           finalAssetsType: typeof result.campaign.finalAssets,
           finalAssetsKeys: result.campaign.finalAssets ? Object.keys(result.campaign.finalAssets) : [],
-          campaignCopySample: finalAssets.campaignCopy ? finalAssets.campaignCopy.email1A : 'none'
+          campaignCopySample: finalAssets.campaignCopy ? finalAssets.campaignCopy.email1A : 'none',
+          finalAssetsStringified: JSON.stringify(finalAssets).substring(0, 1000)
         });
         
         // Always set state, even if empty, to ensure UI reflects current state
         if (finalAssets.campaignCopy && Object.keys(finalAssets.campaignCopy).length > 0) {
-          console.log('✅ Setting campaign copy:', Object.keys(finalAssets.campaignCopy));
-          console.log('📧 Sample email1A:', JSON.stringify(finalAssets.campaignCopy.email1A, null, 2));
-          console.log('📧 Full campaignCopy structure:', JSON.stringify(finalAssets.campaignCopy, null, 2));
+          console.log('✅ Frontend: Setting campaign copy:', Object.keys(finalAssets.campaignCopy));
+          console.log('📧 Frontend: Sample email1A:', JSON.stringify(finalAssets.campaignCopy.email1A, null, 2));
+          console.log('📧 Frontend: Full campaignCopy structure:', JSON.stringify(finalAssets.campaignCopy, null, 2));
           // Ensure we're setting the exact structure from the database
           // Force a new object reference to ensure React detects the change
-          setCampaignCopy({ ...finalAssets.campaignCopy });
+          const campaignCopyToSet = { ...finalAssets.campaignCopy };
+          console.log('📧 Frontend: About to set campaignCopy state with:', {
+            keys: Object.keys(campaignCopyToSet),
+            email1A: campaignCopyToSet.email1A ? {
+              hasSubject: !!campaignCopyToSet.email1A.subject,
+              subjectLength: campaignCopyToSet.email1A.subject?.length || 0,
+              hasBody: !!campaignCopyToSet.email1A.body,
+              bodyLength: campaignCopyToSet.email1A.body?.length || 0
+            } : null
+          });
+          setCampaignCopy(campaignCopyToSet);
+          console.log('✅ Frontend: campaignCopy state set');
         } else {
-          console.warn('⚠️ No campaign copy found in finalAssets');
-          console.warn('⚠️ finalAssets structure:', JSON.stringify(finalAssets, null, 2));
+          console.warn('⚠️ Frontend: No campaign copy found in finalAssets');
+          console.warn('⚠️ Frontend: finalAssets structure:', JSON.stringify(finalAssets, null, 2));
           // Set empty structure to ensure UI doesn't break
           setCampaignCopy({});
         }
         if (finalAssets.listBuildingInstructions) {
-          console.log('✅ Setting list building instructions');
+          console.log('✅ Frontend: Setting list building instructions, length:', finalAssets.listBuildingInstructions.length);
           setListBuildingInstructions(finalAssets.listBuildingInstructions);
         } else {
+          console.warn('⚠️ Frontend: No list building instructions found');
           setListBuildingInstructions('');
         }
         if (finalAssets.nurtureSequence) {
-          console.log('✅ Setting nurture sequence');
-          setNurtureSequence(finalAssets.nurtureSequence.content || finalAssets.nurtureSequence);
+          console.log('✅ Frontend: Setting nurture sequence');
+          const nurtureContent = finalAssets.nurtureSequence.content || finalAssets.nurtureSequence;
+          console.log('📧 Frontend: Nurture content type:', typeof nurtureContent, 'length:', nurtureContent?.length || 0);
+          setNurtureSequence(nurtureContent);
         } else {
+          console.warn('⚠️ Frontend: No nurture sequence found');
           setNurtureSequence('');
         }
         if (finalAssets.asset) {
-          console.log('✅ Setting asset');
+          console.log('✅ Frontend: Setting asset:', finalAssets.asset.type);
           setAsset(finalAssets.asset);
         } else {
+          console.warn('⚠️ Frontend: No asset found, setting default');
           setAsset({ type: 'description', content: '', url: '' });
         }
 

@@ -66,10 +66,16 @@ export default function IntermediaryOutputsPageContent() {
 
   const loadCampaign = async () => {
     try {
+      console.log('TESTING LOGS BELOW');
+      console.log('🔄 Frontend (Intermediary): loadCampaign called', { campaignId, impersonateUserId });
+      
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
+      console.log('🔐 Frontend (Intermediary): Auth session:', { hasSession: !!session, hasToken: !!authToken });
 
       const url = addImpersonateParam(`/api/client/outbound-campaigns/${campaignId}`, impersonateUserId);
+      console.log('🌐 Frontend (Intermediary): Fetching from URL:', url);
+      
       const response = await fetch(url, {
         credentials: 'include',
         headers: {
@@ -77,12 +83,41 @@ export default function IntermediaryOutputsPageContent() {
         }
       });
 
+      console.log('📡 Frontend (Intermediary): Fetch response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
       const result = await response.json();
+      console.log('📥 Frontend (Intermediary): Load campaign response:', {
+        success: result.success,
+        hasCampaign: !!result.campaign,
+        campaignStatus: result.campaign?.status,
+        hasIntermediaryOutputs: !!result.campaign?.intermediaryOutputs,
+        intermediaryOutputsType: typeof result.campaign?.intermediaryOutputs,
+        intermediaryOutputsKeys: result.campaign?.intermediaryOutputs ? Object.keys(result.campaign.intermediaryOutputs) : []
+      });
+      
       if (result.success) {
         setCampaign(result.campaign);
         
         // Load intermediary outputs if they exist
         const intermediary = result.campaign.intermediaryOutputs || {};
+        console.log('📦 Frontend (Intermediary): Intermediary outputs loaded:', {
+          intermediaryKeys: Object.keys(intermediary),
+          hasListBuildingStrategy: !!intermediary.listBuildingStrategy,
+          listBuildingStrategyLength: intermediary.listBuildingStrategy?.length || 0,
+          hasHook: !!intermediary.hook,
+          hookLength: intermediary.hook?.length || 0,
+          hasAttractionOffer: !!intermediary.attractionOffer,
+          attractionOfferHeadline: intermediary.attractionOffer?.headline || 'none',
+          hasAsset: !!intermediary.asset,
+          assetType: intermediary.asset?.type,
+          hasCaseStudies: !!intermediary.caseStudies,
+          caseStudiesLength: intermediary.caseStudies?.length || 0,
+          intermediaryStringified: JSON.stringify(intermediary).substring(0, 500)
+        });
         
         // Always set state from loaded intermediary outputs (even if empty to ensure state is synced)
         setListBuildingStrategy(intermediary.listBuildingStrategy || '');
@@ -98,7 +133,7 @@ export default function IntermediaryOutputsPageContent() {
         // Only auto-generate if at least one required field is empty
         // Check the intermediary object from API, not state (state updates are async)
         const isEmpty = hasEmptyFields(intermediary);
-        console.log('🔍 Checking intermediary outputs on load:', {
+        console.log('🔍 Frontend (Intermediary): Checking intermediary outputs on load:', {
           hasIntermediary: !!intermediary && Object.keys(intermediary).length > 0,
           isEmpty,
           intermediaryKeys: Object.keys(intermediary),
@@ -116,10 +151,10 @@ export default function IntermediaryOutputsPageContent() {
         });
         
         if (isEmpty) {
-          console.log('🔄 At least one field is empty, auto-generating intermediary outputs...');
+          console.log('🔄 Frontend (Intermediary): At least one field is empty, auto-generating intermediary outputs...');
           generateIntermediary();
         } else {
-          console.log('✅ All intermediary output fields are populated, skipping auto-generation');
+          console.log('✅ Frontend (Intermediary): All intermediary output fields are populated, skipping auto-generation');
         }
       } else {
         toast.error(result.error || 'Failed to load campaign');

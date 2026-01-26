@@ -666,27 +666,123 @@ Include instructions at the top: "Please add this as a sequence in your CRM or c
     });
 
     // Update campaign
+    console.log('TESTING LOGS BELOW');
     console.log('💾 STEP 7: Saving final assets to database...');
-    const { error: updateError } = await supabaseAdmin
+    console.log('📋 BEFORE SAVE - finalAssets structure:', {
+      campaignId: params.id,
+      hasCampaignCopy: !!finalAssets.campaignCopy,
+      campaignCopyKeys: finalAssets.campaignCopy ? Object.keys(finalAssets.campaignCopy) : [],
+      campaignCopyEmail1A: finalAssets.campaignCopy?.email1A ? {
+        hasSubject: !!finalAssets.campaignCopy.email1A.subject,
+        subjectLength: finalAssets.campaignCopy.email1A.subject?.length || 0,
+        hasBody: !!finalAssets.campaignCopy.email1A.body,
+        bodyLength: finalAssets.campaignCopy.email1A.body?.length || 0
+      } : null,
+      campaignCopyEmail1B: finalAssets.campaignCopy?.email1B ? {
+        hasSubject: !!finalAssets.campaignCopy.email1B.subject,
+        subjectLength: finalAssets.campaignCopy.email1B.subject?.length || 0,
+        hasBody: !!finalAssets.campaignCopy.email1B.body,
+        bodyLength: finalAssets.campaignCopy.email1B.body?.length || 0
+      } : null,
+      campaignCopyEmail1C: finalAssets.campaignCopy?.email1C ? {
+        hasSubject: !!finalAssets.campaignCopy.email1C.subject,
+        subjectLength: finalAssets.campaignCopy.email1C.subject?.length || 0,
+        hasBody: !!finalAssets.campaignCopy.email1C.body,
+        bodyLength: finalAssets.campaignCopy.email1C.body?.length || 0
+      } : null,
+      campaignCopyEmail2: finalAssets.campaignCopy?.email2 ? {
+        hasSubject: !!finalAssets.campaignCopy.email2.subject,
+        subjectLength: finalAssets.campaignCopy.email2.subject?.length || 0,
+        hasBody: !!finalAssets.campaignCopy.email2.body,
+        bodyLength: finalAssets.campaignCopy.email2.body?.length || 0
+      } : null,
+      campaignCopyEmail3: finalAssets.campaignCopy?.email3 ? {
+        hasSubject: !!finalAssets.campaignCopy.email3.subject,
+        subjectLength: finalAssets.campaignCopy.email3.subject?.length || 0,
+        hasBody: !!finalAssets.campaignCopy.email3.body,
+        bodyLength: finalAssets.campaignCopy.email3.body?.length || 0
+      } : null,
+      hasListBuildingInstructions: !!finalAssets.listBuildingInstructions,
+      listBuildingInstructionsLength: finalAssets.listBuildingInstructions?.length || 0,
+      hasNurtureSequence: !!finalAssets.nurtureSequence,
+      hasNurtureSequenceContent: !!finalAssets.nurtureSequence?.content,
+      nurtureSequenceContentLength: finalAssets.nurtureSequence?.content?.length || 0,
+      hasAsset: !!finalAssets.asset,
+      assetType: finalAssets.asset?.type || null,
+      finalAssetsStringified: JSON.stringify(finalAssets).substring(0, 500)
+    });
+    
+    const { error: updateError, data: updateData } = await supabaseAdmin
       .from('outbound_campaigns')
       .update({
         final_assets: finalAssets,
         status: 'assets_generated'
       })
-      .eq('id', params.id);
+      .eq('id', params.id)
+      .select();
+
+    console.log('💾 AFTER UPDATE QUERY:', {
+      updateError: updateError ? {
+        message: updateError.message,
+        details: updateError.details,
+        hint: updateError.hint,
+        code: updateError.code
+      } : null,
+      updateDataRows: updateData?.length || 0,
+      updateDataFirstRow: updateData?.[0] ? {
+        id: updateData[0].id,
+        hasFinalAssets: !!updateData[0].final_assets,
+        finalAssetsKeys: updateData[0].final_assets ? Object.keys(updateData[0].final_assets) : [],
+        status: updateData[0].status
+      } : null
+    });
 
     if (updateError) {
       console.error('❌ Error updating campaign:', updateError);
       console.error('Update error details:', {
         message: updateError.message,
         details: updateError.details,
-        hint: updateError.hint
+        hint: updateError.hint,
+        code: updateError.code
       });
       return NextResponse.json(
         { success: false, error: 'Failed to save final assets', details: updateError.message },
         { status: 500 }
       );
     }
+
+    // Verify the save by reading back from database
+    console.log('🔍 VERIFICATION: Reading back from database to verify save...');
+    const { data: verifyData, error: verifyError } = await supabaseAdmin
+      .from('outbound_campaigns')
+      .select('id, final_assets, status')
+      .eq('id', params.id)
+      .single();
+
+    console.log('🔍 VERIFICATION RESULT:', {
+      verifyError: verifyError ? {
+        message: verifyError.message,
+        details: verifyError.details,
+        hint: verifyError.hint,
+        code: verifyError.code
+      } : null,
+      verifyData: verifyData ? {
+        id: verifyData.id,
+        status: verifyData.status,
+        hasFinalAssets: !!verifyData.final_assets,
+        finalAssetsType: typeof verifyData.final_assets,
+        finalAssetsIsNull: verifyData.final_assets === null,
+        finalAssetsKeys: verifyData.final_assets ? Object.keys(verifyData.final_assets) : [],
+        finalAssetsCampaignCopyKeys: verifyData.final_assets?.campaignCopy ? Object.keys(verifyData.final_assets.campaignCopy) : [],
+        finalAssetsEmail1A: verifyData.final_assets?.campaignCopy?.email1A ? {
+          hasSubject: !!verifyData.final_assets.campaignCopy.email1A.subject,
+          subjectLength: verifyData.final_assets.campaignCopy.email1A.subject?.length || 0,
+          hasBody: !!verifyData.final_assets.campaignCopy.email1A.body,
+          bodyLength: verifyData.final_assets.campaignCopy.email1A.body?.length || 0
+        } : null,
+        finalAssetsStringified: JSON.stringify(verifyData.final_assets).substring(0, 500)
+      } : null
+    });
 
     console.log('✅ Campaign assets saved successfully');
     console.log('🎉 Asset generation completed successfully!');
@@ -696,7 +792,8 @@ Include instructions at the top: "Please add this as a sequence in your CRM or c
       emailsGenerated: Object.keys(highlightedCampaignCopy).length,
       hasListBuilding: listBuildingInstructions.length > 0,
       hasNurtureSequence: nurtureSequence.length > 0,
-      hasAsset: !!asset
+      hasAsset: !!asset,
+      verifySuccess: !!verifyData && !!verifyData.final_assets
     });
 
     return NextResponse.json({
