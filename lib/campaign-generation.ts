@@ -50,9 +50,17 @@ export async function generateCampaignContent(
       ...(responseFormat.type === 'json_object' && { response_format: responseFormat })
     });
 
-    return completion.choices[0]?.message?.content || '';
+    const content = completion.choices[0]?.message?.content || '';
+    console.log(`✅ OpenAI response received (${content.length} chars)`);
+    return content;
   } catch (error: any) {
     console.error('❌ OpenAI API error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      type: error.type
+    });
     throw new Error(`OpenAI API error: ${error.message}`);
   }
 }

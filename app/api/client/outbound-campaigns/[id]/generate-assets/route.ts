@@ -76,6 +76,8 @@ export async function POST(
     const businessTopic = intermediary.attractionOffer?.headline || campaign.campaign_name;
     
     const emailPrompt = `
+You are generating a 3-email outbound campaign sequence. You MUST return ONLY valid JSON (no markdown, no code blocks, no explanations).
+
 Generate a 3-email outbound campaign sequence based on the following campaign details. Use the SHARED HOOK and ATTRACTION OFFER from the intermediary outputs.
 
 CAMPAIGN DETAILS:
@@ -217,7 +219,9 @@ INSTRUCTIONS:
 4. Use %signature% placeholder for signatures
 5. Use {{variable}} format for personalization variables (company_name, first_name, etc.)
 
-OUTPUT FORMAT: Return JSON with this EXACT structure (no markdown, pure JSON):
+CRITICAL OUTPUT REQUIREMENTS:
+- You MUST return ONLY valid JSON (no markdown, no code blocks, no explanations)
+- The JSON must match this EXACT structure:
 {
   "email1A": { "subject": "...", "body": "..." },
   "email1B": { "subject": "...", "body": "..." },
@@ -225,19 +229,53 @@ OUTPUT FORMAT: Return JSON with this EXACT structure (no markdown, pure JSON):
   "email2": { "subject": "...", "body": "..." },
   "email3": { "subject": "...", "body": "..." }
 }
+
+Return ONLY the JSON object, nothing else.
 `;
 
     console.log('📧 Generating campaign copy using OpenAI...');
+    console.log('📋 Campaign details:', {
+      campaignName: campaign.campaign_name,
+      hook: intermediary.hook,
+      attractionOffer: intermediary.attractionOffer?.headline,
+      assetUrl
+    });
+    
     let campaignCopy: any = {};
     try {
       const emailResponse = await generateCampaignContent(emailPrompt, {
         model: 'gpt-4o-mini',
         temperature: 0.4,
-        maxTokens: 4000
+        maxTokens: 4000,
+        responseFormat: { type: 'json_object' } // Request JSON format explicitly
       });
-      campaignCopy = parseJsonResponse(emailResponse);
+      
+      console.log('✅ OpenAI response received, length:', emailResponse.length);
+      console.log('📄 Response preview (first 1000 chars):', emailResponse.substring(0, 1000));
+      
+      try {
+        campaignCopy = parseJsonResponse(emailResponse);
+        console.log('✅ Parsed campaign copy successfully');
+        console.log('📊 Parsed keys:', Object.keys(campaignCopy));
+        
+        // Validate structure
+        if (!campaignCopy.email1A || !campaignCopy.email1B || !campaignCopy.email1C) {
+          console.warn('⚠️ Missing email variations in response');
+          console.warn('Available keys:', Object.keys(campaignCopy));
+          console.warn('Full response:', JSON.stringify(campaignCopy, null, 2));
+        }
+      } catch (parseError: any) {
+        console.error('❌ JSON parsing failed:', parseError);
+        console.error('Raw response:', emailResponse);
+        throw parseError;
+      }
     } catch (e: any) {
       console.error('❌ Failed to generate campaign copy:', e);
+      console.error('Error details:', {
+        message: e.message,
+        stack: e.stack,
+        name: e.name
+      });
       // Fallback structure
       campaignCopy = {
         email1A: { subject: 'Subject 1A', body: 'Failed to generate email 1A. Please try again.' },
@@ -247,6 +285,31 @@ OUTPUT FORMAT: Return JSON with this EXACT structure (no markdown, pure JSON):
         email3: { subject: 'Can you help?', body: `If you're not the right person to connect with in regards to ${businessTopic}, I'd really appreciate it if you could point me in the right direction.\n\nWho on your team would you recommend I reach out to?\n\nWarm regards,\n\n%signature%` }
       };
     }
+    
+    // Ensure all required emails exist with proper structure
+    if (!campaignCopy.email1A || typeof campaignCopy.email1A !== 'object') {
+      campaignCopy.email1A = { subject: '', body: '' };
+    }
+    if (!campaignCopy.email1B || typeof campaignCopy.email1B !== 'object') {
+      campaignCopy.email1B = { subject: '', body: '' };
+    }
+    if (!campaignCopy.email1C || typeof campaignCopy.email1C !== 'object') {
+      campaignCopy.email1C = { subject: '', body: '' };
+    }
+    if (!campaignCopy.email2 || typeof campaignCopy.email2 !== 'object') {
+      campaignCopy.email2 = { subject: '', body: '' };
+    }
+    if (!campaignCopy.email3 || typeof campaignCopy.email3 !== 'object') {
+      campaignCopy.email3 = { subject: '', body: '' };
+    }
+    
+    console.log('📊 Final campaignCopy structure:', {
+      email1A: { hasSubject: !!campaignCopy.email1A?.subject, hasBody: !!campaignCopy.email1A?.body },
+      email1B: { hasSubject: !!campaignCopy.email1B?.subject, hasBody: !!campaignCopy.email1B?.body },
+      email1C: { hasSubject: !!campaignCopy.email1C?.subject, hasBody: !!campaignCopy.email1C?.body },
+      email2: { hasSubject: !!campaignCopy.email2?.subject, hasBody: !!campaignCopy.email2?.body },
+      email3: { hasSubject: !!campaignCopy.email3?.subject, hasBody: !!campaignCopy.email3?.body }
+    });
 
     // 2. List Building Instructions (use intermediary list strategy)
     const listBuildingInstructions = intermediary.listBuildingStrategy || 'List building strategy not generated.';
@@ -413,6 +476,13 @@ Include instructions at the top: "Please add this as a sequence in your CRM or c
       asset
     };
 
+    console.log('📦 Final assets structure:', {
+      campaignCopyKeys: Object.keys(highlightedCampaignCopy),
+      listBuildingInstructionsLength: listBuildingInstructions.length,
+      nurtureSequenceLength: nurtureSequence.length,
+      assetType: asset.type
+    });
+
     // Update campaign
     const { error: updateError } = await supabaseAdmin
       .from('outbound_campaigns')
@@ -425,10 +495,12 @@ Include instructions at the top: "Please add this as a sequence in your CRM or c
     if (updateError) {
       console.error('❌ Error updating campaign:', updateError);
       return NextResponse.json(
-        { success: false, error: 'Failed to save final assets' },
+        { success: false, error: 'Failed to save final assets', details: updateError.message },
         { status: 500 }
       );
     }
+
+    console.log('✅ Campaign assets saved successfully');
 
     return NextResponse.json({
       success: true,

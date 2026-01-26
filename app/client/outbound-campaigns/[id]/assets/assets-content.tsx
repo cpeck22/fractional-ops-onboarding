@@ -51,10 +51,20 @@ export default function FinalAssetsPageContent() {
       });
 
       const result = await response.json();
+      console.log('📥 Load campaign response:', result);
+      
       if (result.success) {
         setCampaign(result.campaign);
         
         const finalAssets = result.campaign.finalAssets || {};
+        console.log('📦 Final assets from campaign:', {
+          campaignCopyKeys: finalAssets.campaignCopy ? Object.keys(finalAssets.campaignCopy) : 'none',
+          hasListBuilding: !!finalAssets.listBuildingInstructions,
+          hasNurture: !!finalAssets.nurtureSequence,
+          hasAsset: !!finalAssets.asset,
+          status: result.campaign.status
+        });
+        
         if (finalAssets.campaignCopy) {
           setCampaignCopy(finalAssets.campaignCopy);
         }
@@ -70,6 +80,7 @@ export default function FinalAssetsPageContent() {
 
         // Auto-generate if not already generated
         if (result.campaign.status === 'intermediary_generated' && !finalAssets.campaignCopy) {
+          console.log('🔄 Auto-generating assets...');
           generateAssets();
         }
       } else {
@@ -100,19 +111,37 @@ export default function FinalAssetsPageContent() {
       });
 
       const result = await response.json();
+      console.log('📥 Generate assets response:', result);
+      
       if (result.success) {
         const assets = result.finalAssets;
+        console.log('📦 Received assets:', {
+          campaignCopyKeys: assets.campaignCopy ? Object.keys(assets.campaignCopy) : 'none',
+          hasListBuilding: !!assets.listBuildingInstructions,
+          hasNurture: !!assets.nurtureSequence,
+          hasAsset: !!assets.asset
+        });
+        
         setCampaignCopy(assets.campaignCopy || {});
         setListBuildingInstructions(assets.listBuildingInstructions || '');
         setNurtureSequence(assets.nurtureSequence?.content || assets.nurtureSequence || '');
         setAsset(assets.asset || {});
+        
+        // Update campaign state to reflect new assets
+        setCampaign((prev: any) => ({
+          ...prev,
+          finalAssets: assets
+        }));
+        
         toast.success('Campaign assets generated!');
       } else {
-        toast.error(result.error || 'Failed to generate assets');
+        console.error('❌ Generate assets failed:', result);
+        toast.error(result.error || result.details || 'Failed to generate assets');
       }
-    } catch (error) {
-      console.error('Error generating assets:', error);
-      toast.error('Failed to generate assets');
+    } catch (error: any) {
+      console.error('❌ Error generating assets:', error);
+      console.error('Error details:', error.message, error.stack);
+      toast.error(`Failed to generate assets: ${error.message}`);
     } finally {
       setGenerating(false);
     }

@@ -189,6 +189,16 @@ export default function IntermediaryOutputsPageContent() {
 
   return (
     <div className="max-w-5xl mx-auto">
+      {/* Loading Modal Overlay */}
+      {generating && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4 text-center">
+            <Loader2 className="w-16 h-16 animate-spin text-fo-primary mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-fo-dark mb-2">Claire is writing your intermediary campaign assets</h2>
+            <p className="text-fo-text-secondary">Please give her a minute...</p>
+          </div>
+        </div>
+      )}
       <Link href={backUrl} className="inline-flex items-center text-fo-primary hover:text-fo-primary-dark mb-6">
         <ChevronLeft className="w-4 h-4 mr-1" />
         Back
