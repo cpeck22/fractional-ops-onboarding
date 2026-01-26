@@ -335,12 +335,15 @@ export async function POST(request: NextRequest) {
       if (existingRecord) {
         const oldApiKey = existingRecord.workspace_api_key;
         console.log(`🔄 Updating API key: ${oldApiKey?.substring(0, 15)}... → ${workspaceApiKey?.substring(0, 15)}...`);
+        console.log(`📝 Updating record ID: ${existingRecord.id}`);
         
-        // Update existing record
-        const { error: updateError } = await supabaseAdmin
+        // Update existing record by ID
+        const { error: updateError, data: updatedData } = await supabaseAdmin
           .from('octave_outputs')
           .update(updateData)
-          .eq('id', existingRecord.id);
+          .eq('id', existingRecord.id)
+          .select('workspace_api_key')
+          .single();
 
         if (updateError) {
           console.error('❌ Error updating workspace in Supabase:', updateError);
@@ -353,8 +356,18 @@ export async function POST(request: NextRequest) {
             { status: 500 }
           );
         }
-        console.log('✅ Successfully updated existing workspace connection in Supabase');
-        console.log(`   ✅ API key updated in database - routes will now use new workspace`);
+        
+        // Verify the update worked
+        const updatedApiKey = updatedData?.workspace_api_key;
+        if (updatedApiKey === workspaceApiKey) {
+          console.log('✅ Successfully updated existing workspace connection in Supabase');
+          console.log(`   ✅ API key verified in database: ${updatedApiKey?.substring(0, 15)}...`);
+          console.log(`   ✅ Routes will now use new workspace`);
+        } else {
+          console.error('❌ API key update verification failed!');
+          console.error(`   Expected: ${workspaceApiKey?.substring(0, 15)}...`);
+          console.error(`   Got: ${updatedApiKey?.substring(0, 15)}...`);
+        }
       } else {
         // Insert new record if none exists
         const { error: insertError } = await supabaseAdmin
