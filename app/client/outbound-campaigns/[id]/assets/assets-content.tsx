@@ -77,27 +77,41 @@ export default function FinalAssetsPageContent() {
           status: result.campaign.status,
           finalAssetsExists: !!result.campaign.finalAssets,
           finalAssetsType: typeof result.campaign.finalAssets,
-          finalAssetsKeys: result.campaign.finalAssets ? Object.keys(result.campaign.finalAssets) : []
+          finalAssetsKeys: result.campaign.finalAssets ? Object.keys(result.campaign.finalAssets) : [],
+          campaignCopySample: finalAssets.campaignCopy ? finalAssets.campaignCopy.email1A : 'none'
         });
         
         // Always set state, even if empty, to ensure UI reflects current state
         if (finalAssets.campaignCopy && Object.keys(finalAssets.campaignCopy).length > 0) {
           console.log('✅ Setting campaign copy:', Object.keys(finalAssets.campaignCopy));
-          setCampaignCopy(finalAssets.campaignCopy);
+          console.log('📧 Sample email1A:', JSON.stringify(finalAssets.campaignCopy.email1A, null, 2));
+          console.log('📧 Full campaignCopy structure:', JSON.stringify(finalAssets.campaignCopy, null, 2));
+          // Ensure we're setting the exact structure from the database
+          // Force a new object reference to ensure React detects the change
+          setCampaignCopy({ ...finalAssets.campaignCopy });
         } else {
           console.warn('⚠️ No campaign copy found in finalAssets');
+          console.warn('⚠️ finalAssets structure:', JSON.stringify(finalAssets, null, 2));
+          // Set empty structure to ensure UI doesn't break
+          setCampaignCopy({});
         }
         if (finalAssets.listBuildingInstructions) {
           console.log('✅ Setting list building instructions');
           setListBuildingInstructions(finalAssets.listBuildingInstructions);
+        } else {
+          setListBuildingInstructions('');
         }
         if (finalAssets.nurtureSequence) {
           console.log('✅ Setting nurture sequence');
           setNurtureSequence(finalAssets.nurtureSequence.content || finalAssets.nurtureSequence);
+        } else {
+          setNurtureSequence('');
         }
         if (finalAssets.asset) {
           console.log('✅ Setting asset');
           setAsset(finalAssets.asset);
+        } else {
+          setAsset({ type: 'description', content: '', url: '' });
         }
 
         // Auto-generate if not already generated
@@ -145,8 +159,16 @@ export default function FinalAssetsPageContent() {
         });
         
         // Ensure we have campaign copy before setting state
+        console.log('📦 Setting assets from generateAssets response:', {
+          campaignCopyKeys: assets.campaignCopy ? Object.keys(assets.campaignCopy) : 'none',
+          email1ASample: assets.campaignCopy?.email1A
+        });
+        
         if (assets.campaignCopy && Object.keys(assets.campaignCopy).length > 0) {
+          console.log('✅ Setting campaign copy state:', Object.keys(assets.campaignCopy));
           setCampaignCopy(assets.campaignCopy);
+        } else {
+          console.error('❌ No campaign copy in assets response!');
         }
         if (assets.listBuildingInstructions) {
           setListBuildingInstructions(assets.listBuildingInstructions);
@@ -165,10 +187,11 @@ export default function FinalAssetsPageContent() {
           status: 'assets_generated'
         }));
         
-        // Reload campaign to ensure we have the latest from database
+        // Reload campaign to ensure we have the latest from database (longer delay to ensure DB write completes)
         setTimeout(() => {
+          console.log('🔄 Reloading campaign after asset generation...');
           loadCampaign();
-        }, 500);
+        }, 2000);
         
         toast.success('Campaign assets generated!');
       } else {
@@ -284,6 +307,19 @@ export default function FinalAssetsPageContent() {
   const emailBody = highlightsEnabled && currentEmailData.highlightedBody
     ? currentEmailData.highlightedBody
     : currentEmailData.body || '';
+  
+  // Debug logging for email data
+  useEffect(() => {
+    console.log('📧 Current email data check:', {
+      currentEmail,
+      emailKey: `email${currentEmail}`,
+      hasEmailData: !!campaignCopy[`email${currentEmail}`],
+      emailData: campaignCopy[`email${currentEmail}`],
+      campaignCopyKeys: Object.keys(campaignCopy),
+      hasSubject: !!currentEmailData.subject,
+      hasBody: !!currentEmailData.body
+    });
+  }, [currentEmail, campaignCopy]);
 
   const backUrl = impersonateUserId
     ? `/client/outbound-campaigns/${campaignId}/intermediary?impersonate=${impersonateUserId}`
@@ -337,7 +373,7 @@ export default function FinalAssetsPageContent() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-fo-dark">
-                Email {currentEmail === '1A' || currentEmail === '1B' || currentEmail === '1C' ? `1${currentEmail}` : currentEmail}
+                Email {currentEmail === '1A' || currentEmail === '1B' || currentEmail === '1C' ? currentEmail : currentEmail}
               </h2>
             </div>
 

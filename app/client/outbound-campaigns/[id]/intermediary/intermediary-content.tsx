@@ -84,33 +84,34 @@ export default function IntermediaryOutputsPageContent() {
         // Load intermediary outputs if they exist
         const intermediary = result.campaign.intermediaryOutputs || {};
         
-        // Set state from loaded intermediary outputs
-        if (intermediary.listBuildingStrategy) {
-          setListBuildingStrategy(intermediary.listBuildingStrategy);
-        }
-        if (intermediary.hook) {
-          setHook(intermediary.hook);
-        }
-        if (intermediary.attractionOffer) {
-          setAttractionOffer(intermediary.attractionOffer);
-        }
-        if (intermediary.asset) {
-          setAsset(intermediary.asset);
-        }
-        if (intermediary.caseStudies) {
-          setCaseStudies(intermediary.caseStudies);
-        }
+        // Always set state from loaded intermediary outputs (even if empty to ensure state is synced)
+        setListBuildingStrategy(intermediary.listBuildingStrategy || '');
+        setHook(intermediary.hook || '');
+        setAttractionOffer(intermediary.attractionOffer || {
+          headline: '',
+          valueBullets: [''],
+          easeBullets: ['']
+        });
+        setAsset(intermediary.asset || { type: 'description', content: '', url: '' });
+        setCaseStudies(intermediary.caseStudies || []);
 
         // Only auto-generate if at least one required field is empty
+        // Check the intermediary object from API, not state (state updates are async)
         const isEmpty = hasEmptyFields(intermediary);
         console.log('🔍 Checking intermediary outputs on load:', {
           hasIntermediary: !!intermediary && Object.keys(intermediary).length > 0,
           isEmpty,
+          intermediaryKeys: Object.keys(intermediary),
           fields: {
-            listBuildingStrategy: !!intermediary.listBuildingStrategy,
-            hook: !!intermediary.hook,
-            attractionOffer: !!intermediary.attractionOffer?.headline,
-            asset: !!(intermediary.asset?.url || intermediary.asset?.content)
+            listBuildingStrategy: !!intermediary.listBuildingStrategy && intermediary.listBuildingStrategy.trim() !== '',
+            hook: !!intermediary.hook && intermediary.hook.trim() !== '',
+            attractionOffer: !!intermediary.attractionOffer?.headline && intermediary.attractionOffer.headline.trim() !== '',
+            asset: !!(intermediary.asset?.url?.trim() || intermediary.asset?.content?.trim())
+          },
+          rawValues: {
+            listBuildingStrategy: intermediary.listBuildingStrategy?.substring(0, 50) || 'empty',
+            hook: intermediary.hook?.substring(0, 50) || 'empty',
+            attractionOfferHeadline: intermediary.attractionOffer?.headline || 'empty'
           }
         });
         
