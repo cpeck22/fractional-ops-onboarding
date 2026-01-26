@@ -179,11 +179,29 @@ export async function PUT(
       );
     }
 
-    // Update execution output
+    // Fetch current execution to preserve existing fields like highlighted_html
+    const { data: currentExecution } = await supabaseAdmin
+      .from('play_executions')
+      .select('output')
+      .eq('id', executionId)
+      .single();
+    
+    // Merge new output with existing output to preserve highlighted_html and other fields
+    const existingOutput = currentExecution?.output || {};
+    const newOutput = typeof output === 'string' 
+      ? { content: output, jsonContent: {} }
+      : output;
+    
+    // Update execution output - preserve highlighted_html, highlighting_status, etc.
     const updateData: any = {
-      output: typeof output === 'string' 
-        ? { content: output, jsonContent: {} }
-        : output,
+      output: {
+        ...existingOutput, // Preserve all existing fields (highlighted_html, highlighting_status, etc.)
+        ...newOutput, // Override with new content/jsonContent
+        // Explicitly preserve these fields
+        highlighted_html: existingOutput.highlighted_html,
+        highlighting_status: existingOutput.highlighting_status,
+        highlighting_error: existingOutput.highlighting_error
+      },
       updated_at: new Date().toISOString()
     };
 

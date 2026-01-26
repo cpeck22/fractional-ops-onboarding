@@ -112,7 +112,11 @@ export default function PlayExecutionPage() {
             output: execOutput,
             status: executionResult.execution.status
           });
-          setEditedOutput(execOutput.content || JSON.stringify(execOutput, null, 2));
+          // CRITICAL: Only set editedOutput from raw content, never from rendered HTML
+          const rawContent = execOutput.content || JSON.stringify(execOutput, null, 2);
+          // Strip any HTML tags that might have been accidentally saved
+          const cleanContent = rawContent.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+          setEditedOutput(cleanContent);
           
           // Set highlighting status
           const status = execOutput.highlighting_status || 'idle';
@@ -279,7 +283,11 @@ export default function PlayExecutionPage() {
           output: result.execution.output,
           status: 'draft'
         });
-        setEditedOutput(result.execution.output.content || JSON.stringify(result.execution.output, null, 2));
+        // CRITICAL: Only set editedOutput from raw content, never from rendered HTML
+        const rawContent = result.execution.output.content || JSON.stringify(result.execution.output, null, 2);
+        // Strip any HTML tags that might have been accidentally saved
+        const cleanContent = rawContent.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+        setEditedOutput(cleanContent);
         toast.success('Play executed successfully!');
         
         // Update URL to include execution ID and preserve impersonate parameter
@@ -361,7 +369,11 @@ Please output the exact same output but take the feedback the CEO provided in th
           output: result.execution.output,
           status: 'draft'
         });
-        setEditedOutput(result.execution.output.content || JSON.stringify(result.execution.output, null, 2));
+        // CRITICAL: Only set editedOutput from raw content, never from rendered HTML
+        const rawContent = result.execution.output.content || JSON.stringify(result.execution.output, null, 2);
+        // Strip any HTML tags that might have been accidentally saved
+        const cleanContent = rawContent.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+        setEditedOutput(cleanContent);
         toast.success('Output refined successfully!');
         
         // Update URL if execution ID changed (shouldn't happen, but just in case)
@@ -394,6 +406,15 @@ Please output the exact same output but take the feedback the CEO provided in th
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
 
+      // CRITICAL: Ensure we're saving clean text content, not HTML
+      // Strip any HTML that might have accidentally gotten into editedOutput
+      const cleanContent = editedOutput
+        .replace(/<[^>]*>/g, '') // Remove HTML tags
+        .replace(/&nbsp;/g, ' ') // Convert &nbsp; back to spaces
+        .replace(/&lt;/g, '<') // Convert &lt; back to <
+        .replace(/&gt;/g, '>') // Convert &gt; back to >
+        .replace(/&amp;/g, '&'); // Convert &amp; back to &
+      
       // Update execution output
       const saveUrl = addImpersonateParam(`/api/client/executions/${execution.id}`, impersonateUserId);
       const response = await fetch(saveUrl, {
@@ -405,8 +426,12 @@ Please output the exact same output but take the feedback the CEO provided in th
         credentials: 'include',
         body: JSON.stringify({
           output: {
-            content: editedOutput,
-            jsonContent: execution.output?.jsonContent || {}
+            content: cleanContent, // Always save clean text, never HTML
+            jsonContent: execution.output?.jsonContent || {},
+            // Preserve highlighting fields - don't overwrite them
+            highlighted_html: execution.output?.highlighted_html,
+            highlighting_status: execution.output?.highlighting_status,
+            highlighting_error: execution.output?.highlighting_error
           },
           status: 'draft'
         })
@@ -437,18 +462,24 @@ Please output the exact same output but take the feedback the CEO provided in th
   };
 
   // Get the content to display (highlighted or plain)
+  // CRITICAL: This function is PURE - it only reads from execution.output and never modifies it
+  // It returns HTML for display only, never saves anything
   const getDisplayContent = () => {
     if (!execution?.output) return '';
     
+    // Always use the raw content from execution.output.content - never modify it
     const rawContent = execution.output.content || JSON.stringify(execution.output, null, 2);
     const highlightedHtml = execution.output.highlighted_html;
     
+    // If highlights are enabled and we have highlighted HTML, render it for display
     if (highlightsEnabled && highlightedHtml && hasHighlights(highlightedHtml)) {
+      // renderHighlightedContent converts XML tags to HTML spans - this is ONLY for display
       return renderHighlightedContent(highlightedHtml);
     }
     
-    // Fallback to plain content
-    return rawContent.replace(/\n/g, '<br/>').replace(/ /g, '&nbsp;');
+    // Fallback to plain content - only convert newlines to <br/>, preserve all other content exactly
+    // CRITICAL: Do NOT modify spaces or any other characters - preserve content exactly as stored
+    return rawContent.replace(/\n/g, '<br/>');
   };
 
   if (loading) {
