@@ -431,28 +431,48 @@ export async function POST(request: NextRequest) {
           }
           
           console.log(`✅ Output highlighted and saved asynchronously for execution ${execution.id}`);
+          console.log(`🎉 ===== ASYNC HIGHLIGHTING COMPLETE =====`);
         } catch (highlightError: any) {
-          console.error(`❌ Error highlighting output in background for execution ${execution?.id}:`, highlightError.message);
-          console.error(`   Stack:`, highlightError.stack);
+          console.error(`❌ ===== ASYNC HIGHLIGHTING ERROR =====`);
+          console.error(`   Execution ID: ${execution?.id}`);
+          console.error(`   Error message: ${highlightError.message}`);
+          console.error(`   Error type: ${highlightError.constructor.name}`);
+          if (highlightError.stack) {
+            console.error(`   Stack trace:`, highlightError.stack);
+          }
+          if (highlightError.response) {
+            console.error(`   API response status: ${highlightError.response.status}`);
+            console.error(`   API response data:`, JSON.stringify(highlightError.response.data, null, 2));
+          }
+          console.error(`❌ ===== END ERROR =====`);
+          
           // Update execution with error status so frontend can show it
           try {
-            await supabaseAdmin
+            const { error: saveError } = await supabaseAdmin
               .from('play_executions')
               .update({
                 output: {
                   ...output,
-                  highlighting_error: highlightError.message,
+                  highlighting_error: highlightError.message || 'Unknown error occurred',
                   highlighting_status: 'failed'
                 }
               })
               .eq('id', execution.id);
-            console.log(`⚠️ Saved highlighting error status to execution`);
+            
+            if (saveError) {
+              console.error(`❌ Failed to save highlighting error status:`, saveError);
+            } else {
+              console.log(`⚠️ Saved highlighting error status to execution ${execution.id}`);
+            }
           } catch (saveError: any) {
             console.error(`❌ Failed to save highlighting error status:`, saveError.message);
           }
         }
       })().catch(err => {
-        console.error(`❌ Background highlighting task error for execution ${execution?.id}:`, err);
+        console.error(`❌ ===== UNHANDLED BACKGROUND HIGHLIGHTING ERROR =====`);
+        console.error(`   Execution ID: ${execution?.id}`);
+        console.error(`   Error:`, err);
+        console.error(`❌ ===== END UNHANDLED ERROR =====`);
       });
     } else {
       console.warn(`⚠️ Cannot start highlighting: execution ID is missing`);

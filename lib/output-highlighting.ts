@@ -162,9 +162,56 @@ ${playSpecificSection}
 - Use Case Blockers: ${useCaseBlockers}
 - Client References: ${referenceNames}
 
+**HOW TO IDENTIFY SEMANTIC MATCHES (CRITICAL):**
+
+**PERSONA (<persona> tag):**
+- Look for references to WHO the target audience is - job titles, role descriptions, types of people/organizations
+- Examples: "CEOs", "CFOs", "IP law partners", "legal professionals", "patent attorneys", "law firm partners"
+- Phrases like "when we see that from [X]" where [X] describes a type of person or organization
+- Phrases describing the target audience type (e.g., "IP law partners", "mid-market companies", "B2B SaaS founders")
+- DO NOT highlight specific company names (those are personalization) - only highlight role/type descriptions
+- Think: "Who is this targeting?" or "What type of person/organization is this about?"
+
+**USE CASE OUTCOME (<usecase_outcome> tag):**
+- Look for references to WHAT they want to achieve, accomplish, or obtain - goals, desired results, objectives
+- Examples: "clean numbers", "better reporting", "complete confidence in patent applications", "identifying critical prior art", "Invention Prior Art Discovery"
+- Phrases describing outcomes, results, goals, or what they're trying to accomplish
+- Action phrases that describe achievements or objectives (e.g., "identifying critical prior art", "discovering prior art", "ensuring patent validity", "maximize enforceable scope")
+- Look for phrases that answer "what do they want?" or "what are they trying to achieve?" or "what outcome are they seeking?"
+- Think: "What is the desired end result?" or "What goal are they pursuing?"
+
+**USE CASE BLOCKER (<usecase_blocker> tag):**
+- Look for references to WHAT'S PREVENTING them or WHAT PROBLEMS they face - challenges, obstacles, pain points
+- Examples: "without living in QuickBooks", "gut feel", "lack of resources", "manual processes", "inefficient workflows"
+- Phrases describing challenges, problems, obstacles, or things that are blocking progress
+- Look for phrases that answer "what's preventing them?" or "what problems do they have?" or "what's blocking their success?"
+- Think: "What is the problem or obstacle?" or "What's preventing them from achieving their goal?"
+
+**SEGMENT (<segment> tag):**
+- Look for company size, industry, or demographic descriptions
+- Examples: "under $10M", "SaaS companies", "mid-market", "enterprise", "B2B companies"
+- Company characteristics that segment the audience by size, industry, or type
+
+**CTA/LEAD MAGNET (<cta_leadmagnet> tag):**
+- Look for offers, resources, links, or calls-to-action
+- Examples: "template", "guide", "Link here", "scheduling link", "free assessment", "download"
+
+**PERSONALIZATION (<personalization> tag):**
+- Look for specific names, company names, or dynamically inserted details
+- Examples: "John", "McGreggor Law", specific company names, specific dates/times, specific locations
+
+**CRITICAL SEMANTIC MATCHING RULES:**
+1. **Don't just look for exact matches** - the OUTPUT text may be paraphrased or reworded from the input variables. Focus on MEANING, not exact words.
+2. **Think about semantic relationships** - "IP law partners" means the same as "IP attorneys" or "patent law professionals" - all are personas
+3. **Look for context clues** - Phrases like "when we see that from [X]" indicate [X] is a persona. Phrases like "related to [X]" or "about [X]" often indicate outcomes or blockers.
+4. **Outcomes vs Blockers**: Outcomes describe what they WANT (positive/aspirational). Blockers describe what's PREVENTING them (negative/problematic).
+5. **Personas vs Segments**: Personas are WHO (people/roles/organization types). Segments are WHAT KIND OF COMPANY (size/industry characteristics).
+6. **Be generous with highlighting** - If you're unsure between two categories, choose the more specific one, but DO highlight it. It's better to highlight something that might be borderline than to miss it entirely.
+7. **Multiple highlights in one sentence are OK** - A single sentence can contain multiple elements (e.g., "When [persona] want [outcome] but face [blocker]")
+
 **STRICT INSTRUCTIONS:**
 1. Read the OUTPUT content EXACTLY as provided
-2. Identify text segments that semantically match the input elements above
+2. Identify text segments that semantically match the input elements above using the guidance above
 3. Wrap ONLY those matching segments with XML tags (e.g., <persona>text</persona>)
 4. DO NOT wrap headers, labels, titles, or structural elements
 5. DO NOT modify, add, or remove ANY text
