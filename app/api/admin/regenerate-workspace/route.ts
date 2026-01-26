@@ -311,8 +311,8 @@ export async function POST(request: NextRequest) {
         updateData.workspace_context_agent_id = contextAgentId;
       }
 
-      // Find ALL octave_outputs records for this user and update the most recent one
-      // (Update all to ensure consistency, but prioritize most recent)
+      // Find ALL octave_outputs records for this user and update ALL of them
+      // (Update all to ensure consistency - routes query by created_at, so all records need the same API key)
       const { data: allRecords, error: findError } = await supabaseAdmin
         .from('octave_outputs')
         .select('id, workspace_api_key, created_at')
@@ -335,17 +335,17 @@ export async function POST(request: NextRequest) {
         const mostRecentRecord = allRecords[0];
         const oldApiKey = mostRecentRecord.workspace_api_key;
         console.log(`📊 Found ${allRecords.length} record(s) for user`);
-        console.log(`🔄 Updating most recent record (ID: ${mostRecentRecord.id})`);
+        console.log(`🔄 Updating ALL ${allRecords.length} record(s) to ensure consistency`);
         console.log(`   Old API key: ${oldApiKey?.substring(0, 15)}...`);
         console.log(`   New API key: ${workspaceApiKey?.substring(0, 15)}...`);
         
-        // Update the most recent record by ID
-        const { error: updateError, data: updatedData } = await supabaseAdmin
+        // ✅ CRITICAL FIX: Update ALL records for this user to ensure consistency
+        // Routes read the most recent by created_at, so we need ALL records to have the same API key
+        const { error: updateError, data: updatedRecords } = await supabaseAdmin
           .from('octave_outputs')
           .update(updateData)
-          .eq('id', mostRecentRecord.id)
-          .select('workspace_api_key, id')
-          .single();
+          .eq('user_id', resolvedUserId) // Update ALL records for this user
+          .select('id, workspace_api_key, created_at');
 
         if (updateError) {
           console.error('❌ Error updating workspace in Supabase:', updateError);
@@ -359,23 +359,23 @@ export async function POST(request: NextRequest) {
           );
         }
         
-        // Verify the update worked
-        const updatedApiKey = updatedData?.workspace_api_key;
-        if (updatedApiKey === workspaceApiKey) {
-          console.log('✅ Successfully updated workspace connection in Supabase');
-          console.log(`   ✅ Record ID: ${updatedData.id}`);
-          console.log(`   ✅ API key verified: ${updatedApiKey?.substring(0, 15)}...`);
+        // Verify the update worked for all records
+        const allUpdated = updatedRecords?.every((record: any) => record.workspace_api_key === workspaceApiKey);
+        if (allUpdated && updatedRecords && updatedRecords.length > 0) {
+          console.log(`✅ Successfully updated ${updatedRecords.length} record(s) in Supabase`);
+          updatedRecords.forEach((record: any, index: number) => {
+            console.log(`   ✅ Record ${index + 1} (ID: ${record.id}): ${record.workspace_api_key?.substring(0, 15)}...`);
+          });
+          console.log(`   ✅ All records now use new workspace API key`);
           console.log(`   ✅ Routes will now use new workspace`);
-          
-          // If there are multiple records, log a warning
-          if (allRecords.length > 1) {
-            console.warn(`⚠️ WARNING: User has ${allRecords.length} records. Only the most recent was updated.`);
-            console.warn(`   Other records may still have old API keys.`);
-          }
         } else {
           console.error('❌ API key update verification failed!');
-          console.error(`   Expected: ${workspaceApiKey?.substring(0, 15)}...`);
-          console.error(`   Got: ${updatedApiKey?.substring(0, 15)}...`);
+          console.error(`   Expected all records to have: ${workspaceApiKey?.substring(0, 15)}...`);
+          if (updatedRecords) {
+            updatedRecords.forEach((record: any) => {
+              console.error(`   Record ${record.id}: ${record.workspace_api_key?.substring(0, 15)}...`);
+            });
+          }
         }
       } else {
         // Insert new record if none exists
