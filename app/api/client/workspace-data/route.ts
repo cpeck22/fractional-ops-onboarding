@@ -68,28 +68,45 @@ export async function GET(request: NextRequest) {
     }
     
     const workspaceApiKey = workspaceData.workspace_api_key;
+    console.log(`🔑 Using workspace API key: ${workspaceApiKey?.substring(0, 15)}...`);
     
     // Fetch personas, use cases, and references from Octave
     const [personasResponse, useCasesResponse, referencesResponse] = await Promise.all([
       axios.get('https://app.octavehq.com/api/v2/persona/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
-      }).catch(() => ({ data: { data: [] } })),
+      }).catch((error: any) => {
+        console.error('❌ Error fetching personas from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: { data: [] } };
+      }),
       
       axios.get('https://app.octavehq.com/api/v2/use-case/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
-      }).catch(() => ({ data: { data: [] } })),
+      }).catch((error: any) => {
+        console.error('❌ Error fetching use cases from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: { data: [] } };
+      }),
       
       axios.get('https://app.octavehq.com/api/v2/reference/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
-      }).catch(() => ({ data: { data: [] } }))
+      }).catch((error: any) => {
+        console.error('❌ Error fetching references from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: { data: [] } };
+      })
     ]);
     
     const personas = personasResponse.data?.data || [];
     const useCases = useCasesResponse.data?.data || [];
     const references = referencesResponse.data?.data || [];
+    
+    console.log('📊 Octave API Results:', {
+      personas: personas.length,
+      useCases: useCases.length,
+      references: references.length,
+      workspaceApiKey: workspaceApiKey?.substring(0, 15) + '...'
+    });
     
     return NextResponse.json({
       success: true,

@@ -86,6 +86,7 @@ export async function GET(request: NextRequest) {
     
     const workspaceApiKey = workspaceData.workspace_api_key;
     const productOId = workspaceData.product_oid;
+    console.log(`🔑 Using workspace API key: ${workspaceApiKey?.substring(0, 15)}...`);
     
     // Fetch all Octave workspace elements in parallel
     const [
@@ -100,36 +101,54 @@ export async function GET(request: NextRequest) {
       axios.get('https://app.octavehq.com/api/v2/persona/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
-      }).catch(() => ({ data: { data: [] } })),
+      }).catch((error: any) => {
+        console.error('❌ Error fetching personas from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: { data: [] } };
+      }),
       
       // Use Cases
       axios.get('https://app.octavehq.com/api/v2/use-case/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
-      }).catch(() => ({ data: { data: [] } })),
+      }).catch((error: any) => {
+        console.error('❌ Error fetching use cases from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: { data: [] } };
+      }),
       
       // References
       axios.get('https://app.octavehq.com/api/v2/reference/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
-      }).catch(() => ({ data: { data: [] } })),
+      }).catch((error: any) => {
+        console.error('❌ Error fetching references from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: { data: [] } };
+      }),
       
       // Segments
       axios.get('https://app.octavehq.com/api/v2/segment/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
-      }).catch(() => ({ data: { data: [] } })),
+      }).catch((error: any) => {
+        console.error('❌ Error fetching segments from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: { data: [] } };
+      }),
       
       // Playbooks
       axios.get('https://app.octavehq.com/api/v2/playbook/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
-      }).catch(() => ({ data: { data: [] } })),
+      }).catch((error: any) => {
+        console.error('❌ Error fetching playbooks from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: { data: [] } };
+      }),
       
       // Service Offering/Product (if productOId exists)
       productOId ? axios.get(`https://app.octavehq.com/api/v2/product/get?oId=${productOId}`, {
         headers: { 'api_key': workspaceApiKey }
-      }).catch(() => ({ data: null })) : Promise.resolve({ data: null })
+      }).catch((error: any) => {
+        console.error('❌ Error fetching product from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: null };
+      }) : Promise.resolve({ data: null })
     ]);
     
     const personas = personasResponse.data?.data || [];
@@ -138,6 +157,15 @@ export async function GET(request: NextRequest) {
     const segments = segmentsResponse.data?.data || [];
     const playbooks = playbooksResponse.data?.data || [];
     const serviceOffering = productResponse.data || workspaceData.service_offering || null;
+    
+    console.log('📊 Octave API Results:', {
+      personas: personas.length,
+      useCases: useCases.length,
+      references: references.length,
+      segments: segments.length,
+      playbooks: playbooks.length,
+      hasProduct: !!serviceOffering
+    });
     
     return NextResponse.json({
       success: true,
