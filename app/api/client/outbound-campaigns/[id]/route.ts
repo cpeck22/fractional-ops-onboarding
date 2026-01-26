@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getAuthenticatedUser } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const ADMIN_EMAILS = [
   'ali.hassan@fractionalops.com',
@@ -94,14 +95,14 @@ export async function GET(
       );
     }
 
-    // Verify ownership (match save route security check)
+    // Verify ownership
     if (campaign.user_id !== effectiveUserId) {
       console.error('❌ GET - Ownership mismatch:', {
         campaignUserId: campaign.user_id,
-        effectiveUserId: effectiveUserId
+        effectiveUserId
       });
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: 'Forbidden: Campaign does not belong to user' },
         { status: 403 }
       );
     }

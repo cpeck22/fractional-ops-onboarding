@@ -6,6 +6,7 @@ import { highlightOutput } from '@/lib/output-highlighting';
 import { generateCampaignContent, parseJsonResponse, createCleanedCampaignBrief } from '@/lib/campaign-generation';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const ADMIN_EMAILS = [
   'ali.hassan@fractionalops.com',
