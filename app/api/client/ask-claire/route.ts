@@ -139,6 +139,26 @@ export async function POST(request: NextRequest) {
       }
     );
 
+    // Extract Request ID from response (check headers and data)
+    const requestId = response.headers['x-request-id'] 
+      || response.headers['request-id'] 
+      || response.data?.requestId 
+      || response.data?.request_id 
+      || response.data?.requestID
+      || response.data?.data?.requestId
+      || null;
+
+    // Log Request ID for debugging/tracking
+    if (requestId) {
+      console.log(`📋 Octave Request ID: ${requestId}`);
+    } else {
+      console.log(`⚠️ Octave Request ID not found in response. Available keys:`, {
+        responseHeaders: Object.keys(response.headers || {}),
+        responseDataKeys: response.data ? Object.keys(response.data) : [],
+        fullResponseData: JSON.stringify(response.data, null, 2).substring(0, 500)
+      });
+    }
+
     const responseText = response.data?.output || response.data?.text || response.data?.message || JSON.stringify(response.data);
 
     return NextResponse.json({ success: true, response: responseText });
