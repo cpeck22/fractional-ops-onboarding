@@ -206,6 +206,39 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('❌ Ask Claire API error:', error);
     if (error.response) {
+      // Log full error response details
+      console.log('📥 FULL OCTAVE API ERROR RESPONSE:');
+      console.log('Status:', error.response.status);
+      console.log('Status Text:', error.response.statusText);
+      console.log('Response Headers:', JSON.stringify(error.response.headers, null, 2));
+      console.log('Response Data:', JSON.stringify(error.response.data, null, 2));
+      
+      // Extract metadata separately and log it explicitly
+      const metadata = error.response.data?._metadata || error.response.data?.metadata || null;
+      if (metadata) {
+        console.log('📋 ========== ERROR RESPONSE METADATA (EXTRACTED) ==========');
+        console.log(JSON.stringify(metadata, null, 2));
+        console.log('📋 ========== END METADATA ==========');
+      } else {
+        console.log('📋 No metadata found in error response');
+        console.log('📋 Available keys in error.response.data:', Object.keys(error.response.data || {}));
+      }
+      
+      // Extract Request ID from error response if available
+      const errorRequestId = metadata?.requestId 
+        || metadata?.request_id 
+        || metadata?.requestID
+        || error.response.headers['x-request-id']
+        || error.response.headers['request-id']
+        || error.response.headers['X-Request-ID']
+        || null;
+      
+      if (errorRequestId) {
+        console.log(`✅ Octave Request ID from error response: ${errorRequestId}`);
+      } else {
+        console.log('❌ Octave Request ID not found in error response');
+      }
+      
       return NextResponse.json(
         { success: false, error: error.response.data?.message || error.response.data?.error || 'Failed to get response from Claire', details: error.response.data },
         { status: error.response.status || 500 }
