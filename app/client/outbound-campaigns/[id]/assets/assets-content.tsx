@@ -236,12 +236,6 @@ export default function FinalAssetsPageContent() {
           status: 'assets_generated'
         }));
         
-        // Reload campaign to ensure we have the latest from database (longer delay to ensure DB write completes)
-        setTimeout(() => {
-          console.log('🔄 Reloading campaign after asset generation...');
-          loadCampaign();
-        }, 3000);
-        
         toast.success('Campaign assets generated!');
       } else {
         console.error('❌ Generate assets failed:', result);
