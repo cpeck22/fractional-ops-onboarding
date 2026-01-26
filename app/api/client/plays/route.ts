@@ -25,7 +25,7 @@ const HARDCODED_PLAYS = [
   { code: '0015', name: 'Meeting → Automatically Assigned CRM To-Dos', category: 'allbound', documentation_status: 'Blocked', content_agent_status: 'Not Required' },
   { code: '0016', name: 'Competitor Client New Exec → Provide Alternative', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'In Progress' },
   { code: '0017', name: 'New Job Posting with Intent Trigger Key-Words -> Warm Outreach', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'Completed' },
-  { code: '0018', name: 'Trigify Evergreen Campaign', category: 'allbound', documentation_status: 'Not Started', content_agent_status: 'Not Required' },
+  { code: '0018', name: 'Trigify Evergreen Campaign', category: 'allbound', documentation_status: 'Completed', content_agent_status: 'Completed' },
   { code: '0019', name: 'Trigify Competitor Campaign', category: 'allbound', documentation_status: 'Not Started', content_agent_status: 'Not Required' },
   { code: '0020', name: 'Trigify LinkedIn Search Campaign', category: 'allbound', documentation_status: 'Not Started', content_agent_status: 'Not Required' },
   { code: '0021', name: 'Claire Call Review for Meetings with Prospects/Clients', category: 'allbound', documentation_status: 'Not Started', content_agent_status: 'Not Required' },
