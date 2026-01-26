@@ -270,8 +270,12 @@ Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identif
     console.log(`📊 Input tokens estimate: ~${inputTokens}, max_tokens set to: ${estimatedMaxTokens}`);
     
     // Create AbortController for timeout
+    // For large content (18k+ chars), allow up to 4 minutes
+    // Smaller content gets 2 minutes
+    const timeoutDuration = outputContent.length > 15000 ? 240000 : 120000; // 4 min for large, 2 min for normal
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
+    console.log(`⏱️ Timeout set to ${timeoutDuration / 1000} seconds for ${outputContent.length} character content`);
     
     try {
       const completion = await openai.chat.completions.create({
@@ -346,11 +350,13 @@ Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identif
       // Check if it's a timeout/abort error
       if (error.name === 'AbortError' || error.message?.includes('timeout') || error.message?.includes('aborted')) {
         console.error('❌ ===== HIGHLIGHTING TIMEOUT =====');
-        console.error(`   OpenAI API call timed out after 90 seconds`);
+        console.error(`   OpenAI API call timed out after ${timeoutDuration / 1000} seconds`);
         console.error(`   Input content length: ${outputContent.length} characters`);
+        console.error(`   Estimated tokens: ~${Math.ceil(outputContent.length / 4)}`);
         console.error(`   This may be due to very large output content`);
+        console.error(`   Suggestion: Content may need to be split into smaller chunks`);
         console.error('❌ ===== END TIMEOUT ERROR =====');
-        throw new Error('Highlighting timeout - output content may be too large. Try re-highlighting or contact support.');
+        throw new Error(`Highlighting timeout after ${timeoutDuration / 1000}s - content is ${outputContent.length} characters. Try re-highlighting or split content into smaller sections.`);
       }
       
       console.error('❌ ===== HIGHLIGHTING ERROR =====');
