@@ -48,13 +48,15 @@ export async function GET(
       userEmail: user.email
     });
 
+    // Force fresh read - don't use cache
     const { data: campaign, error } = await supabaseAdmin
       .from('outbound_campaigns')
       .select('*')
       .eq('id', params.id)
       .eq('user_id', effectiveUserId)
-      .single();
+      .maybeSingle();
 
+    console.log('📥 GET - RAW DATABASE RESPONSE:', JSON.stringify(campaign, null, 2));
     console.log('📥 GET - Database query result:', {
       error: error ? {
         message: error.message,
@@ -64,11 +66,15 @@ export async function GET(
       } : null,
       campaignFound: !!campaign,
       campaignId: campaign?.id,
+      campaignUserId: campaign?.user_id,
+      effectiveUserId: effectiveUserId,
+      userIdMatch: campaign?.user_id === effectiveUserId,
       campaignStatus: campaign?.status,
       hasFinalAssets: !!campaign?.final_assets,
       finalAssetsType: typeof campaign?.final_assets,
       finalAssetsIsNull: campaign?.final_assets === null,
       finalAssetsIsUndefined: campaign?.final_assets === undefined,
+      finalAssetsRaw: campaign?.final_assets,
       finalAssetsKeys: campaign?.final_assets ? Object.keys(campaign.final_assets) : [],
       finalAssetsCampaignCopyKeys: campaign?.final_assets?.campaignCopy ? Object.keys(campaign.final_assets.campaignCopy) : [],
       finalAssetsEmail1A: campaign?.final_assets?.campaignCopy?.email1A ? {
@@ -77,7 +83,7 @@ export async function GET(
         hasBody: !!campaign.final_assets.campaignCopy.email1A.body,
         bodyLength: campaign.final_assets.campaignCopy.email1A.body?.length || 0
       } : null,
-      finalAssetsStringified: campaign?.final_assets ? JSON.stringify(campaign.final_assets).substring(0, 500) : 'null/undefined'
+      finalAssetsStringified: campaign?.final_assets ? JSON.stringify(campaign.final_assets).substring(0, 1000) : 'null/undefined'
     });
 
     if (error || !campaign) {
@@ -96,10 +102,11 @@ export async function GET(
         finalAssets = JSON.parse(finalAssets);
       } catch (e) {
         console.error('❌ GET - Failed to parse final_assets string:', e);
-        finalAssets = {};
+        finalAssets = null;
       }
     }
-    if (!finalAssets || (typeof finalAssets === 'object' && Object.keys(finalAssets).length === 0)) {
+    // Only default to {} if it's actually null/undefined, NOT if it's an empty object
+    if (finalAssets === null || finalAssets === undefined) {
       finalAssets = {};
     }
 
