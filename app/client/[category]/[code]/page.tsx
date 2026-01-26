@@ -472,6 +472,9 @@ Please output the exact same output but take the feedback the CEO provided in th
                     <div className="flex items-center gap-2">
                       <span className="inline-block bg-highlight-cta text-fo-dark px-2 py-1 rounded text-xs font-semibold">CTA (Lead Magnet)</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block bg-highlight-resource text-fo-dark px-2 py-1 rounded text-xs font-semibold">Resource/Valuable Offer</span>
+                    </div>
                   </div>
                 </div>
                 <div>

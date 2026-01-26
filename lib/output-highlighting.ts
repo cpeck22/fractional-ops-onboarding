@@ -47,6 +47,7 @@ export async function highlightOutput(
       <usecase_outcome>Use Case (Desired Outcome)</usecase_outcome>
       <usecase_blocker>Use Case (Problem/Blocker)</usecase_blocker>
       <cta_leadmagnet>CTA (Lead Magnet)</cta_leadmagnet>
+      <resource>Resource/Valuable Offer</resource>
     </OCTAVE_ELEMENTS>
     <OCTAVE_CONTENT_AGENT_PERSONALIZATION>
       <personalization>Personalized / Claire Generated Info / Clay Info / etc</personalization>
@@ -74,15 +75,15 @@ export async function highlightOutput(
       <usecase_outcome>you forward invoices/receipts or keep using your tools as you do now; our team keeps the books current and sends you a monthly finance brief you can actually use to make decisions</usecase_outcome>.<br/><br/>
 
       If you'd like a bit more detail, I put this into a one-page
-      <cta_leadmagnet>"Monthly Finance Snapshot" template</cta_leadmagnet>
-      you can steal and run with your current team (<cta_leadmagnet>Link here</cta_leadmagnet>).<br/><br/>
+      <resource>"Monthly Finance Snapshot" template</resource>
+      you can steal and run with your current team (<resource>Link here</resource>).<br/><br/>
 
       P.S. If your goal is to run <personalization>McGreggor Law</personalization> on
       <usecase_outcome>clean numbers each month</usecase_outcome>
       <usecase_blocker>without you living in QuickBooks</usecase_blocker>,
       I'm happy to walk through how our clients set this up in a short 20–30 minute working session.<br/><br/>
 
-      If not, feel free to just swipe the <cta_leadmagnet>template</cta_leadmagnet>.
+      If not, feel free to just swipe the <resource>template</resource>.
     </BODY>
   </EMAIL>
 </HIGHLIGHTED_OUTPUT_EXAMPLE>`;
@@ -115,7 +116,11 @@ These variables describe problems/blockers. Look for text in the OUTPUT that mat
 
 ${variablesByCategory.cta_leadmagnet.length > 0 ? `**CTA/LEAD MAGNET variables (map to <cta_leadmagnet> tag):**
 ${variablesByCategory.cta_leadmagnet.map(v => `- {{${v}}}`).join('\n')}
-These variables describe offers, resources, links, or CTAs. Look for text in the OUTPUT that matches these offers/resources.` : ''}
+These variables describe general CTAs, scheduling links, or offers. Look for text in the OUTPUT that matches these CTAs.` : ''}
+
+${variablesByCategory.resource && variablesByCategory.resource.length > 0 ? `**RESOURCE variables (map to <resource> tag):**
+${variablesByCategory.resource.map(v => `- {{${v}}}`).join('\n')}
+These variables describe valuable resources like webinars, tools, reports, guides, templates, case studies, or diagnostic resources. Look for text in the OUTPUT that contains the word "resource" or matches these resource types/names/links.` : ''}
 
 ${variablesByCategory.personalization.length > 0 ? `**PERSONALIZATION variables (map to <personalization> tag):**
 ${variablesByCategory.personalization.map(v => `- {{${v}}}`).join('\n')}
@@ -148,7 +153,8 @@ Your task is to analyze the OUTPUT content and identify which text segments corr
    - <segment> - Company size, industry, or demographic segments (e.g., "under $10M", "SaaS companies")
    - <usecase_outcome> - Desired outcomes/goals from use cases (e.g., "clean numbers", "better reporting")
    - <usecase_blocker> - Problems/blockers from use cases (e.g., "without living in QuickBooks", "gut feel")
-   - <cta_leadmagnet> - Call-to-action or lead magnet references (e.g., "template", "guide", "Link here")
+   - <cta_leadmagnet> - General call-to-action references (e.g., "scheduling link", "free assessment")
+   - <resource> - Valuable resources, offers, or content (e.g., "webinar", "tool", "trend report", "guide", "template", "case study")
 
 2. **OCTAVE_CONTENT_AGENT_PERSONALIZATION** (runtime/generated):
    - <personalization> - Personalized information like names, company names, specific details that were generated at runtime (e.g., "John", "McGreggor Law")
@@ -193,8 +199,14 @@ ${playSpecificSection}
 - Company characteristics that segment the audience by size, industry, or type
 
 **CTA/LEAD MAGNET (<cta_leadmagnet> tag):**
-- Look for offers, resources, links, or calls-to-action
-- Examples: "template", "guide", "Link here", "scheduling link", "free assessment", "download"
+- Look for general calls-to-action, scheduling links, or offers
+- Examples: "scheduling link", "free assessment", "book a call", "schedule a meeting"
+
+**RESOURCE (<resource> tag):**
+- Look for valuable resources, content offers, or materials that contain the word "resource" or are clearly valuable resources
+- Examples: "webinar", "tool", "trend report", "guide", "template", "case study", "diagnostic", "worksheet", "checklist", "resource"
+- Look for phrases like "here's a [resource type]", "download this [resource]", "check out this [resource]", or any mention of resources, webinars, tools, reports, guides, templates, case studies
+- This includes resource types (e.g., "webinar", "tool", "report"), resource names (e.g., "Monthly Finance Snapshot"), and resource links
 
 **PERSONALIZATION (<personalization> tag):**
 - Look for specific names, company names, or dynamically inserted details
@@ -312,7 +324,7 @@ Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identif
       }
       
       // Check if highlights were actually applied
-      const hasHighlightsResult = /<(persona|segment|usecase_outcome|usecase_blocker|cta_leadmagnet|personalization)>/i.test(highlightedContent);
+      const hasHighlightsResult = /<(persona|segment|usecase_outcome|usecase_blocker|cta_leadmagnet|resource|personalization)>/i.test(highlightedContent);
       console.log(`🔍 Highlights detected in output: ${hasHighlightsResult ? 'YES ✅' : 'NO ❌'}`);
       
       if (hasHighlightsResult) {
@@ -322,6 +334,7 @@ Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identif
         const outcomeCount = (highlightedContent.match(/<usecase_outcome>/gi) || []).length;
         const blockerCount = (highlightedContent.match(/<usecase_blocker>/gi) || []).length;
         const ctaCount = (highlightedContent.match(/<cta_leadmagnet>/gi) || []).length;
+        const resourceCount = (highlightedContent.match(/<resource>/gi) || []).length;
         const personalizationCount = (highlightedContent.match(/<personalization>/gi) || []).length;
         console.log(`📊 Highlight tag counts:`);
         console.log(`     - Persona: ${personaCount}`);
@@ -330,7 +343,7 @@ Return the EXACT OUTPUT content with ONLY semantic XML tags wrapping the identif
         console.log(`     - Use Case Blocker: ${blockerCount}`);
         console.log(`     - CTA/Lead Magnet: ${ctaCount}`);
         console.log(`     - Personalization: ${personalizationCount}`);
-        console.log(`     - Total: ${personaCount + segmentCount + outcomeCount + blockerCount + ctaCount + personalizationCount}`);
+        console.log(`     - Total: ${personaCount + segmentCount + outcomeCount + blockerCount + ctaCount + resourceCount + personalizationCount}`);
       } else {
         console.warn(`⚠️ WARNING: No highlight tags found in OpenAI response!`);
         console.warn(`   This could mean:`);

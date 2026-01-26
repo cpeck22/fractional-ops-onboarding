@@ -29,6 +29,11 @@ export function renderHighlightedContent(highlightedXml: string): string {
     return `<span class="bg-highlight-cta text-fo-dark font-semibold px-1 rounded cursor-help" title="CTA (Lead Magnet): ${escapeHtml(content)}">${content}</span>`;
   });
   
+  // Resources/Valuable Offers (light cyan/teal) - Resources, webinars, tools, reports, etc.
+  html = html.replace(/<resource>(.*?)<\/resource>/gi, (match, content) => {
+    return `<span class="bg-highlight-resource text-fo-dark font-semibold px-1 rounded cursor-help" title="Resource/Valuable Offer: ${escapeHtml(content)}">${content}</span>`;
+  });
+  
   // Claire Content Agent Personalization (light orange)
   html = html.replace(/<personalization>(.*?)<\/personalization>/gi, (match, content) => {
     return `<span class="bg-highlight-personalized text-fo-dark font-semibold px-1 rounded cursor-help" title="Personalized / Claire Generated Info: ${escapeHtml(content)}">${content}</span>`;
@@ -66,6 +71,6 @@ function escapeHtml(text: string): string {
  */
 export function hasHighlights(content: string): boolean {
   if (!content) return false;
-  return /<(persona|segment|usecase_outcome|usecase_blocker|cta_leadmagnet|personalization)>/i.test(content);
+  return /<(persona|segment|usecase_outcome|usecase_blocker|cta_leadmagnet|resource|personalization)>/i.test(content);
 }
 

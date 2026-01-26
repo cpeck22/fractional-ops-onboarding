@@ -12,6 +12,7 @@ export type HighlightCategory =
   | 'usecase_outcome'   // Light green - Desired outcomes
   | 'usecase_blocker'   // Light pink - Problems/blockers
   | 'cta_leadmagnet'    // Light yellow - CTAs and lead magnets
+  | 'resource'          // Light cyan/teal - Resources/valuable offers (webinars, tools, reports, etc.)
   | 'personalization';  // Light orange - Personalized/Claire generated info
 
 export interface PlayPromptConfig {
@@ -392,16 +393,18 @@ Use whatever's useful for {{COMPANY_NAME}}. If you ever want to walk through how
       // Use Case Blocker (pink) - Problems/blockers
       'PRIMARY_PROBLEM_AREA': 'usecase_blocker',
       
-      // CTA/Lead Magnet (yellow) - Offers, resources, links
+      // CTA/Lead Magnet (yellow) - General CTAs, scheduling links
       'LOW_COMMITMENT_OFFER_FORMAT': 'cta_leadmagnet',
       'SCHEDULING_LINK': 'cta_leadmagnet',
-      'RELEVANT_RESOURCE_TYPE': 'cta_leadmagnet',
-      'RELEVANT_RESOURCE_NAME': 'cta_leadmagnet',
-      'RELEVANT_RESOURCE_LINK': 'cta_leadmagnet',
-      'PATTERNS_RESOURCE_LINK': 'cta_leadmagnet',
-      'CASE_STUDY_RESOURCE_LINK': 'cta_leadmagnet',
-      'DIAGNOSTIC_RESOURCE_TYPE': 'cta_leadmagnet',
-      'DIAGNOSTIC_RESOURCE_LINK': 'cta_leadmagnet',
+      
+      // Resources/Valuable Offers (cyan/teal) - Resources, webinars, tools, reports, etc.
+      'RELEVANT_RESOURCE_TYPE': 'resource',
+      'RELEVANT_RESOURCE_NAME': 'resource',
+      'RELEVANT_RESOURCE_LINK': 'resource',
+      'PATTERNS_RESOURCE_LINK': 'resource',
+      'CASE_STUDY_RESOURCE_LINK': 'resource',
+      'DIAGNOSTIC_RESOURCE_TYPE': 'resource',
+      'DIAGNOSTIC_RESOURCE_LINK': 'resource',
     }
   },
   
@@ -549,6 +552,7 @@ export function getVariablesByCategory(playCode: string): Record<HighlightCatego
     usecase_outcome: [],
     usecase_blocker: [],
     cta_leadmagnet: [],
+    resource: [],
     personalization: [],
   };
 
@@ -558,6 +562,7 @@ export function getVariablesByCategory(playCode: string): Record<HighlightCatego
     usecase_outcome: [],
     usecase_blocker: [],
     cta_leadmagnet: [],
+    resource: [],
     personalization: [],
   };
 
