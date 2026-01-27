@@ -493,7 +493,32 @@ Format as a concise brief. Remove redundant information, filler words, and irrel
         
         // Concatenate all emails into raw text for highlighting
         rawOutputContent = emails.map((email: any, index: number) => {
-          const sections = email.sections || {};
+          // CRITICAL: Octave SEQUENCE agents return different structures
+          // Some return: { subject, sections: { greeting, body, ... } }
+          // Others return: { subject, email: "full body text" }
+          
+          let emailBody = '';
+          
+          if (email.sections && Object.keys(email.sections).length > 0) {
+            // Structure 1: Sectioned email (e.g., Play 2001)
+            const sections = email.sections;
+            emailBody = [
+              sections.greeting || '',
+              sections.opening || '',
+              sections.body || '',
+              sections.closing || '',
+              sections.cta || '',
+              sections.ps || '',
+              sections.signature || '%signature%'
+            ].filter(s => s).join('\n\n');
+          } else if (email.email) {
+            // Structure 2: Single body field (e.g., Play 2008)
+            emailBody = email.email + '\n\n%signature%';
+          } else {
+            // Fallback: No recognizable structure
+            emailBody = 'No email content found';
+          }
+          
           const emailText = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 EMAIL ${index + 1} OF ${emails.length}
@@ -501,19 +526,7 @@ EMAIL ${index + 1} OF ${emails.length}
 
 SUBJECT: ${email.subject || 'No subject'}
 
-${sections.greeting || ''}
-
-${sections.opening || ''}
-
-${sections.body || ''}
-
-${sections.closing || ''}
-
-${sections.cta || ''}
-
-${sections.ps || ''}
-
-${sections.signature || '%signature%'}
+${emailBody}
 `.trim();
           return emailText;
         }).join('\n\n');

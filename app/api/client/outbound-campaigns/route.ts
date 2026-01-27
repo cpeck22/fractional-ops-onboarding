@@ -136,11 +136,35 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { data: campaigns, error } = await supabaseAdmin
+    // Query both campaigns and outbound_campaigns tables to show all campaigns
+    const { data: newCampaigns, error: newError } = await supabaseAdmin
+      .from('campaigns')
+      .select('*')
+      .eq('user_id', effectiveUserId)
+      .order('created_at', { ascending: false });
+
+    const { data: oldCampaigns, error: oldError } = await supabaseAdmin
       .from('outbound_campaigns')
       .select('*')
       .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false });
+
+    if (newError && oldError) {
+      console.error('❌ Error fetching campaigns:', { newError, oldError });
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch campaigns' },
+        { status: 500 }
+      );
+    }
+
+    // Merge both campaign sources
+    const allCampaigns = [
+      ...(newCampaigns || []).map((c: any) => ({ ...c, source: 'campaigns' })),
+      ...(oldCampaigns || []).map((c: any) => ({ ...c, source: 'outbound_campaigns' }))
+    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const error = null; // Combined query succeeded
+    const campaigns = allCampaigns;
 
     if (error) {
       console.error('❌ Error fetching campaigns:', error);

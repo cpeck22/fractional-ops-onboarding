@@ -245,12 +245,21 @@ export default function ApproveCopyContent() {
                     </div>
                     
                     <div className="space-y-2 text-sm">
-                      {email.sections?.greeting && <p>{email.sections.greeting}</p>}
-                      {email.sections?.opening && <p>{email.sections.opening}</p>}
-                      {email.sections?.body && <p className="whitespace-pre-wrap">{email.sections.body}</p>}
-                      {email.sections?.closing && <p>{email.sections.closing}</p>}
-                      {email.sections?.cta && <p className="font-semibold">{email.sections.cta}</p>}
-                      {email.sections?.ps && <p className="italic">{email.sections.ps}</p>}
+                      {/* Handle both sectioned (Play 2001) and single-body (Play 2008) formats */}
+                      {email.sections && Object.keys(email.sections).length > 0 ? (
+                        <>
+                          {email.sections?.greeting && <p>{email.sections.greeting}</p>}
+                          {email.sections?.opening && <p>{email.sections.opening}</p>}
+                          {email.sections?.body && <p className="whitespace-pre-wrap">{email.sections.body}</p>}
+                          {email.sections?.closing && <p>{email.sections.closing}</p>}
+                          {email.sections?.cta && <p className="font-semibold">{email.sections.cta}</p>}
+                          {email.sections?.ps && <p className="italic">{email.sections.ps}</p>}
+                        </>
+                      ) : email.email ? (
+                        <p className="whitespace-pre-wrap">{email.email}</p>
+                      ) : (
+                        <p className="text-red-600">No email content found</p>
+                      )}
                       {email.sections?.signature && <p className="mt-4">{email.sections.signature}</p>}
                     </div>
                   </div>

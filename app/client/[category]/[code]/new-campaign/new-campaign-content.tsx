@@ -1091,50 +1091,72 @@ export default function NewCampaignContent() {
                             </p>
                           </div>
 
-                          {/* Email Body Sections */}
+                          {/* Email Body - Handle both sectioned and non-sectioned formats */}
                           <div className="space-y-3">
-                            {email.sections?.greeting && (
+                            {/* Check if email has sections (Play 2001 structure) */}
+                            {email.sections && Object.keys(email.sections).length > 0 ? (
+                              <>
+                                {email.sections?.greeting && (
+                                  <div className="bg-fo-light px-4 py-2 rounded">
+                                    <span className="text-xs font-semibold text-fo-text-secondary uppercase">Greeting:</span>
+                                    <p className="text-sm text-fo-dark mt-1">{email.sections.greeting}</p>
+                                  </div>
+                                )}
+                                {email.sections?.opening && (
+                                  <div className="bg-fo-light px-4 py-2 rounded">
+                                    <span className="text-xs font-semibold text-fo-text-secondary uppercase">Opening:</span>
+                                    <p className="text-sm text-fo-dark mt-1">{email.sections.opening}</p>
+                                  </div>
+                                )}
+                                {email.sections?.body && (
+                                  <div className="bg-fo-light px-4 py-2 rounded">
+                                    <span className="text-xs font-semibold text-fo-text-secondary uppercase">Body:</span>
+                                    <p className="text-sm text-fo-dark mt-1 whitespace-pre-wrap">{email.sections.body}</p>
+                                  </div>
+                                )}
+                                {email.sections?.closing && (
+                                  <div className="bg-fo-light px-4 py-2 rounded">
+                                    <span className="text-xs font-semibold text-fo-text-secondary uppercase">Closing:</span>
+                                    <p className="text-sm text-fo-dark mt-1">{email.sections.closing}</p>
+                                  </div>
+                                )}
+                                {email.sections?.cta && (
+                                  <div className="bg-green-50 border border-green-200 px-4 py-2 rounded">
+                                    <span className="text-xs font-semibold text-green-700 uppercase">Call to Action:</span>
+                                    <p className="text-sm text-fo-dark font-semibold mt-1">{email.sections.cta}</p>
+                                  </div>
+                                )}
+                                {email.sections?.ps && (
+                                  <div className="bg-fo-light px-4 py-2 rounded">
+                                    <span className="text-xs font-semibold text-fo-text-secondary uppercase">P.S.:</span>
+                                    <p className="text-sm text-fo-dark mt-1 italic">{email.sections.ps}</p>
+                                  </div>
+                                )}
+                                {email.sections?.signature && (
+                                  <div className="bg-fo-light px-4 py-2 rounded">
+                                    <span className="text-xs font-semibold text-fo-text-secondary uppercase">Signature:</span>
+                                    <p className="text-sm text-fo-dark mt-1">{email.sections.signature}</p>
+                                  </div>
+                                )}
+                              </>
+                            ) : email.email ? (
+                              /* Single email body field (Play 2008 structure) */
                               <div className="bg-fo-light px-4 py-2 rounded">
-                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">Greeting:</span>
-                                <p className="text-sm text-fo-dark mt-1">{email.sections.greeting}</p>
+                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">Email Body:</span>
+                                <p className="text-sm text-fo-dark mt-1 whitespace-pre-wrap">{email.email}</p>
+                              </div>
+                            ) : (
+                              /* No email content found */
+                              <div className="bg-red-50 border border-red-200 px-4 py-2 rounded">
+                                <p className="text-sm text-red-600">No email content found</p>
                               </div>
                             )}
-                            {email.sections?.opening && (
-                              <div className="bg-fo-light px-4 py-2 rounded">
-                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">Opening:</span>
-                                <p className="text-sm text-fo-dark mt-1">{email.sections.opening}</p>
-                              </div>
-                            )}
-                            {email.sections?.body && (
-                              <div className="bg-fo-light px-4 py-2 rounded">
-                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">Body:</span>
-                                <p className="text-sm text-fo-dark mt-1 whitespace-pre-wrap">{email.sections.body}</p>
-                              </div>
-                            )}
-                            {email.sections?.closing && (
-                              <div className="bg-fo-light px-4 py-2 rounded">
-                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">Closing:</span>
-                                <p className="text-sm text-fo-dark mt-1">{email.sections.closing}</p>
-                              </div>
-                            )}
-                            {email.sections?.cta && (
-                              <div className="bg-green-50 border border-green-200 px-4 py-2 rounded">
-                                <span className="text-xs font-semibold text-green-700 uppercase">Call to Action:</span>
-                                <p className="text-sm text-fo-dark font-semibold mt-1">{email.sections.cta}</p>
-                              </div>
-                            )}
-                            {email.sections?.ps && (
-                              <div className="bg-fo-light px-4 py-2 rounded">
-                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">P.S.:</span>
-                                <p className="text-sm text-fo-dark mt-1 italic">{email.sections.ps}</p>
-                              </div>
-                            )}
-                            {email.sections?.signature && (
-                              <div className="bg-fo-light px-4 py-2 rounded">
-                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">Signature:</span>
-                                <p className="text-sm text-fo-dark mt-1">{email.sections.signature}</p>
-                              </div>
-                            )}
+                            
+                            {/* Signature placeholder */}
+                            <div className="bg-blue-50 border border-blue-200 px-4 py-2 rounded">
+                              <span className="text-xs font-semibold text-blue-700 uppercase">Signature:</span>
+                              <p className="text-sm text-fo-dark mt-1 italic">%signature%</p>
+                            </div>
                           </div>
                         </div>
                       </div>
