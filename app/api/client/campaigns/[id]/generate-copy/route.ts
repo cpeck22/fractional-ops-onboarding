@@ -251,44 +251,88 @@ Example structure for post-conference (2010):
         // ===== SEQUENCE AGENT (EMAIL) =====
         console.log('📧 Using Sequence Agent API (/sequence/run)');
         
-        // EMAIL agents need FLAT string key-value pairs, not nested objects
-        const flatRuntimeContext: Record<string, string> = {
-          // Campaign brief (flattened to strings)
-          meetingTranscript: campaignBrief.meeting_transcript || '',
-          writtenStrategy: campaignBrief.written_strategy || '',
-          additionalBrief: campaign.additional_brief || '',
-          campaignName: campaign.campaign_name || '',
-          campaignType: campaign.campaign_type || '',
-          
-          // Intermediary outputs (flattened to strings)
-          listBuildingInstructions: intermediary.list_building_instructions || '',
-          hook: intermediary.hook || '',
-          attractionOfferHeadline: intermediary.attraction_offer?.headline || '',
-          attractionOfferDescription: intermediary.attraction_offer?.description || '',
-          assetType: intermediary.asset?.type || '',
-          assetDescription: intermediary.asset?.description || '',
-          caseStudies: JSON.stringify(intermediary.case_studies || []),
-          clientReferences: JSON.stringify(intermediary.client_references || []),
-          
-          // Workspace elements (flattened to strings)
-          personas: JSON.stringify(runtimeContextData.personas || []),
-          useCases: JSON.stringify(runtimeContextData.use_cases || []),
-          
-          // Play configuration (flattened to strings)
-          playCode: campaign.play_code,
-          sequenceLength: String(getSequenceLengthForPlay(campaign.play_code)),
-          channel: 'email',
-          tone: 'professional',
-          
-          // Conference instructions if applicable
-          conferenceInstructions: conferenceInstructions || ''
-        };
+        // EMAIL agents expect runtimeContext with "all" key containing ALL context as one string
+        // Based on API docs example: runtimeContext: { "all": "" }
+        const allContextParts = [];
         
-        console.log('📊 [Sequence Agent] Flat runtime context keys:', Object.keys(flatRuntimeContext));
+        // Campaign Brief
+        if (campaignBrief.meeting_transcript) {
+          allContextParts.push(`=== MEETING TRANSCRIPT ===\n${campaignBrief.meeting_transcript}`);
+        }
+        if (campaignBrief.written_strategy) {
+          allContextParts.push(`=== WRITTEN STRATEGY ===\n${campaignBrief.written_strategy}`);
+        }
+        if (campaign.additional_brief) {
+          allContextParts.push(`=== ADDITIONAL CONTEXT ===\n${campaign.additional_brief}`);
+        }
+        
+        // Campaign Metadata
+        allContextParts.push(`=== CAMPAIGN INFO ===`);
+        allContextParts.push(`Campaign Name: ${campaign.campaign_name}`);
+        allContextParts.push(`Campaign Type: ${campaign.campaign_type}`);
+        allContextParts.push(`Play Code: ${campaign.play_code}`);
+        allContextParts.push(`Sequence Length: ${getSequenceLengthForPlay(campaign.play_code)} emails`);
+        
+        // Intermediary Outputs
+        if (intermediary.hook) {
+          allContextParts.push(`\n=== HOOK (SHARED TOUCHPOINT) ===\n${intermediary.hook}`);
+        }
+        if (intermediary.list_building_instructions) {
+          allContextParts.push(`\n=== LIST BUILDING INSTRUCTIONS ===\n${intermediary.list_building_instructions}`);
+        }
+        if (intermediary.attraction_offer?.headline) {
+          allContextParts.push(`\n=== ATTRACTION OFFER ===`);
+          allContextParts.push(`Headline: ${intermediary.attraction_offer.headline}`);
+          if (intermediary.attraction_offer.valueBullets?.length > 0) {
+            allContextParts.push(`Value:\n- ${intermediary.attraction_offer.valueBullets.join('\n- ')}`);
+          }
+          if (intermediary.attraction_offer.easeBullets?.length > 0) {
+            allContextParts.push(`Ease:\n- ${intermediary.attraction_offer.easeBullets.join('\n- ')}`);
+          }
+        }
+        if (intermediary.asset?.type) {
+          allContextParts.push(`\n=== CAMPAIGN ASSET ===`);
+          allContextParts.push(`Type: ${intermediary.asset.type}`);
+          if (intermediary.asset.url) allContextParts.push(`URL: ${intermediary.asset.url}`);
+          if (intermediary.asset.content) allContextParts.push(`Description: ${intermediary.asset.content}`);
+        }
+        
+        // Case Studies
+        if (intermediary.case_studies?.length > 0) {
+          allContextParts.push(`\n=== CASE STUDIES ===`);
+          intermediary.case_studies.forEach((cs: any, idx: number) => {
+            allContextParts.push(`${idx + 1}. ${cs.clientName || cs.client_name}: ${cs.description || cs.result}`);
+          });
+        }
+        
+        // Workspace Elements
+        if (runtimeContextData.personas?.length > 0) {
+          allContextParts.push(`\n=== TARGET PERSONAS ===`);
+          runtimeContextData.personas.forEach((p: any) => {
+            allContextParts.push(`- ${p.name}`);
+          });
+        }
+        if (runtimeContextData.use_cases?.length > 0) {
+          allContextParts.push(`\n=== USE CASES ===`);
+          runtimeContextData.use_cases.forEach((uc: any) => {
+            allContextParts.push(`- ${uc.name}`);
+          });
+        }
+        
+        // Conference Instructions
+        if (conferenceInstructions) {
+          allContextParts.push(`\n${conferenceInstructions}`);
+        }
+        
+        const allContextString = allContextParts.join('\n\n');
+        
+        console.log('📊 [Sequence Agent] Combined context length:', allContextString.length, 'characters');
         
         const sequenceAgentRequest = {
           agentOId: agentOId,
-          runtimeContext: flatRuntimeContext, // Flat string key-value pairs
+          runtimeContext: {
+            all: allContextString  // Single "all" key with everything
+          },
           email: null,
           companyDomain: null,
           companyName: null,
