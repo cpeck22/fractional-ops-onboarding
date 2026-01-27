@@ -47,6 +47,8 @@ export default function NewCampaignContent() {
   const [generatedCopy, setGeneratedCopy] = useState('');
   const [highlightedCopy, setHighlightedCopy] = useState('');
   const [editedCopy, setEditedCopy] = useState('');
+  const [emailSequence, setEmailSequence] = useState<any[]>([]);
+  const [isSequenceAgent, setIsSequenceAgent] = useState(false);
   
   // Loading states
   const [loading, setLoading] = useState(false);
@@ -222,6 +224,16 @@ export default function NewCampaignContent() {
         setGeneratedCopy(result.finalOutputs.rawContent);
         setHighlightedCopy(result.finalOutputs.highlightedHtml);
         setEditedCopy(result.finalOutputs.rawContent);
+        
+        // Check if this is a sequence agent with structured emails
+        if (result.finalOutputs.campaignCopy?.emails) {
+          setIsSequenceAgent(true);
+          setEmailSequence(result.finalOutputs.campaignCopy.emails);
+        } else {
+          setIsSequenceAgent(false);
+          setEmailSequence([]);
+        }
+        
         toast.success('Campaign copy generated!');
         setCurrentStep('copy');
       } else {
@@ -699,32 +711,150 @@ export default function NewCampaignContent() {
             </p>
 
             <div className="space-y-6">
-              {/* Copy Editor */}
-              <div>
-                <label className="block text-sm font-semibold text-fo-dark mb-2">
-                  Campaign Copy
-                </label>
-                <p className="text-xs text-fo-text-secondary mb-2">
-                  Edit the copy as needed. Make sure to keep placeholders like {`{{first_name}}`} and %signature% intact.
-                </p>
-                
-                {/* Show highlighted version for reference */}
-                <div className="mb-4 border border-fo-border rounded-lg p-4 bg-fo-light max-h-96 overflow-y-auto">
-                  <h4 className="text-sm font-semibold text-fo-dark mb-2">Highlighted Preview:</h4>
-                  <div 
-                    className="text-sm text-fo-text whitespace-pre-wrap"
-                    dangerouslySetInnerHTML={{ __html: renderHighlightedContent(highlightedCopy) }}
+              {/* Email Sequence Display (for SEQUENCE agents) */}
+              {isSequenceAgent && emailSequence.length > 0 && (
+                <div>
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <p className="text-sm text-blue-900">
+                      <span className="font-semibold">📧 Email Sequence Detected!</span> This campaign includes <span className="font-bold">{emailSequence.length} emails</span> with highlighting applied.
+                    </p>
+                  </div>
+
+                  {/* Highlighted Full Sequence Preview */}
+                  <div className="mb-6 border-2 border-fo-primary rounded-lg p-6 bg-white">
+                    <h4 className="text-sm font-semibold text-fo-dark mb-4 flex items-center gap-2">
+                      <span className="bg-fo-primary text-white px-3 py-1 rounded-full text-xs">HIGHLIGHTED PREVIEW</span>
+                      Full Sequence with AI Highlights
+                    </h4>
+                    <div 
+                      className="text-sm text-fo-text whitespace-pre-wrap max-h-96 overflow-y-auto"
+                      dangerouslySetInnerHTML={{ __html: renderHighlightedContent(highlightedCopy) }}
+                    />
+                  </div>
+
+                  {/* Individual Email Cards */}
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold text-fo-dark">Email Breakdown:</h4>
+                    {emailSequence.map((email: any, index: number) => (
+                      <div key={index} className="border border-fo-border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                        <div className="bg-gradient-to-r from-fo-primary to-indigo-600 text-white px-6 py-3 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Mail className="w-5 h-5" />
+                            <span className="font-semibold text-lg">Email {index + 1}</span>
+                          </div>
+                          <span className="text-xs bg-white/20 px-3 py-1 rounded-full">
+                            {emailSequence.length > 1 ? `Step ${index + 1} of ${emailSequence.length}` : 'Single Email'}
+                          </span>
+                        </div>
+                        
+                        <div className="p-6 bg-white space-y-4">
+                          {/* Subject Line */}
+                          <div>
+                            <label className="block text-xs font-bold text-fo-text-secondary uppercase tracking-wide mb-2">Subject Line</label>
+                            <p className="text-lg font-semibold text-fo-dark bg-amber-50 border border-amber-200 px-4 py-3 rounded">
+                              {email.subject}
+                            </p>
+                          </div>
+
+                          {/* Email Body Sections */}
+                          <div className="space-y-3">
+                            {email.sections?.greeting && (
+                              <div className="bg-fo-light px-4 py-2 rounded">
+                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">Greeting:</span>
+                                <p className="text-sm text-fo-dark mt-1">{email.sections.greeting}</p>
+                              </div>
+                            )}
+                            {email.sections?.opening && (
+                              <div className="bg-fo-light px-4 py-2 rounded">
+                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">Opening:</span>
+                                <p className="text-sm text-fo-dark mt-1">{email.sections.opening}</p>
+                              </div>
+                            )}
+                            {email.sections?.body && (
+                              <div className="bg-fo-light px-4 py-2 rounded">
+                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">Body:</span>
+                                <p className="text-sm text-fo-dark mt-1 whitespace-pre-wrap">{email.sections.body}</p>
+                              </div>
+                            )}
+                            {email.sections?.closing && (
+                              <div className="bg-fo-light px-4 py-2 rounded">
+                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">Closing:</span>
+                                <p className="text-sm text-fo-dark mt-1">{email.sections.closing}</p>
+                              </div>
+                            )}
+                            {email.sections?.cta && (
+                              <div className="bg-green-50 border border-green-200 px-4 py-2 rounded">
+                                <span className="text-xs font-semibold text-green-700 uppercase">Call to Action:</span>
+                                <p className="text-sm text-fo-dark font-semibold mt-1">{email.sections.cta}</p>
+                              </div>
+                            )}
+                            {email.sections?.ps && (
+                              <div className="bg-fo-light px-4 py-2 rounded">
+                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">P.S.:</span>
+                                <p className="text-sm text-fo-dark mt-1 italic">{email.sections.ps}</p>
+                              </div>
+                            )}
+                            {email.sections?.signature && (
+                              <div className="bg-fo-light px-4 py-2 rounded">
+                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">Signature:</span>
+                                <p className="text-sm text-fo-dark mt-1">{email.sections.signature}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Single Copy Editor (for CONTENT agents or final edit) */}
+              {!isSequenceAgent && (
+                <div>
+                  <label className="block text-sm font-semibold text-fo-dark mb-2">
+                    Campaign Copy
+                  </label>
+                  <p className="text-xs text-fo-text-secondary mb-2">
+                    Edit the copy as needed. Make sure to keep placeholders like {`{{first_name}}`} and %signature% intact.
+                  </p>
+                  
+                  {/* Show highlighted version for reference */}
+                  <div className="mb-4 border border-fo-border rounded-lg p-4 bg-fo-light max-h-96 overflow-y-auto">
+                    <h4 className="text-sm font-semibold text-fo-dark mb-2">Highlighted Preview:</h4>
+                    <div 
+                      className="text-sm text-fo-text whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{ __html: renderHighlightedContent(highlightedCopy) }}
+                    />
+                  </div>
+
+                  {/* Editable version */}
+                  <textarea
+                    value={editedCopy}
+                    onChange={(e) => setEditedCopy(e.target.value)}
+                    rows={20}
+                    className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent font-mono text-sm"
                   />
                 </div>
+              )}
 
-                {/* Editable version */}
-                <textarea
-                  value={editedCopy}
-                  onChange={(e) => setEditedCopy(e.target.value)}
-                  rows={20}
-                  className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent font-mono text-sm"
-                />
-              </div>
+              {/* Full Editable Copy (always show for final approval) */}
+              {isSequenceAgent && (
+                <div className="border-t-2 border-fo-border pt-6">
+                  <label className="block text-sm font-semibold text-fo-dark mb-2">
+                    Full Campaign Copy (Editable)
+                  </label>
+                  <p className="text-xs text-fo-text-secondary mb-2">
+                    Edit the entire sequence below. Make sure to keep email separators and placeholders intact.
+                  </p>
+                  
+                  <textarea
+                    value={editedCopy}
+                    onChange={(e) => setEditedCopy(e.target.value)}
+                    rows={30}
+                    className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent font-mono text-sm"
+                  />
+                </div>
+              )}
 
               {/* Highlight Legend */}
               <div className="border border-fo-border rounded-lg p-4 bg-fo-light">

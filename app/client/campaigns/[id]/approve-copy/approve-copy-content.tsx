@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
 import toast from 'react-hot-toast';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
-import { Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Loader2, CheckCircle, AlertTriangle, Mail } from 'lucide-react';
 import { renderHighlightedContent } from '@/lib/render-highlights';
 
 export default function ApproveCopyContent() {
@@ -18,6 +18,8 @@ export default function ApproveCopyContent() {
 
   const [campaign, setCampaign] = useState<any>(null);
   const [editedCopy, setEditedCopy] = useState('');
+  const [emailSequence, setEmailSequence] = useState<any[]>([]);
+  const [isSequenceAgent, setIsSequenceAgent] = useState(false);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
   const [showHighlights, setShowHighlights] = useState(true);
@@ -52,6 +54,13 @@ export default function ApproveCopyContent() {
 
       setCampaign(campaignData);
       setEditedCopy(campaignData.final_outputs?.raw_content || '');
+      
+      // Check if this is a sequence agent
+      if (campaignData.final_outputs?.campaign_copy?.emails) {
+        setIsSequenceAgent(true);
+        setEmailSequence(campaignData.final_outputs.campaign_copy.emails);
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error('Error loading campaign:', error);
@@ -208,10 +217,55 @@ export default function ApproveCopyContent() {
           </div>
         )}
 
-        {/* Highlighted Preview */}
+        {/* Email Sequence Display (for SEQUENCE agents) */}
+        {isSequenceAgent && emailSequence.length > 0 && showHighlights && (
+          <div className="mb-6">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-blue-900">
+                <span className="font-semibold">📧 Email Sequence</span> - {emailSequence.length} emails in this campaign
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {emailSequence.map((email: any, index: number) => (
+                <div key={index} className="border border-fo-border rounded-lg overflow-hidden">
+                  <div className="bg-gradient-to-r from-fo-primary to-indigo-600 text-white px-6 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-5 h-5" />
+                      <span className="font-semibold">Email {index + 1} of {emailSequence.length}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6 bg-white">
+                    <div className="mb-4">
+                      <label className="block text-xs font-bold text-fo-text-secondary uppercase tracking-wide mb-2">Subject Line</label>
+                      <p className="text-base font-semibold text-fo-dark bg-amber-50 border border-amber-200 px-4 py-2 rounded">
+                        {email.subject}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm">
+                      {email.sections?.greeting && <p>{email.sections.greeting}</p>}
+                      {email.sections?.opening && <p>{email.sections.opening}</p>}
+                      {email.sections?.body && <p className="whitespace-pre-wrap">{email.sections.body}</p>}
+                      {email.sections?.closing && <p>{email.sections.closing}</p>}
+                      {email.sections?.cta && <p className="font-semibold">{email.sections.cta}</p>}
+                      {email.sections?.ps && <p className="italic">{email.sections.ps}</p>}
+                      {email.sections?.signature && <p className="mt-4">{email.sections.signature}</p>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Highlighted Preview (full sequence with highlights) */}
         {showHighlights && finalOutputs.highlighted_html && (
           <div className="mb-4 border border-fo-border rounded-lg p-4 bg-fo-light max-h-96 overflow-y-auto">
-            <h4 className="text-sm font-semibold text-fo-dark mb-2">Highlighted Preview:</h4>
+            <h4 className="text-sm font-semibold text-fo-dark mb-2">
+              {isSequenceAgent ? 'Full Sequence with Highlights:' : 'Highlighted Preview:'}
+            </h4>
             <div 
               className="text-sm text-fo-text whitespace-pre-wrap"
               dangerouslySetInnerHTML={{ __html: renderHighlightedContent(finalOutputs.highlighted_html) }}
@@ -220,12 +274,22 @@ export default function ApproveCopyContent() {
         )}
 
         {/* Editable Copy */}
-        <textarea
-          value={editedCopy}
-          onChange={(e) => setEditedCopy(e.target.value)}
-          rows={25}
-          className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent font-mono text-sm"
-        />
+        <div>
+          <label className="block text-sm font-semibold text-fo-dark mb-2">
+            {isSequenceAgent ? 'Full Sequence (Editable)' : 'Campaign Copy (Editable)'}
+          </label>
+          {isSequenceAgent && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-2">
+              ⚠️ Keep email separators (━━━━ EMAIL X OF Y ━━━━) and section structure intact
+            </p>
+          )}
+          <textarea
+            value={editedCopy}
+            onChange={(e) => setEditedCopy(e.target.value)}
+            rows={isSequenceAgent ? 35 : 25}
+            className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent font-mono text-sm"
+          />
+        </div>
       </div>
 
       {/* Actions */}

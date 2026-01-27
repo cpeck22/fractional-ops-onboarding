@@ -83,6 +83,7 @@ export async function POST(
     // Find agent matching play code
     let agentOId = null;
     let agentName = null;
+    let agentType = null;
 
     try {
       const allAgents = [];
@@ -135,7 +136,8 @@ export async function POST(
       if (matchedAgent) {
         agentOId = matchedAgent.oId;
         agentName = matchedAgent.name;
-        console.log(`✅ Found agent: ${agentName} (${agentOId}) for play ${campaign.play_code}`);
+        agentType = matchedAgent.type; // EMAIL, CONTENT, etc.
+        console.log(`✅ Found agent: ${agentName} (${agentOId}) - Type: ${agentType} for play ${campaign.play_code}`);
       } else {
         return NextResponse.json(
           {
@@ -229,42 +231,130 @@ Example structure for post-conference (2010):
       constraints: campaign.additional_constraints || {}
     };
 
-    // Call Octave Content Agent API
-    console.log(`🚀 Executing play agent ${agentOId} with comprehensive runtime context...`);
-
-    const contentAgentRequest = {
-      agentOId: agentOId,
-      runtimeContext: JSON.stringify(octaveRuntimeContext), // Octave expects stringified JSON
-      email: null,
-      companyDomain: null,
-      companyName: null,
-      firstName: null,
-      jobTitle: null,
-      linkedInProfile: null,
-      customContext: {}
-    };
+    // Determine agent type and call appropriate API
+    const isSequenceAgent = agentType === 'EMAIL';
+    
+    console.log(`🚀 Executing ${isSequenceAgent ? 'SEQUENCE' : 'CONTENT'} agent ${agentOId} with comprehensive runtime context...`);
 
     let agentResponse;
+    let rawOutputContent = '';
+    let jsonContent: any = {};
+
     try {
-      const response = await axios.post(
-        `${OCTAVE_BASE_URL}/generate-content/run`,
-        contentAgentRequest,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'api_key': workspaceApiKey
-          },
-          timeout: 180000 // 3 minute timeout for campaign generation
+      if (isSequenceAgent) {
+        // ===== SEQUENCE AGENT (EMAIL) =====
+        console.log('📧 Using Sequence Agent API (/sequence/run)');
+        
+        const sequenceAgentRequest = {
+          agentOId: agentOId,
+          runtimeContext: octaveRuntimeContext, // Pass as object for sequence agents
+          email: null,
+          companyDomain: null,
+          companyName: null,
+          firstName: null,
+          jobTitle: null,
+          linkedInProfile: null,
+          outputFormat: 'text',
+          customContext: {}
+        };
+
+        const response = await axios.post(
+          'https://app.octavehq.com/api/v2/agents/sequence/run',
+          sequenceAgentRequest,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'api_key': workspaceApiKey
+            },
+            timeout: 180000 // 3 minute timeout
+          }
+        );
+
+        agentResponse = response.data;
+
+        if (!agentResponse.found || !agentResponse.data) {
+          throw new Error('Sequence agent execution failed or returned no data');
         }
-      );
 
-      agentResponse = response.data;
+        // Parse SEQUENCE agent output
+        const emails = agentResponse.data?.emails || [];
+        
+        if (emails.length === 0) {
+          throw new Error('Sequence agent returned no emails');
+        }
 
-      if (!agentResponse.found || !agentResponse.data) {
-        throw new Error('Agent execution failed or returned no data');
+        console.log(`✅ Sequence agent generated ${emails.length} emails`);
+
+        // Format emails for display and storage
+        jsonContent = { emails }; // Store structured email data
+        
+        // Concatenate all emails into raw text for highlighting
+        rawOutputContent = emails.map((email: any, index: number) => {
+          const sections = email.sections || {};
+          const emailText = `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EMAIL ${index + 1} OF ${emails.length}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SUBJECT: ${email.subject || 'No subject'}
+
+${sections.greeting || ''}
+
+${sections.opening || ''}
+
+${sections.body || ''}
+
+${sections.closing || ''}
+
+${sections.cta || ''}
+
+${sections.ps || ''}
+
+${sections.signature || '%signature%'}
+`.trim();
+          return emailText;
+        }).join('\n\n');
+
+      } else {
+        // ===== CONTENT AGENT =====
+        console.log('📄 Using Content Agent API (/generate-content/run)');
+        
+        const contentAgentRequest = {
+          agentOId: agentOId,
+          runtimeContext: JSON.stringify(octaveRuntimeContext), // Octave expects stringified JSON for content agents
+          email: null,
+          companyDomain: null,
+          companyName: null,
+          firstName: null,
+          jobTitle: null,
+          linkedInProfile: null,
+          customContext: {}
+        };
+
+        const response = await axios.post(
+          `${OCTAVE_BASE_URL}/generate-content/run`,
+          contentAgentRequest,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'api_key': workspaceApiKey
+            },
+            timeout: 180000 // 3 minute timeout
+          }
+        );
+
+        agentResponse = response.data;
+
+        if (!agentResponse.found || !agentResponse.data) {
+          throw new Error('Content agent execution failed or returned no data');
+        }
+
+        console.log('✅ Content agent execution successful');
+
+        // Parse CONTENT agent output
+        rawOutputContent = agentResponse.data?.content || '';
+        jsonContent = agentResponse.data?.jsonContent || {};
       }
-
-      console.log('✅ Agent execution successful');
 
     } catch (agentExecError: any) {
       console.error('❌ Agent execution error:', agentExecError.response?.data || agentExecError.message);
@@ -272,16 +362,12 @@ Example structure for post-conference (2010):
       return NextResponse.json(
         {
           success: false,
-          error: 'Failed to execute agent',
+          error: `Failed to execute ${isSequenceAgent ? 'sequence' : 'content'} agent`,
           details: agentExecError.response?.data?.message || agentExecError.message
         },
         { status: 500 }
       );
     }
-
-    // Extract output from agent response
-    const rawOutputContent = agentResponse.data?.content || '';
-    const jsonContent = agentResponse.data?.jsonContent || {};
 
     console.log(`📝 Raw output length: ${rawOutputContent.length} characters`);
 
