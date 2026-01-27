@@ -172,7 +172,8 @@ export default function NewCampaignContent() {
       if (result.success) {
         setIntermediaryOutputs(result.intermediaryOutputs);
         toast.success('Intermediary outputs generated!');
-        setCurrentStep('list-questions');
+        // Stay on intermediary step to let user review outputs
+        // User clicks "Continue to List Questions" button to proceed
       } else {
         toast.error(result.error || 'Failed to generate intermediary outputs');
       }

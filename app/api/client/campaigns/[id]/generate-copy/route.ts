@@ -251,9 +251,44 @@ Example structure for post-conference (2010):
         // ===== SEQUENCE AGENT (EMAIL) =====
         console.log('📧 Using Sequence Agent API (/sequence/run)');
         
+        // EMAIL agents need FLAT string key-value pairs, not nested objects
+        const flatRuntimeContext: Record<string, string> = {
+          // Campaign brief (flattened to strings)
+          meetingTranscript: campaignBrief.meeting_transcript || '',
+          writtenStrategy: campaignBrief.written_strategy || '',
+          additionalBrief: campaign.additional_brief || '',
+          campaignName: campaign.campaign_name || '',
+          campaignType: campaign.campaign_type || '',
+          
+          // Intermediary outputs (flattened to strings)
+          listBuildingInstructions: intermediary.list_building_instructions || '',
+          hook: intermediary.hook || '',
+          attractionOfferHeadline: intermediary.attraction_offer?.headline || '',
+          attractionOfferDescription: intermediary.attraction_offer?.description || '',
+          assetType: intermediary.asset?.type || '',
+          assetDescription: intermediary.asset?.description || '',
+          caseStudies: JSON.stringify(intermediary.case_studies || []),
+          clientReferences: JSON.stringify(intermediary.client_references || []),
+          
+          // Workspace elements (flattened to strings)
+          personas: JSON.stringify(runtimeContextData.personas || []),
+          useCases: JSON.stringify(runtimeContextData.use_cases || []),
+          
+          // Play configuration (flattened to strings)
+          playCode: campaign.play_code,
+          sequenceLength: String(getSequenceLengthForPlay(campaign.play_code)),
+          channel: 'email',
+          tone: 'professional',
+          
+          // Conference instructions if applicable
+          conferenceInstructions: conferenceInstructions || ''
+        };
+        
+        console.log('📊 [Sequence Agent] Flat runtime context keys:', Object.keys(flatRuntimeContext));
+        
         const sequenceAgentRequest = {
           agentOId: agentOId,
-          runtimeContext: octaveRuntimeContext, // Pass as object for sequence agents
+          runtimeContext: flatRuntimeContext, // Flat string key-value pairs
           email: null,
           companyDomain: null,
           companyName: null,
