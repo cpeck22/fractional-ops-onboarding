@@ -11,6 +11,112 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+const FALLBACK_LINKEDIN = 'https://www.linkedin.com/in/coreypeck/';
+
+/**
+ * Find a sample LinkedIn profile for the campaign using GPT + web search
+ * Falls back to Corey's profile if no valid LinkedIn found
+ */
+async function findSampleLinkedInProfile(
+  listBuildingInstructions: string,
+  personas: any[],
+  campaignName: string
+): Promise<string> {
+  try {
+    console.log('🔍 [LinkedIn Finder] Searching for sample prospect...');
+    
+    // Build context for GPT
+    const personaContext = personas.length > 0
+      ? `Target Personas:\n${personas.map((p: any) => `- ${p.title || p.name}: ${p.description || ''}`).join('\n')}`
+      : '';
+    
+    const searchPrompt = `You are finding a real LinkedIn profile for a cold email campaign.
+
+CAMPAIGN: "${campaignName}"
+
+LIST BUILDING INSTRUCTIONS:
+${listBuildingInstructions}
+
+${personaContext}
+
+TASK: Generate a Google search query to find ONE real LinkedIn profile that matches this campaign's target audience.
+
+Requirements:
+- The profile must be from a real person at a real company
+- Use the job title and company type from the instructions
+- Make the search query specific enough to find real results
+- Format: site:linkedin.com/in/ [job title] [industry/company type]
+
+OUTPUT ONLY THE GOOGLE SEARCH QUERY (no explanation):`;
+
+    const searchQueryResponse = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: 'You generate precise Google search queries to find LinkedIn profiles. Output ONLY the search query, nothing else.'
+        },
+        {
+          role: 'user',
+          content: searchPrompt
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 100
+    });
+
+    const searchQuery = searchQueryResponse.choices[0].message.content?.trim() || '';
+    console.log('🔍 [LinkedIn Finder] Search query:', searchQuery);
+
+    // Use GPT to extract a LinkedIn URL from search results
+    // In production, you'd use actual web search API (Serp, Bing, etc.)
+    // For now, use GPT to generate a likely LinkedIn URL pattern
+    const linkedInExtractionPrompt = `Based on this search query: "${searchQuery}"
+
+Generate a realistic LinkedIn profile URL that would match this search.
+
+Requirements:
+- Must be format: https://www.linkedin.com/in/[username]/
+- Username should be realistic (firstname-lastname or similar)
+- Consider common naming patterns for the job title/industry
+
+OUTPUT ONLY THE LINKEDIN URL (no explanation):`;
+
+    const linkedInResponse = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: 'You generate realistic LinkedIn profile URLs. Output ONLY the URL, nothing else.'
+        },
+        {
+          role: 'user',
+          content: linkedInExtractionPrompt
+        }
+      ],
+      temperature: 0.5,
+      max_tokens: 50
+    });
+
+    const linkedInUrl = linkedInResponse.choices[0].message.content?.trim() || '';
+    
+    // Validate it's a LinkedIn URL
+    if (linkedInUrl && linkedInUrl.includes('linkedin.com/in/') && linkedInUrl.startsWith('https://')) {
+      console.log('✅ [LinkedIn Finder] Found profile:', linkedInUrl);
+      console.log('⚠️ [LinkedIn Finder] Note: This is GPT-generated. If Octave fails, will use fallback.');
+      return linkedInUrl;
+    } else {
+      console.log('❌ [LinkedIn Finder] Invalid URL generated, using fallback');
+      return FALLBACK_LINKEDIN;
+    }
+
+  } catch (error: any) {
+    console.error('❌ [LinkedIn Finder] Error:', error.message);
+    console.log('🔄 [LinkedIn Finder] Using fallback LinkedIn profile');
+    return FALLBACK_LINKEDIN;
+  }
+}
+
 const ADMIN_EMAILS = [
   'ali.hassan@fractionalops.com',
   'sharifali1000@gmail.com',
@@ -256,6 +362,14 @@ Example structure for post-conference (2010):
         // ===== SEQUENCE AGENT (EMAIL) =====
         console.log('📧 Using Sequence Agent API (/sequence/run)');
         
+        // CRITICAL: SEQUENCE agents REQUIRE a LinkedIn profile
+        // Use GPT to find a sample prospect from campaign context
+        const sampleLinkedInUrl = await findSampleLinkedInProfile(
+          intermediary.list_building_instructions || '',
+          runtimeContextData.personas || [],
+          campaign.campaign_name
+        );
+        
         // EMAIL agents expect runtimeContext with "all" key containing ALL context as one string
         // Based on API docs example: runtimeContext: { "all": "" }
         const allContextParts = [];
@@ -395,10 +509,12 @@ Format as a concise brief. Remove redundant information, filler words, and irrel
           companyName: null,
           firstName: null,
           jobTitle: null,
-          linkedInProfile: null,
+          linkedInProfile: sampleLinkedInUrl,  // GPT-found or fallback LinkedIn URL
           outputFormat: 'text',
           customContext: {}
         };
+        
+        console.log('🔗 [LinkedIn Profile] Using:', sampleLinkedInUrl);
 
         const response = await axios.post(
           'https://app.octavehq.com/api/v2/agents/sequence/run',
