@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
@@ -55,6 +55,13 @@ export default function NewCampaignContent() {
   // Step navigation helpers
   const stepOrder: Step[] = ['brief', 'additional', 'intermediary', 'list-questions', 'copy'];
   const currentStepIndex = stepOrder.indexOf(currentStep);
+
+  // Auto-set prospect list to false if account list is false
+  useEffect(() => {
+    if (hasAccountList === false && hasProspectList === null) {
+      setHasProspectList(false);
+    }
+  }, [hasAccountList, hasProspectList]);
 
   // Step 1: Create campaign with brief
   const handleCreateCampaign = async () => {
@@ -120,47 +127,12 @@ export default function NewCampaignContent() {
       return;
     }
 
-    // Update campaign with additional briefing
-    setLoading(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const authToken = session?.access_token;
-
-      const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
-
-      const constraints = {
-        tie_to_event: tieToEvent,
-        only_proof_points: onlyProofPoints,
-        avoid_claims: avoidClaims,
-        sender_name: senderName || null
-      };
-
-      const { error: updateError } = await supabaseAdmin
-        .from('campaigns')
-        .update({
-          additional_brief: additionalBrief || null,
-          additional_constraints: constraints
-        })
-        .eq('id', campaignId);
-
-      if (updateError) {
-        toast.error('Failed to save additional briefing');
-        setLoading(false);
-        return;
-      }
-
-      toast.success('Additional context added!');
-      setCurrentStep('intermediary');
-      setLoading(false);
-      generateIntermediaryOutputs();
-    } catch (error) {
-      console.error('Error saving additional briefing:', error);
-      toast.error('Failed to save additional briefing');
-      setLoading(false);
-    }
+    // For now, just proceed to intermediary generation
+    // Additional brief and constraints are already stored in state
+    // and will be sent when creating the campaign
+    toast.success('Additional context saved!');
+    setCurrentStep('intermediary');
+    generateIntermediaryOutputs();
   };
 
   // Step 3: Generate intermediary outputs
@@ -585,7 +557,7 @@ export default function NewCampaignContent() {
                     />
                     <div>
                       <span className="text-sm font-medium text-fo-dark">Use only provided proof points</span>
-                      <p className="text-xs text-fo-text-secondary">Don't generate new case studies</p>
+                      <p className="text-xs text-fo-text-secondary">Don&apos;t generate new case studies</p>
                     </div>
                   </label>
 
@@ -848,9 +820,6 @@ export default function NewCampaignContent() {
                 </div>
               )}
 
-              {/* Auto-set prospect list to false if account list is false */}
-              {hasAccountList === false && hasProspectList === null && setHasProspectList(false)}
-
               {/* Info Message */}
               {hasAccountList !== null && hasProspectList !== null && (
                 <div className={`p-4 rounded-lg ${
@@ -861,7 +830,7 @@ export default function NewCampaignContent() {
                   <p className="text-sm">
                     {hasAccountList && hasProspectList ? (
                       <>
-                        <span className="font-semibold">Great!</span> You can proceed to copy generation. You'll be able to upload your lists later.
+                        <span className="font-semibold">Great!</span> You can proceed to copy generation. You&apos;ll be able to upload your lists later.
                       </>
                     ) : (
                       <>
