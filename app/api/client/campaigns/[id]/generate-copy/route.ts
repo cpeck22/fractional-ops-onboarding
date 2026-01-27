@@ -414,14 +414,49 @@ Format as a concise brief. Remove redundant information, filler words, and irrel
 
         agentResponse = response.data;
 
+        // EXPLICIT LOGGING - OUTPUT EVERYTHING ABOUT THE RESPONSE
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🔍 [SEQUENCE AGENT RESPONSE - FULL DIAGNOSTIC]');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('📦 Response Status:', response.status);
+        console.log('📦 Response Status Text:', response.statusText);
+        console.log('📦 Response Keys:', Object.keys(agentResponse || {}));
+        console.log('📦 Full Response Object:', JSON.stringify(agentResponse, null, 2));
+        console.log('');
+        console.log('🔎 Checking specific fields:');
+        console.log('  - agentResponse.found:', agentResponse?.found, '(type:', typeof agentResponse?.found, ')');
+        console.log('  - agentResponse.data:', agentResponse?.data ? 'EXISTS' : 'MISSING', '(type:', typeof agentResponse?.data, ')');
+        console.log('  - agentResponse.data keys:', agentResponse?.data ? Object.keys(agentResponse.data) : 'N/A');
+        console.log('  - agentResponse.data.emails:', agentResponse?.data?.emails ? `ARRAY with ${agentResponse.data.emails.length} items` : 'MISSING');
+        console.log('  - agentResponse.error:', agentResponse?.error || 'NONE');
+        console.log('  - agentResponse.message:', agentResponse?.message || 'NONE');
+        console.log('');
+        
+        if (agentResponse?.data?.emails && agentResponse.data.emails.length > 0) {
+          console.log('📧 First Email Sample:');
+          console.log('  - Subject:', agentResponse.data.emails[0].subject);
+          console.log('  - Sections:', Object.keys(agentResponse.data.emails[0].sections || {}));
+        }
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
         if (!agentResponse.found || !agentResponse.data) {
+          console.error('❌ [SEQUENCE AGENT] Validation failed:');
+          console.error('   - found check:', !agentResponse.found ? 'FAILED ❌' : 'PASSED ✅');
+          console.error('   - data check:', !agentResponse.data ? 'FAILED ❌' : 'PASSED ✅');
           throw new Error('Sequence agent execution failed or returned no data');
         }
 
         // Parse SEQUENCE agent output
         const emails = agentResponse.data?.emails || [];
         
+        console.log('📧 [EMAIL PARSING] Extracted emails array:', {
+          length: emails.length,
+          isArray: Array.isArray(emails),
+          firstEmailKeys: emails[0] ? Object.keys(emails[0]) : 'N/A'
+        });
+        
         if (emails.length === 0) {
+          console.error('❌ [EMAIL PARSING] No emails found in response!');
           throw new Error('Sequence agent returned no emails');
         }
 
@@ -499,7 +534,29 @@ ${sections.signature || '%signature%'}
       }
 
     } catch (agentExecError: any) {
-      console.error('❌ Agent execution error:', agentExecError.response?.data || agentExecError.message);
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.error('❌ [AGENT EXECUTION ERROR - FULL DIAGNOSTIC]');
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.error('🔥 Error Type:', agentExecError.constructor.name);
+      console.error('🔥 Error Message:', agentExecError.message);
+      console.error('🔥 Error Stack:', agentExecError.stack);
+      
+      if (agentExecError.response) {
+        // Axios error with response
+        console.error('📡 HTTP Response Error:');
+        console.error('  - Status:', agentExecError.response.status);
+        console.error('  - Status Text:', agentExecError.response.statusText);
+        console.error('  - Response Data:', JSON.stringify(agentExecError.response.data, null, 2));
+        console.error('  - Response Headers:', agentExecError.response.headers);
+      } else if (agentExecError.request) {
+        // Axios error with request but no response
+        console.error('📡 HTTP Request Error (No Response):');
+        console.error('  - Request:', agentExecError.request);
+      } else {
+        // Other error
+        console.error('🔥 Non-HTTP Error:', agentExecError);
+      }
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       return NextResponse.json(
         {
