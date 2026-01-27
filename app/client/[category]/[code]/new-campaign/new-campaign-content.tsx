@@ -66,22 +66,53 @@ export default function NewCampaignContent() {
 
   // Step 1: Create campaign with brief
   const handleCreateCampaign = async () => {
+    console.log('🚀 [Frontend - Campaign Creation] handleCreateCampaign called');
+    console.log('📊 [Frontend - Campaign Creation] Campaign data:', {
+      campaignName: campaignName?.trim(),
+      playCode: code,
+      playCategory: category,
+      hasMeetingTranscript: !!meetingTranscript?.trim(),
+      hasWrittenStrategy: !!writtenStrategy?.trim(),
+      hasDocuments: !!documents?.trim(),
+      hasBlogPosts: !!blogPosts?.trim(),
+      hasAdditionalBrief: !!additionalBrief?.trim(),
+      impersonateUserId
+    });
+
     if (!campaignName.trim()) {
+      console.error('❌ [Frontend - Campaign Creation] Validation failed: No campaign name');
       toast.error('Campaign name is required');
       return;
     }
 
     if (!meetingTranscript && !writtenStrategy && !documents && !blogPosts) {
+      console.error('❌ [Frontend - Campaign Creation] Validation failed: No brief provided');
       toast.error('Please provide at least one type of campaign brief input');
       return;
     }
 
+    console.log('✅ [Frontend - Campaign Creation] Validation passed, creating campaign...');
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
+      console.log('🔐 [Frontend - Campaign Creation] Got auth session:', !!authToken);
 
       const url = addImpersonateParam('/api/client/campaigns', impersonateUserId);
+      console.log('🌐 [Frontend - Campaign Creation] API URL:', url);
+
+      const requestBody = {
+        playCode: code,
+        campaignName,
+        campaignBrief: {
+          meeting_transcript: meetingTranscript || null,
+          written_strategy: writtenStrategy || null
+        },
+        additionalBrief: additionalBrief?.trim() || null
+      };
+      console.log('📤 [Frontend - Campaign Creation] Request body:', requestBody);
+
+      console.log('⏳ [Frontend - Campaign Creation] Sending POST request...');
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -89,31 +120,28 @@ export default function NewCampaignContent() {
           ...(authToken && { Authorization: `Bearer ${authToken}` })
         },
         credentials: 'include',
-        body: JSON.stringify({
-          playCode: code,
-          campaignName,
-          campaignBrief: {
-            meeting_transcript: meetingTranscript || null,
-            written_strategy: writtenStrategy || null
-          },
-          additionalBrief: additionalBrief?.trim() || null
-        })
+        body: JSON.stringify(requestBody)
       });
 
+      console.log('📥 [Frontend - Campaign Creation] Response status:', response.status, response.statusText);
+      
       const result = await response.json();
+      console.log('📊 [Frontend - Campaign Creation] Response data:', result);
 
       if (result.success) {
+        console.log('✅ [Frontend - Campaign Creation] Campaign created successfully:', result.campaign.id);
         setCampaignId(result.campaign.id);
         toast.success('Campaign created! Generating intermediary outputs...');
         setCurrentStep('intermediary');
         // Auto-generate intermediary outputs
         setTimeout(() => generateIntermediaryOutputs(result.campaign.id), 500);
       } else {
+        console.error('❌ [Frontend - Campaign Creation] Campaign creation failed:', result.error, result.details);
         toast.error(result.error || 'Failed to create campaign');
       }
       setLoading(false);
     } catch (error) {
-      console.error('Error creating campaign:', error);
+      console.error('❌ [Frontend - Campaign Creation] Exception creating campaign:', error);
       toast.error('Failed to create campaign');
       setLoading(false);
     }

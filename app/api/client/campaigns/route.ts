@@ -13,6 +13,8 @@ const ADMIN_EMAILS = [
 // POST - Create new campaign for any play
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚀 [Campaign Creation] POST /api/client/campaigns started');
+    
     const body = await request.json();
     const { 
       playCode, 
@@ -21,8 +23,16 @@ export async function POST(request: NextRequest) {
       additionalBrief 
     } = body;
 
+    console.log('📥 [Campaign Creation] Received request:', {
+      playCode,
+      campaignName,
+      hasCampaignBrief: !!campaignBrief,
+      hasAdditionalBrief: !!additionalBrief
+    });
+
     // Validation
     if (!playCode || !campaignName || !campaignName.trim()) {
+      console.error('❌ [Campaign Creation] Validation failed: Missing playCode or campaignName');
       return NextResponse.json(
         { success: false, error: 'playCode and campaignName are required' },
         { status: 400 }
@@ -30,10 +40,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Get authenticated user
+    console.log('🔐 [Campaign Creation] Authenticating user...');
     const { user, error: authError } = await getAuthenticatedUser(request);
     if (authError || !user) {
+      console.error('❌ [Campaign Creation] Authentication failed:', authError);
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
+    console.log('✅ [Campaign Creation] User authenticated:', user.email);
 
     // Check for impersonation
     const { searchParams } = new URL(request.url);
@@ -41,14 +54,17 @@ export async function POST(request: NextRequest) {
     let effectiveUserId = user.id;
 
     if (impersonateUserId) {
+      console.log('👤 [Campaign Creation] Impersonation detected:', impersonateUserId);
       const isAdmin = ADMIN_EMAILS.some(email => email.toLowerCase() === user.email?.toLowerCase());
       if (!isAdmin) {
+        console.error('❌ [Campaign Creation] Impersonation denied: User is not admin');
         return NextResponse.json(
           { success: false, error: 'Unauthorized: Admin access required for impersonation' },
           { status: 403 }
         );
       }
       effectiveUserId = impersonateUserId;
+      console.log('✅ [Campaign Creation] Impersonation authorized. Effective user ID:', effectiveUserId);
     }
 
     const supabaseAdmin = createClient(
@@ -57,20 +73,49 @@ export async function POST(request: NextRequest) {
     );
 
     // Verify play exists and is active
-    const { data: play, error: playError } = await supabaseAdmin
+    console.log(`🔍 [Campaign Creation] Looking up play: "${playCode}" in claire_plays table`);
+    
+    // First, let's see if the play exists at all (without .single())
+    const { data: allPlays, error: allPlaysError } = await supabaseAdmin
       .from('claire_plays')
       .select('code, name, is_active')
-      .eq('code', playCode)
-      .single();
+      .eq('code', playCode);
+    
+    console.log(`📊 [Campaign Creation] Play lookup results for "${playCode}":`, {
+      found: allPlays?.length || 0,
+      plays: allPlays,
+      error: allPlaysError
+    });
 
-    if (playError || !play) {
+    if (allPlaysError) {
+      console.error('❌ [Campaign Creation] Database error looking up play:', allPlaysError);
       return NextResponse.json(
-        { success: false, error: `Play code "${playCode}" not found` },
+        { success: false, error: `Database error: ${allPlaysError.message}` },
+        { status: 500 }
+      );
+    }
+
+    if (!allPlays || allPlays.length === 0) {
+      console.error(`❌ [Campaign Creation] Play "${playCode}" not found in database`);
+      return NextResponse.json(
+        { success: false, error: `Play code "${playCode}" not found. Please ensure the play exists in claire_plays table.` },
         { status: 404 }
       );
     }
 
+    if (allPlays.length > 1) {
+      console.error(`❌ [Campaign Creation] Multiple plays found with code "${playCode}":`, allPlays);
+      return NextResponse.json(
+        { success: false, error: `Multiple plays found with code "${playCode}". Database integrity issue.` },
+        { status: 500 }
+      );
+    }
+
+    const play = allPlays[0];
+    console.log(`✅ [Campaign Creation] Play found:`, { code: play.code, name: play.name, isActive: play.is_active });
+
     if (!play.is_active) {
+      console.error(`❌ [Campaign Creation] Play "${playCode}" is inactive`);
       return NextResponse.json(
         { success: false, error: `Play "${playCode}" is not active` },
         { status: 400 }
@@ -78,6 +123,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get workspace API key
+    console.log('🔍 [Campaign Creation] Fetching workspace for user:', effectiveUserId);
     const { data: workspaceData, error: workspaceError } = await supabaseAdmin
       .from('octave_outputs')
       .select('workspace_api_key, workspace_oid')
@@ -87,44 +133,60 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (workspaceError || !workspaceData?.workspace_api_key) {
+      console.error('❌ [Campaign Creation] No workspace found:', workspaceError);
       return NextResponse.json(
         { success: false, error: 'No workspace found. Please complete onboarding first.' },
         { status: 404 }
       );
     }
+    console.log('✅ [Campaign Creation] Workspace found:', workspaceData.workspace_oid);
 
     // Create campaign (campaign_type auto-derived from play)
+    console.log('📝 [Campaign Creation] Creating campaign in database...');
+    const campaignData = {
+      user_id: effectiveUserId,
+      play_code: playCode,
+      campaign_name: campaignName.trim(),
+      campaign_type: play.name, // Use play name as campaign type
+      campaign_brief: campaignBrief || {},
+      additional_brief: additionalBrief?.trim() || null,
+      workspace_api_key: workspaceData.workspace_api_key,
+      workspace_oid: workspaceData.workspace_oid,
+      status: 'draft',
+      approval_status: 'draft',
+      list_status: 'pending_questions',
+      intermediary_outputs: {},
+      runtime_context: {},
+      final_outputs: {},
+      list_data: {}
+    };
+    
+    console.log('📊 [Campaign Creation] Campaign data:', {
+      userId: effectiveUserId,
+      playCode,
+      campaignName: campaignName.trim(),
+      campaignType: play.name
+    });
+
     const { data: campaign, error: campaignError } = await supabaseAdmin
       .from('campaigns')
-      .insert({
-        user_id: effectiveUserId,
-        play_code: playCode,
-        campaign_name: campaignName.trim(),
-        campaign_type: play.name, // Use play name as campaign type
-        campaign_brief: campaignBrief || {},
-        additional_brief: additionalBrief?.trim() || null,
-        workspace_api_key: workspaceData.workspace_api_key,
-        workspace_oid: workspaceData.workspace_oid,
-        status: 'draft',
-        approval_status: 'draft',
-        list_status: 'pending_questions',
-        intermediary_outputs: {},
-        runtime_context: {},
-        final_outputs: {},
-        list_data: {}
-      })
+      .insert(campaignData)
       .select('*')
       .single();
 
     if (campaignError) {
-      console.error('❌ Error creating campaign:', campaignError);
+      console.error('❌ [Campaign Creation] Database error creating campaign:', campaignError);
       return NextResponse.json(
         { success: false, error: 'Failed to create campaign', details: campaignError.message },
         { status: 500 }
       );
     }
 
-    console.log('✅ Campaign created:', campaign.id);
+    console.log('✅ [Campaign Creation] Campaign created successfully:', {
+      id: campaign.id,
+      name: campaign.campaign_name,
+      playCode: campaign.play_code
+    });
 
     return NextResponse.json({
       success: true,
