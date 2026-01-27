@@ -235,8 +235,26 @@ export default function ApprovalsPageContent() {
     );
   }
 
+  const viewCampaignsUrl = impersonateUserId
+    ? `/client/outbound-campaigns?impersonate=${impersonateUserId}`
+    : '/client/outbound-campaigns';
+
   return (
     <div className="max-w-7xl mx-auto">
+      {/* Header with View All Campaigns button */}
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-fo-dark mb-2">Approvals</h1>
+          <p className="text-fo-text-secondary">Review and approve campaigns and plays</p>
+        </div>
+        <Link
+          href={viewCampaignsUrl}
+          className="inline-flex items-center gap-2 px-4 py-2 border border-fo-border text-fo-dark rounded-lg hover:bg-fo-light transition-colors"
+        >
+          View All Campaigns
+        </Link>
+      </div>
+
       {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <Link

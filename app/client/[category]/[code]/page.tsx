@@ -351,8 +351,21 @@ Please output the exact same output but take the feedback the CEO provided in th
           <ChevronLeft className="w-4 h-4 inline mr-1" strokeWidth={2} />
           Back to {category} plays
         </Link>
-        <h1 className="text-3xl font-bold text-fo-dark mb-2">{play.name}</h1>
-        <p className="text-fo-text-secondary">Play Code: {play.code}</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-fo-dark mb-2">{play.name}</h1>
+            <p className="text-fo-text-secondary">Play Code: {play.code}</p>
+          </div>
+          <Link
+            href={impersonateUserId 
+              ? `/client/${category}/${code}/new-campaign?impersonate=${impersonateUserId}`
+              : `/client/${category}/${code}/new-campaign`
+            }
+            className="px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark transition-colors text-sm font-semibold"
+          >
+            Create Full Campaign
+          </Link>
+        </div>
       </div>
 
       {!execution ? (

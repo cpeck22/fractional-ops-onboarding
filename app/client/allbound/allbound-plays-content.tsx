@@ -7,6 +7,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
 import { AlertTriangle } from 'lucide-react';
+import { getPlayDescription } from '@/lib/play-descriptions';
 
 interface Play {
   code: string;
@@ -101,6 +102,12 @@ export default function AllboundPlaysPageContent() {
               <h3 className="text-lg font-semibold text-fo-dark mb-2">
                 {play.name}
               </h3>
+              
+              {getPlayDescription(play.code) && (
+                <p className="text-sm text-fo-text-secondary leading-relaxed mb-3">
+                  {getPlayDescription(play.code)}
+                </p>
+              )}
               
               {isDisabled && (
                 <p className="text-xs text-fo-text-secondary mt-2">

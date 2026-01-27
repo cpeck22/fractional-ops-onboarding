@@ -7,6 +7,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
 import { AlertTriangle, Plus } from 'lucide-react';
+import { getPlayDescription } from '@/lib/play-descriptions';
 
 interface Play {
   code: string;
@@ -83,12 +84,6 @@ export default function OutboundPlaysPageContent() {
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href={viewCampaignsUrl}
-            className="inline-flex items-center gap-2 px-4 py-2 border border-fo-border text-fo-dark rounded-lg hover:bg-fo-light transition-colors"
-          >
-            View All Campaigns
-          </Link>
-          <Link
             href={createCampaignUrl}
             className="inline-flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark transition-colors"
           >
@@ -131,6 +126,12 @@ export default function OutboundPlaysPageContent() {
               <h3 className="text-lg font-semibold text-fo-dark mb-2">
                 {play.name}
               </h3>
+              
+              {getPlayDescription(play.code) && (
+                <p className="text-sm text-fo-text-secondary leading-relaxed mb-3">
+                  {getPlayDescription(play.code)}
+                </p>
+              )}
               
               {isDisabled && (
                 <p className="text-xs text-fo-text-secondary mt-2">

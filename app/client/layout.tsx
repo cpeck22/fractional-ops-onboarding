@@ -7,7 +7,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Image from 'next/image';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { LayoutDashboard, RefreshCw, Send, Heart, CheckCircle2, ChevronLeft, ChevronRight, Menu, X, Settings, ChevronDown, ChevronUp, Target, FileText, BarChart3, Users, ListChecks, Building2, MessageCircle } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Send, Heart, CheckCircle2, ChevronLeft, ChevronRight, Menu, X, Settings, ChevronDown, ChevronUp, Target, FileText, BarChart3, Users, ListChecks, Building2, MessageCircle, Rocket } from 'lucide-react';
 
 // Admin emails that can impersonate clients
 const ADMIN_EMAILS = [
@@ -152,6 +152,7 @@ export default function ClientLayout({
         { href: '/client/allbound', label: 'Signal Based (Always On)', icon: RefreshCw },
         { href: '/client/outbound', label: 'Campaigns', icon: Send },
         { href: '/client/nurture', label: 'CRM Nurture', icon: Heart },
+        { href: '/client/outbound-campaigns', label: 'Launch Status', icon: Rocket },
         { href: '/client/account-based-marketing', label: 'Account-Based Marketing', icon: Building2, comingSoon: true },
       ],
     },
@@ -160,7 +161,6 @@ export default function ClientLayout({
       label: 'Command Centre',
       icon: ListChecks,
       items: [
-        { href: '/client/prospect-lists', label: 'Prospect Lists (by Tactic)', icon: Users, comingSoon: true },
         { href: '/client/approvals', label: 'Reviews & Approvals', icon: CheckCircle2 },
       ],
     },
@@ -342,8 +342,8 @@ export default function ClientLayout({
                   {pathname === '/client/allbound' && 'Signal Based (Always On)'}
                   {pathname === '/client/outbound' && 'Campaigns'}
                   {pathname === '/client/nurture' && 'CRM Nurture'}
+                  {pathname === '/client/outbound-campaigns' && 'Launch Status'}
                   {pathname === '/client/account-based-marketing' && 'Account-Based Marketing'}
-                  {pathname === '/client/prospect-lists' && 'Prospect Lists (by Tactic)'}
                   {pathname === '/client/approvals' && 'Reviews & Approvals'}
                   {pathname?.startsWith('/client/approve/') && 'Review Approval'}
                   {pathname?.match(/\/client\/(allbound|outbound|nurture)\/\d+/) && 'Play Execution'}
