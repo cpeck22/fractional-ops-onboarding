@@ -146,7 +146,7 @@ export default function ClientLayout({
     },
     {
       id: 'allboundTactics',
-      label: 'Allbound Tactics',
+      label: 'Allbound Tactic Builder',
       icon: RefreshCw,
       items: [
         { href: '/client/allbound', label: 'Signal Based (Always On)', icon: RefreshCw },
