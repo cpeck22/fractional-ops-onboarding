@@ -9,7 +9,7 @@ import { addImpersonateParam } from '@/lib/client-api-helpers';
 import { ChevronLeft, Loader2, ChevronRight, FileText, MessageSquare, Lightbulb, List, Mail, CheckCircle, Upload } from 'lucide-react';
 import { renderHighlightedContent } from '@/lib/render-highlights';
 
-type Step = 'brief' | 'additional' | 'intermediary' | 'list-questions' | 'copy';
+type Step = 'brief' | 'intermediary' | 'list-questions' | 'copy';
 
 export default function NewCampaignContent() {
   const router = useRouter();
@@ -53,7 +53,7 @@ export default function NewCampaignContent() {
   const [loading, setLoading] = useState(false);
 
   // Step navigation helpers
-  const stepOrder: Step[] = ['brief', 'additional', 'intermediary', 'list-questions', 'copy'];
+  const stepOrder: Step[] = ['brief', 'intermediary', 'list-questions', 'copy'];
   const currentStepIndex = stepOrder.indexOf(currentStep);
 
   // Auto-set prospect list to false if account list is false
@@ -94,11 +94,9 @@ export default function NewCampaignContent() {
           campaignType: campaignType || null,
           campaignBrief: {
             meeting_transcript: meetingTranscript || null,
-            written_strategy: writtenStrategy || null,
-            documents: documents ? documents.split('\n').filter(Boolean) : [],
-            blog_posts: blogPosts ? blogPosts.split('\n').filter(Boolean) : []
+            written_strategy: writtenStrategy || null
           },
-          additionalBrief: null // Will be added in next step
+          additionalBrief: additionalBrief?.trim() || null
         })
       });
 
@@ -106,8 +104,10 @@ export default function NewCampaignContent() {
 
       if (result.success) {
         setCampaignId(result.campaign.id);
-        toast.success('Campaign created!');
-        setCurrentStep('additional');
+        toast.success('Campaign created! Generating intermediary outputs...');
+        setCurrentStep('intermediary');
+        // Auto-generate intermediary outputs
+        setTimeout(() => generateIntermediaryOutputs(result.campaign.id), 500);
       } else {
         toast.error(result.error || 'Failed to create campaign');
       }
@@ -119,32 +119,17 @@ export default function NewCampaignContent() {
     }
   };
 
-  // Step 2: Add additional briefing (optional)
-  const handleAddAdditionalBriefing = async (skip: boolean = false) => {
-    if (skip) {
-      setCurrentStep('intermediary');
-      generateIntermediaryOutputs();
-      return;
-    }
-
-    // For now, just proceed to intermediary generation
-    // Additional brief and constraints are already stored in state
-    // and will be sent when creating the campaign
-    toast.success('Additional context saved!');
-    setCurrentStep('intermediary');
-    generateIntermediaryOutputs();
-  };
-
-  // Step 3: Generate intermediary outputs
-  const generateIntermediaryOutputs = async () => {
-    if (!campaignId) return;
+  // Step 2: Generate intermediary outputs
+  const generateIntermediaryOutputs = async (id?: string) => {
+    const targetCampaignId = id || campaignId;
+    if (!targetCampaignId) return;
 
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
 
-      const url = addImpersonateParam(`/api/client/campaigns/${campaignId}/intermediary`, impersonateUserId);
+      const url = addImpersonateParam(`/api/client/campaigns/${targetCampaignId}/intermediary`, impersonateUserId);
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -171,7 +156,7 @@ export default function NewCampaignContent() {
     }
   };
 
-  // Step 4: Answer list building questions
+  // Step 3: Answer list building questions
   const handleListQuestions = async () => {
     if (hasAccountList === null || hasProspectList === null) {
       toast.error('Please answer both list questions');
@@ -214,7 +199,7 @@ export default function NewCampaignContent() {
     }
   };
 
-  // Step 5: Generate campaign copy
+  // Step 4: Generate campaign copy
   const generateCopy = async () => {
     if (!campaignId) return;
 
@@ -252,7 +237,7 @@ export default function NewCampaignContent() {
     }
   };
 
-  // Step 5: Approve copy
+  // Step 4 (final): Approve copy
   const handleApproveCopy = async () => {
     if (!editedCopy.trim()) {
       toast.error('Copy cannot be empty');
@@ -326,14 +311,12 @@ export default function NewCampaignContent() {
             const isCompleted = index < currentStepIndex;
             const stepLabels: Record<Step, string> = {
               brief: 'Campaign Brief',
-              additional: 'Additional Context',
               intermediary: 'Intermediary Outputs',
               'list-questions': 'List Questions',
               copy: 'Copy Review'
             };
             const stepIcons: Record<Step, any> = {
               brief: FileText,
-              additional: MessageSquare,
               intermediary: Lightbulb,
               'list-questions': List,
               copy: Mail
@@ -390,22 +373,24 @@ export default function NewCampaignContent() {
                 />
               </div>
 
-              {/* Campaign Type */}
-              <div>
-                <label className="block text-sm font-semibold text-fo-dark mb-2">
-                  Campaign Type
-                </label>
-                <select
-                  value={campaignType}
-                  onChange={(e) => setCampaignType(e.target.value)}
-                  className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent"
-                >
-                  <option value="">Select campaign type...</option>
-                  {campaignTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
+              {/* Campaign Type - Only show for plays where it matters (conferences, etc.) */}
+              {(code === '2009' || code === '2010') && (
+                <div>
+                  <label className="block text-sm font-semibold text-fo-dark mb-2">
+                    Campaign Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={campaignType}
+                    onChange={(e) => setCampaignType(e.target.value)}
+                    className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent"
+                  >
+                    <option value="">Select campaign type...</option>
+                    {campaignTypes.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Meeting Transcript */}
               <div>
@@ -441,36 +426,25 @@ export default function NewCampaignContent() {
                 />
               </div>
 
-              {/* Documents */}
+              {/* Additional Context - combines documents, blog posts, constraints */}
               <div>
                 <label className="block text-sm font-semibold text-fo-dark mb-2">
-                  Documents <span className="text-fo-text-secondary font-normal">(Optional)</span>
+                  Additional Context <span className="text-fo-text-secondary font-normal">(Optional)</span>
                 </label>
                 <p className="text-xs text-fo-text-secondary mb-2">
-                  Paste document content or URLs (one per line)
+                  Add any extra context: document links, blog post URLs, must-include lines, exclusions, style constraints, compliance requirements, sender preferences, etc.
                 </p>
                 <textarea
-                  value={documents}
-                  onChange={(e) => setDocuments(e.target.value)}
-                  placeholder="Document content or URLs (one per line)..."
-                  rows={4}
-                  className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent font-mono text-sm"
-                />
-              </div>
-
-              {/* Blog Posts */}
-              <div>
-                <label className="block text-sm font-semibold text-fo-dark mb-2">
-                  Blog Posts/Articles <span className="text-fo-text-secondary font-normal">(Optional)</span>
-                </label>
-                <p className="text-xs text-fo-text-secondary mb-2">
-                  URLs to relevant blog posts or articles (one per line)
-                </p>
-                <textarea
-                  value={blogPosts}
-                  onChange={(e) => setBlogPosts(e.target.value)}
-                  placeholder="Blog post URLs (one per line)..."
-                  rows={4}
+                  value={additionalBrief}
+                  onChange={(e) => setAdditionalBrief(e.target.value)}
+                  placeholder="Example:
+- Blog post: https://company.com/blog/article
+- Document: https://docs.google.com/...
+- Must include: Our Q4 case study with Acme Corp
+- Style: Professional but conversational
+- Send from: Sarah Johnson, VP Sales
+- Compliance: Avoid revenue claims"
+                  rows={8}
                   className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent font-mono text-sm"
                 />
               </div>
@@ -504,130 +478,7 @@ export default function NewCampaignContent() {
           </div>
         )}
 
-        {/* STEP 2: Additional Briefing (Optional) */}
-        {currentStep === 'additional' && (
-          <div>
-            <h1 className="text-3xl font-bold text-fo-dark mb-2">Additional Context (Optional)</h1>
-            <p className="text-fo-text-secondary mb-8">
-              Add any additional context to help generate better copy. This step is optional.
-            </p>
-
-            <div className="space-y-6">
-              {/* Additional Brief Text */}
-              <div>
-                <label className="block text-sm font-semibold text-fo-dark mb-2">
-                  Additional Context
-                </label>
-                <p className="text-xs text-fo-text-secondary mb-2">
-                  Any extra instructions, must-include lines, exclusions, style constraints, or compliance requirements
-                </p>
-                <textarea
-                  value={additionalBrief}
-                  onChange={(e) => setAdditionalBrief(e.target.value)}
-                  placeholder="Add any additional context here..."
-                  rows={8}
-                  className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent"
-                />
-              </div>
-
-              {/* Constraint Toggles */}
-              <div className="border-t border-fo-border pt-6">
-                <h3 className="text-lg font-semibold text-fo-dark mb-4">Campaign Constraints</h3>
-                
-                <div className="space-y-3">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={tieToEvent}
-                      onChange={(e) => setTieToEvent(e.target.checked)}
-                      className="w-5 h-5 text-fo-primary border-fo-border rounded focus:ring-2 focus:ring-fo-primary"
-                    />
-                    <div>
-                      <span className="text-sm font-medium text-fo-dark">Strictly tie message to event context</span>
-                      <p className="text-xs text-fo-text-secondary">For conference/webinar plays</p>
-                    </div>
-                  </label>
-
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={onlyProofPoints}
-                      onChange={(e) => setOnlyProofPoints(e.target.checked)}
-                      className="w-5 h-5 text-fo-primary border-fo-border rounded focus:ring-2 focus:ring-fo-primary"
-                    />
-                    <div>
-                      <span className="text-sm font-medium text-fo-dark">Use only provided proof points</span>
-                      <p className="text-xs text-fo-text-secondary">Don&apos;t generate new case studies</p>
-                    </div>
-                  </label>
-
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={avoidClaims}
-                      onChange={(e) => setAvoidClaims(e.target.checked)}
-                      className="w-5 h-5 text-fo-primary border-fo-border rounded focus:ring-2 focus:ring-fo-primary"
-                    />
-                    <div>
-                      <span className="text-sm font-medium text-fo-dark">Avoid unverifiable claims</span>
-                      <p className="text-xs text-fo-text-secondary">Compliance-safe copy only</p>
-                    </div>
-                  </label>
-
-                  <div>
-                    <label className="block text-sm font-medium text-fo-dark mb-2">
-                      Send only from (optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={senderName}
-                      onChange={(e) => setSenderName(e.target.value)}
-                      placeholder="e.g., Luke Smith"
-                      className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8 flex justify-between">
-              <button
-                onClick={() => setCurrentStep('brief')}
-                className="px-6 py-2 border border-fo-border rounded-lg text-fo-dark hover:bg-fo-light transition-colors"
-              >
-                Back
-              </button>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => handleAddAdditionalBriefing(true)}
-                  disabled={loading}
-                  className="px-6 py-2 border border-fo-border rounded-lg text-fo-dark hover:bg-fo-light transition-colors"
-                >
-                  Skip
-                </button>
-                <button
-                  onClick={() => handleAddAdditionalBriefing(false)}
-                  disabled={loading}
-                  className="px-6 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      Add Context & Continue
-                      <ChevronRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Intermediary Outputs Review */}
+        {/* STEP 2: Intermediary Outputs Review */}
         {currentStep === 'intermediary' && (
           <div>
             <h1 className="text-3xl font-bold text-fo-dark mb-2">Intermediary Outputs</h1>
@@ -745,7 +596,7 @@ export default function NewCampaignContent() {
           </div>
         )}
 
-        {/* STEP 4: List Building Questions */}
+        {/* STEP 3: List Building Questions */}
         {currentStep === 'list-questions' && (
           <div>
             <h1 className="text-3xl font-bold text-fo-dark mb-2">List Building</h1>
@@ -870,7 +721,7 @@ export default function NewCampaignContent() {
           </div>
         )}
 
-        {/* STEP 5: Copy Review & Approval */}
+        {/* STEP 4: Copy Review & Approval */}
         {currentStep === 'copy' && (
           <div>
             <h1 className="text-3xl font-bold text-fo-dark mb-2">Campaign Copy</h1>
