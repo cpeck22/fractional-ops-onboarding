@@ -17,8 +17,7 @@ export async function POST(request: NextRequest) {
     const { 
       playCode, 
       campaignName, 
-      campaignType,
-      campaignBrief, // { meeting_transcript, written_strategy, documents, blog_posts }
+      campaignBrief, // { meeting_transcript, written_strategy }
       additionalBrief 
     } = body;
 
@@ -94,14 +93,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create campaign
+    // Create campaign (campaign_type auto-derived from play)
     const { data: campaign, error: campaignError } = await supabaseAdmin
       .from('campaigns')
       .insert({
         user_id: effectiveUserId,
         play_code: playCode,
         campaign_name: campaignName.trim(),
-        campaign_type: campaignType || null,
+        campaign_type: play.name, // Use play name as campaign type
         campaign_brief: campaignBrief || {},
         additional_brief: additionalBrief?.trim() || null,
         workspace_api_key: workspaceData.workspace_api_key,

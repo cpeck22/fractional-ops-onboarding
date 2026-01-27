@@ -24,7 +24,6 @@ export default function NewCampaignContent() {
   const [currentStep, setCurrentStep] = useState<Step>('brief');
   const [campaignId, setCampaignId] = useState<string | null>(null);
   const [campaignName, setCampaignName] = useState('');
-  const [campaignType, setCampaignType] = useState('');
   const [meetingTranscript, setMeetingTranscript] = useState('');
   const [writtenStrategy, setWrittenStrategy] = useState('');
   const [documents, setDocuments] = useState('');
@@ -91,7 +90,6 @@ export default function NewCampaignContent() {
         body: JSON.stringify({
           playCode: code,
           campaignName,
-          campaignType: campaignType || null,
           campaignBrief: {
             meeting_transcript: meetingTranscript || null,
             written_strategy: writtenStrategy || null
@@ -286,16 +284,6 @@ export default function NewCampaignContent() {
     ? `/client/${category}?impersonate=${impersonateUserId}`
     : `/client/${category}`;
 
-  const campaignTypes = [
-    'Pre-conference outreach',
-    'Post-conference follow-up',
-    'Webinar invite',
-    'Cold outbound',
-    'Nurture',
-    'Reactivation',
-    'Other'
-  ];
-
   return (
     <div className="max-w-5xl mx-auto pb-12">
       <Link href={backUrl} className="inline-flex items-center text-fo-primary hover:text-fo-primary-dark mb-6">
@@ -372,25 +360,6 @@ export default function NewCampaignContent() {
                   className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent"
                 />
               </div>
-
-              {/* Campaign Type - Only show for plays where it matters (conferences, etc.) */}
-              {(code === '2009' || code === '2010') && (
-                <div>
-                  <label className="block text-sm font-semibold text-fo-dark mb-2">
-                    Campaign Type <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={campaignType}
-                    onChange={(e) => setCampaignType(e.target.value)}
-                    className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent"
-                  >
-                    <option value="">Select campaign type...</option>
-                    {campaignTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
 
               {/* Meeting Transcript */}
               <div>

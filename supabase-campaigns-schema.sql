@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
   
   -- Campaign metadata
   campaign_name TEXT NOT NULL,
-  campaign_type TEXT, -- 'Pre-conference outreach', 'Post-conference follow-up', 'Webinar invite', 'Cold outbound', 'Nurture', 'Reactivation'
+  campaign_type TEXT, -- Auto-populated from play name (e.g., 'Web Visitor Warm Outreach', 'Pre-Conference Outreach')
   
   -- Step 1: Campaign Brief (required)
   campaign_brief JSONB DEFAULT '{}', -- { meeting_transcript, written_strategy, documents[], blog_posts[] }
