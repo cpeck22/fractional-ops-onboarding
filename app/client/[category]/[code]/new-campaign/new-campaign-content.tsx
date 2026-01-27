@@ -39,6 +39,17 @@ export default function NewCampaignContent() {
   // Step 3: Intermediary Outputs
   const [intermediaryOutputs, setIntermediaryOutputs] = useState<any>(null);
   
+  // Editable intermediary outputs state
+  const [editedListInstructions, setEditedListInstructions] = useState('');
+  const [editedHook, setEditedHook] = useState('');
+  const [editedOfferHeadline, setEditedOfferHeadline] = useState('');
+  const [editedOfferValue, setEditedOfferValue] = useState<string[]>([]);
+  const [editedOfferEase, setEditedOfferEase] = useState<string[]>([]);
+  const [editedAssetType, setEditedAssetType] = useState('');
+  const [editedAssetUrl, setEditedAssetUrl] = useState('');
+  const [editedAssetContent, setEditedAssetContent] = useState('');
+  const [editingIntermediaries, setEditingIntermediaries] = useState(false);
+  
   // Step 4: List Questions
   const [hasAccountList, setHasAccountList] = useState<boolean | null>(null);
   const [hasProspectList, setHasProspectList] = useState<boolean | null>(null);
@@ -63,6 +74,95 @@ export default function NewCampaignContent() {
       setHasProspectList(false);
     }
   }, [hasAccountList, hasProspectList]);
+
+  // Load campaign from URL on mount (if resuming)
+  useEffect(() => {
+    const urlCampaignId = searchParams.get('campaignId');
+    if (urlCampaignId) {
+      console.log('🔄 Resuming campaign from URL:', urlCampaignId);
+      loadCampaignState(urlCampaignId);
+    }
+  }, []);
+
+  // Load existing campaign state
+  const loadCampaignState = async (id: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
+      const url = addImpersonateParam(`/api/client/campaigns/${id}`, impersonateUserId);
+      const response = await fetch(url, {
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        },
+        credentials: 'include'
+      });
+
+      const result = await response.json();
+      
+      if (result.success && result.campaign) {
+        const campaign = result.campaign;
+        setCampaignId(campaign.id);
+        setCampaignName(campaign.campaign_name);
+        
+        // Restore campaign brief
+        if (campaign.campaign_brief) {
+          setMeetingTranscript(campaign.campaign_brief.meeting_transcript || '');
+          setWrittenStrategy(campaign.campaign_brief.written_strategy || '');
+          setDocuments(campaign.campaign_brief.documents || '');
+          setBlogPosts(campaign.campaign_brief.blog_posts || '');
+        }
+        setAdditionalBrief(campaign.additional_brief || '');
+        
+        // Restore intermediary outputs
+        if (campaign.intermediary_outputs && Object.keys(campaign.intermediary_outputs).length > 0) {
+          setIntermediaryOutputs(campaign.intermediary_outputs);
+          populateEditableIntermediaries(campaign.intermediary_outputs);
+        }
+        
+        // Restore list status
+        if (campaign.list_data) {
+          setHasAccountList(campaign.list_data.has_account_list ?? null);
+          setHasProspectList(campaign.list_data.has_prospect_list ?? null);
+        }
+        
+        // Determine current step based on campaign state
+        if (campaign.final_outputs && Object.keys(campaign.final_outputs).length > 0) {
+          setCurrentStep('copy');
+          setGeneratedCopy(campaign.final_outputs.raw_content || '');
+          setHighlightedCopy(campaign.final_outputs.highlighted_html || '');
+          setEditedCopy(campaign.final_outputs.raw_content || '');
+          if (campaign.final_outputs.campaign_copy?.emails) {
+            setIsSequenceAgent(true);
+            setEmailSequence(campaign.final_outputs.campaign_copy.emails);
+          }
+        } else if (campaign.list_status !== 'pending_questions') {
+          setCurrentStep('list-questions');
+        } else if (campaign.intermediary_outputs && Object.keys(campaign.intermediary_outputs).length > 0) {
+          setCurrentStep('intermediary');
+        } else {
+          setCurrentStep('brief');
+        }
+        
+        toast.success('Campaign loaded');
+      }
+    } catch (error) {
+      console.error('Error loading campaign:', error);
+      toast.error('Failed to load campaign');
+    }
+  };
+
+  // Populate editable intermediary fields
+  const populateEditableIntermediaries = (outputs: any) => {
+    setEditedListInstructions(outputs.list_building_instructions || outputs.listBuildingInstructions || '');
+    setEditedHook(outputs.hook || '');
+    setEditedOfferHeadline(outputs.attraction_offer?.headline || outputs.attractionOffer?.headline || '');
+    setEditedOfferValue(outputs.attraction_offer?.valueBullets || outputs.attractionOffer?.valueBullets || []);
+    setEditedOfferEase(outputs.attraction_offer?.easeBullets || outputs.attractionOffer?.easeBullets || []);
+    setEditedAssetType(outputs.asset?.type || '');
+    setEditedAssetUrl(outputs.asset?.url || '');
+    setEditedAssetContent(outputs.asset?.content || '');
+  };
 
   // Step 1: Create campaign with brief
   const handleCreateCampaign = async () => {
@@ -130,11 +230,19 @@ export default function NewCampaignContent() {
 
       if (result.success) {
         console.log('✅ [Frontend - Campaign Creation] Campaign created successfully:', result.campaign.id);
-        setCampaignId(result.campaign.id);
+        const newCampaignId = result.campaign.id;
+        setCampaignId(newCampaignId);
+        
+        // Update URL with campaign ID for persistence
+        const newUrl = impersonateUserId
+          ? `/client/${category}/${code}/new-campaign?campaignId=${newCampaignId}&impersonate=${impersonateUserId}`
+          : `/client/${category}/${code}/new-campaign?campaignId=${newCampaignId}`;
+        router.replace(newUrl);
+        
         toast.success('Campaign created! Generating intermediary outputs...');
         setCurrentStep('intermediary');
         // Auto-generate intermediary outputs
-        setTimeout(() => generateIntermediaryOutputs(result.campaign.id), 500);
+        setTimeout(() => generateIntermediaryOutputs(newCampaignId), 500);
       } else {
         console.error('❌ [Frontend - Campaign Creation] Campaign creation failed:', result.error, result.details);
         toast.error(result.error || 'Failed to create campaign');
@@ -171,6 +279,7 @@ export default function NewCampaignContent() {
 
       if (result.success) {
         setIntermediaryOutputs(result.intermediaryOutputs);
+        populateEditableIntermediaries(result.intermediaryOutputs);
         toast.success('Intermediary outputs generated!');
         // Stay on intermediary step to let user review outputs
         // User clicks "Continue to List Questions" button to proceed
@@ -181,6 +290,70 @@ export default function NewCampaignContent() {
     } catch (error) {
       console.error('Error generating intermediary outputs:', error);
       toast.error('Failed to generate intermediary outputs');
+      setLoading(false);
+    }
+  };
+
+  // Save edited intermediary outputs
+  const saveIntermediaryEdits = async () => {
+    if (!campaignId) return;
+
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
+      const updatedIntermediaries = {
+        list_building_instructions: editedListInstructions,
+        listBuildingInstructions: editedListInstructions, // Keep both formats
+        hook: editedHook,
+        attraction_offer: {
+          headline: editedOfferHeadline,
+          valueBullets: editedOfferValue,
+          easeBullets: editedOfferEase
+        },
+        attractionOffer: {
+          headline: editedOfferHeadline,
+          valueBullets: editedOfferValue,
+          easeBullets: editedOfferEase
+        },
+        asset: {
+          type: editedAssetType,
+          url: editedAssetUrl,
+          content: editedAssetContent
+        },
+        case_studies: intermediaryOutputs.case_studies || [],
+        caseStudies: intermediaryOutputs.caseStudies || [],
+        client_references: intermediaryOutputs.client_references || [],
+        clientReferences: intermediaryOutputs.clientReferences || []
+      };
+
+      const url = addImpersonateParam(`/api/client/campaigns/${campaignId}/update-intermediaries`, impersonateUserId);
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          intermediaryOutputs: updatedIntermediaries
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setIntermediaryOutputs(result.intermediaryOutputs);
+        setEditingIntermediaries(false);
+        toast.success('Changes saved successfully!');
+      } else {
+        toast.error(result.error || 'Failed to save changes');
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error saving intermediary edits:', error);
+      toast.error('Failed to save changes');
       setLoading(false);
     }
   };
@@ -505,15 +678,49 @@ export default function NewCampaignContent() {
               </div>
             ) : intermediaryOutputs ? (
               <div className="space-y-6">
+                {/* Edit Mode Toggle */}
+                <div className="flex justify-between items-center bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">
+                      {editingIntermediaries ? '✏️ Editing Mode' : '👁️ Review Mode'}
+                    </p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      {editingIntermediaries 
+                        ? 'Make your corrections, then click Save Changes'
+                        : 'Click Edit to correct anything GPT got wrong'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setEditingIntermediaries(!editingIntermediaries)}
+                    className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                      editingIntermediaries
+                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        : 'bg-fo-primary text-white hover:bg-fo-primary-dark'
+                    }`}
+                  >
+                    {editingIntermediaries ? 'Cancel Editing' : 'Edit Outputs'}
+                  </button>
+                </div>
+
                 {/* List Building Instructions */}
                 <div className="border border-fo-border rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-fo-dark mb-3 flex items-center gap-2">
                     <List className="w-5 h-5" />
                     List Building Instructions
                   </h3>
-                  <p className="text-sm text-fo-text whitespace-pre-wrap bg-fo-light rounded p-4">
-                    {intermediaryOutputs.listBuildingInstructions}
-                  </p>
+                  {editingIntermediaries ? (
+                    <textarea
+                      value={editedListInstructions}
+                      onChange={(e) => setEditedListInstructions(e.target.value)}
+                      rows={6}
+                      className="w-full px-4 py-3 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary text-sm"
+                      placeholder="Describe how to build the target list..."
+                    />
+                  ) : (
+                    <p className="text-sm text-fo-text whitespace-pre-wrap bg-fo-light rounded p-4">
+                      {editedListInstructions}
+                    </p>
+                  )}
                 </div>
 
                 {/* Hook */}
@@ -521,9 +728,19 @@ export default function NewCampaignContent() {
                   <h3 className="text-lg font-semibold text-fo-dark mb-3">
                     Hook (Shared Touchpoint)
                   </h3>
-                  <p className="text-sm text-fo-text bg-fo-light rounded p-4">
-                    {intermediaryOutputs.hook}
-                  </p>
+                  {editingIntermediaries ? (
+                    <textarea
+                      value={editedHook}
+                      onChange={(e) => setEditedHook(e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary text-sm"
+                      placeholder="What shared context connects you to prospects?"
+                    />
+                  ) : (
+                    <p className="text-sm text-fo-text bg-fo-light rounded p-4">
+                      {editedHook}
+                    </p>
+                  )}
                 </div>
 
                 {/* Attraction Offer */}
@@ -531,31 +748,66 @@ export default function NewCampaignContent() {
                   <h3 className="text-lg font-semibold text-fo-dark mb-3">
                     Attraction Offer
                   </h3>
-                  <div className="bg-fo-light rounded p-4">
-                    <p className="text-base font-semibold text-fo-dark mb-3">
-                      {intermediaryOutputs.attractionOffer?.headline}
-                    </p>
-                    {intermediaryOutputs.attractionOffer?.valueBullets && intermediaryOutputs.attractionOffer.valueBullets.length > 0 && (
-                      <div className="mb-3">
-                        <span className="text-sm font-medium text-fo-dark">Value:</span>
-                        <ul className="list-disc list-inside ml-4 mt-1 text-sm text-fo-text">
-                          {intermediaryOutputs.attractionOffer.valueBullets.map((bullet: string, idx: number) => (
-                            <li key={idx}>{bullet}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {intermediaryOutputs.attractionOffer?.easeBullets && intermediaryOutputs.attractionOffer.easeBullets.length > 0 && (
+                  {editingIntermediaries ? (
+                    <div className="space-y-4">
                       <div>
-                        <span className="text-sm font-medium text-fo-dark">Ease:</span>
-                        <ul className="list-disc list-inside ml-4 mt-1 text-sm text-fo-text">
-                          {intermediaryOutputs.attractionOffer.easeBullets.map((bullet: string, idx: number) => (
-                            <li key={idx}>{bullet}</li>
-                          ))}
-                        </ul>
+                        <label className="block text-sm font-medium text-fo-dark mb-2">Headline</label>
+                        <input
+                          type="text"
+                          value={editedOfferHeadline}
+                          onChange={(e) => setEditedOfferHeadline(e.target.value)}
+                          className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary"
+                          placeholder="Main offer headline"
+                        />
                       </div>
-                    )}
-                  </div>
+                      <div>
+                        <label className="block text-sm font-medium text-fo-dark mb-2">Value Bullets (one per line)</label>
+                        <textarea
+                          value={editedOfferValue.join('\n')}
+                          onChange={(e) => setEditedOfferValue(e.target.value.split('\n').filter(l => l.trim()))}
+                          rows={3}
+                          className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary text-sm"
+                          placeholder="- Benefit 1&#10;- Benefit 2"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-fo-dark mb-2">Ease Bullets (one per line)</label>
+                        <textarea
+                          value={editedOfferEase.join('\n')}
+                          onChange={(e) => setEditedOfferEase(e.target.value.split('\n').filter(l => l.trim()))}
+                          rows={3}
+                          className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary text-sm"
+                          placeholder="- Easy step 1&#10;- Easy step 2"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-fo-light rounded p-4">
+                      <p className="text-base font-semibold text-fo-dark mb-3">
+                        {editedOfferHeadline}
+                      </p>
+                      {editedOfferValue.length > 0 && (
+                        <div className="mb-3">
+                          <span className="text-sm font-medium text-fo-dark">Value:</span>
+                          <ul className="list-disc list-inside ml-4 mt-1 text-sm text-fo-text">
+                            {editedOfferValue.map((bullet: string, idx: number) => (
+                              <li key={idx}>{bullet}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {editedOfferEase.length > 0 && (
+                        <div>
+                          <span className="text-sm font-medium text-fo-dark">Ease:</span>
+                          <ul className="list-disc list-inside ml-4 mt-1 text-sm text-fo-text">
+                            {editedOfferEase.map((bullet: string, idx: number) => (
+                              <li key={idx}>{bullet}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Asset */}
@@ -563,15 +815,50 @@ export default function NewCampaignContent() {
                   <h3 className="text-lg font-semibold text-fo-dark mb-3">
                     Campaign Asset
                   </h3>
-                  <div className="bg-fo-light rounded p-4 text-sm text-fo-text">
-                    <p><span className="font-medium">Type:</span> {intermediaryOutputs.asset?.type || 'N/A'}</p>
-                    {intermediaryOutputs.asset?.url && (
-                      <p className="mt-2"><span className="font-medium">URL:</span> {intermediaryOutputs.asset.url}</p>
-                    )}
-                    {intermediaryOutputs.asset?.content && (
-                      <p className="mt-2 whitespace-pre-wrap">{intermediaryOutputs.asset.content}</p>
-                    )}
-                  </div>
+                  {editingIntermediaries ? (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-fo-dark mb-2">Asset Type</label>
+                        <input
+                          type="text"
+                          value={editedAssetType}
+                          onChange={(e) => setEditedAssetType(e.target.value)}
+                          className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary"
+                          placeholder="e.g., PDF Guide, Video, Webinar"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-fo-dark mb-2">Asset URL (optional)</label>
+                        <input
+                          type="text"
+                          value={editedAssetUrl}
+                          onChange={(e) => setEditedAssetUrl(e.target.value)}
+                          className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary"
+                          placeholder="https://..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-fo-dark mb-2">Asset Description</label>
+                        <textarea
+                          value={editedAssetContent}
+                          onChange={(e) => setEditedAssetContent(e.target.value)}
+                          rows={4}
+                          className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary text-sm"
+                          placeholder="Brief description of the asset"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-fo-light rounded p-4 text-sm text-fo-text">
+                      <p><span className="font-medium">Type:</span> {editedAssetType || 'N/A'}</p>
+                      {editedAssetUrl && (
+                        <p className="mt-2"><span className="font-medium">URL:</span> {editedAssetUrl}</p>
+                      )}
+                      {editedAssetContent && (
+                        <p className="mt-2 whitespace-pre-wrap">{editedAssetContent}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Case Studies (Optional) */}
@@ -593,11 +880,30 @@ export default function NewCampaignContent() {
               </div>
             ) : null}
 
-            <div className="mt-8 flex justify-end">
+            <div className="mt-8 flex justify-between">
+              {editingIntermediaries && (
+                <button
+                  onClick={saveIntermediaryEdits}
+                  disabled={loading}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              )}
               <button
                 onClick={() => setCurrentStep('list-questions')}
-                disabled={loading || !intermediaryOutputs}
-                className="px-6 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                disabled={loading || !intermediaryOutputs || editingIntermediaries}
+                className="px-6 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 ml-auto"
               >
                 Continue to List Questions
                 <ChevronRight className="w-4 h-4" />
