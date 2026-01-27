@@ -17,8 +17,6 @@ export const playDescriptions: Record<string, string> = {
   '2003': 'Reach out to companies that resemble your best clients and use named, concrete case studies to show you\'ve already solved the same problem for peers.',
   '2004': 'Reach out to people in the same role as one of your successful champions and connect their KPIs and initiatives to outcomes you\'ve already delivered for that role.',
   '2008': 'Reach out to cold prospects with a multi-touch email sequence that builds trust through education, social proof, and personalized value delivery.',
-  '2009': 'Reach out to known event attendees in your ICP before a conference and turn shared presence and topic interest into short, focused on-site meetings.',
-  '2010': 'Reach out to event attendees after the conference and turn what they learned about the problem into a concrete plan to move their metrics and initiatives.',
 };
 
 export function getPlayDescription(code: string): string | undefined {

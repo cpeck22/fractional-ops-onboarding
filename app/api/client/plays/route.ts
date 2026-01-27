@@ -56,8 +56,6 @@ const HARDCODED_PLAYS = [
   { code: '2005', name: 'Centres of Influence → Get Strategic or Referral Partners', category: 'outbound', documentation_status: 'Not Started', content_agent_status: 'REQUIRED' },
   { code: '2007', name: 'Local/Same City In Common Focus', category: 'outbound', documentation_status: 'Completed', content_agent_status: 'Completed' },
   { code: '2008', name: 'Multi-Touch Email Sequence Campaign', category: 'outbound', documentation_status: 'Not Started', content_agent_status: 'REQUIRED' },
-  { code: '2009', name: 'Pre-Conference Outreach Campaign', category: 'outbound', documentation_status: 'Not Started', content_agent_status: 'REQUIRED' },
-  { code: '2010', name: 'Post-Conference Follow-up Campaign', category: 'outbound', documentation_status: 'Not Started', content_agent_status: 'REQUIRED' },
 ];
 
 export async function GET(request: NextRequest) {
