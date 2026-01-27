@@ -211,7 +211,7 @@ export default function ApproveCopyContent() {
                 <span className="bg-highlight-resource px-2 py-1 rounded font-semibold">Resource</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="bg-highlight-personalization px-2 py-1 rounded font-semibold">Personalization</span>
+                <span className="bg-highlight-personalized px-2 py-1 rounded font-semibold">Personalization</span>
               </div>
             </div>
           </div>
