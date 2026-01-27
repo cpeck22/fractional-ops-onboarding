@@ -469,6 +469,24 @@ Format as a concise brief. Remove redundant information, filler words, and irrel
         }
 
         console.log(`✅ Sequence agent generated ${emails.length} emails`);
+        
+        // LOG FULL EMAIL CONTENT FOR DEBUGGING
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('📧 [EMAIL CONTENT - FULL DIAGNOSTIC]');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        emails.forEach((email: any, index: number) => {
+          console.log(`\n📨 EMAIL ${index + 1}:`);
+          console.log('  Subject:', email.subject || 'MISSING');
+          console.log('  Sections keys:', email.sections ? Object.keys(email.sections) : 'NO SECTIONS');
+          if (email.sections) {
+            Object.entries(email.sections).forEach(([key, value]) => {
+              const content = String(value || '').substring(0, 100);
+              console.log(`  - ${key}: ${content ? `"${content}..."` : 'EMPTY'}`);
+            });
+          }
+          console.log('  Full email object:', JSON.stringify(email, null, 2));
+        });
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         // Format emails for display and storage
         jsonContent = { emails }; // Store structured email data
