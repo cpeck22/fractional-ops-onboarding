@@ -80,12 +80,15 @@ export async function POST(
 
     console.log(`🤖 Generating copy for campaign: ${campaign.campaign_name} (Play: ${campaign.play_code})`);
 
-    // Find agent matching play code
-    let agentOId = null;
+    // Use stored agent metadata if available (set during campaign creation)
+    let agentOId = campaign.agent_oid || null;
     let agentName = null;
-    let agentType = null;
+    let agentType = campaign.agent_type || null;
 
-    try {
+    // Only lookup agent if not already stored
+    if (!agentOId || !agentType) {
+      console.log('🔍 Agent metadata not stored, looking up in Octave...');
+      try {
       const allAgents = [];
       let offset = 0;
       const limit = 50;
@@ -147,16 +150,19 @@ export async function POST(
           { status: 404 }
         );
       }
-    } catch (agentError: any) {
-      console.error('❌ Error finding agent:', agentError);
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Failed to find agent in workspace',
-          details: agentError.message
-        },
-        { status: 500 }
-      );
+      } catch (agentError: any) {
+        console.error('❌ Error finding agent:', agentError);
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Failed to find agent in workspace',
+            details: agentError.message
+          },
+          { status: 500 }
+        );
+      }
+    } else {
+      console.log(`✅ Using stored agent metadata: ${agentOId} (Type: ${agentType})`);
     }
 
     // Build comprehensive runtime context for Octave Content Agent

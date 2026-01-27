@@ -46,6 +46,10 @@ CREATE TABLE IF NOT EXISTS campaigns (
   workspace_api_key TEXT,
   workspace_oid TEXT,
   
+  -- Agent metadata (from Octave API lookup)
+  agent_oid TEXT, -- Octave agent oId found by play code
+  agent_type TEXT, -- Agent type from Octave (EMAIL, CONTENT, etc.)
+  
   -- Status tracking
   status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'intermediary_generated', 'assets_generated', 'pending_approval', 'launch_approved')),
   

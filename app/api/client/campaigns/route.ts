@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getAuthenticatedUser } from '@/lib/api-auth';
+import axios from 'axios';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,63 +68,14 @@ export async function POST(request: NextRequest) {
       console.log('✅ [Campaign Creation] Impersonation authorized. Effective user ID:', effectiveUserId);
     }
 
+    // Get workspace API key FIRST (we need it to query Octave)
+    console.log('🔍 [Campaign Creation] Fetching workspace for user:', effectiveUserId);
+    
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Verify play exists and is active
-    console.log(`🔍 [Campaign Creation] Looking up play: "${playCode}" in claire_plays table`);
-    
-    // First, let's see if the play exists at all (without .single())
-    const { data: allPlays, error: allPlaysError } = await supabaseAdmin
-      .from('claire_plays')
-      .select('code, name, is_active')
-      .eq('code', playCode);
-    
-    console.log(`📊 [Campaign Creation] Play lookup results for "${playCode}":`, {
-      found: allPlays?.length || 0,
-      plays: allPlays,
-      error: allPlaysError
-    });
-
-    if (allPlaysError) {
-      console.error('❌ [Campaign Creation] Database error looking up play:', allPlaysError);
-      return NextResponse.json(
-        { success: false, error: `Database error: ${allPlaysError.message}` },
-        { status: 500 }
-      );
-    }
-
-    if (!allPlays || allPlays.length === 0) {
-      console.error(`❌ [Campaign Creation] Play "${playCode}" not found in database`);
-      return NextResponse.json(
-        { success: false, error: `Play code "${playCode}" not found. Please ensure the play exists in claire_plays table.` },
-        { status: 404 }
-      );
-    }
-
-    if (allPlays.length > 1) {
-      console.error(`❌ [Campaign Creation] Multiple plays found with code "${playCode}":`, allPlays);
-      return NextResponse.json(
-        { success: false, error: `Multiple plays found with code "${playCode}". Database integrity issue.` },
-        { status: 500 }
-      );
-    }
-
-    const play = allPlays[0];
-    console.log(`✅ [Campaign Creation] Play found:`, { code: play.code, name: play.name, isActive: play.is_active });
-
-    if (!play.is_active) {
-      console.error(`❌ [Campaign Creation] Play "${playCode}" is inactive`);
-      return NextResponse.json(
-        { success: false, error: `Play "${playCode}" is not active` },
-        { status: 400 }
-      );
-    }
-
-    // Get workspace API key
-    console.log('🔍 [Campaign Creation] Fetching workspace for user:', effectiveUserId);
     const { data: workspaceData, error: workspaceError } = await supabaseAdmin
       .from('octave_outputs')
       .select('workspace_api_key, workspace_oid')
@@ -141,17 +93,111 @@ export async function POST(request: NextRequest) {
     }
     console.log('✅ [Campaign Creation] Workspace found:', workspaceData.workspace_oid);
 
-    // Create campaign (campaign_type auto-derived from play)
+    // Find agent in Octave by play code (NO DATABASE LOOKUP!)
+    console.log(`🔍 [Campaign Creation] Looking up agent in Octave for play code: "${playCode}"`);
+    
+    let agentOId = null;
+    let agentName = null;
+    let agentType = null;
+
+    try {
+      const allAgents = [];
+      let offset = 0;
+      const limit = 50;
+      let hasNext = true;
+
+      // Fetch all agents from Octave
+      while (hasNext) {
+        const response = await axios.get(
+          'https://app.octavehq.com/api/v2/agents/list',
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'api_key': workspaceData.workspace_api_key
+            },
+            params: {
+              offset,
+              limit,
+              orderField: 'createdAt',
+              orderDirection: 'DESC'
+            }
+          }
+        );
+
+        const pageAgents = response.data?.data || [];
+        allAgents.push(...pageAgents);
+        hasNext = response.data?.hasNext || false;
+        offset += limit;
+
+        if (!hasNext) break;
+      }
+
+      console.log(`📊 [Campaign Creation] Found ${allAgents.length} total agents in workspace`);
+
+      // Search for agent matching play code
+      const codePattern = playCode.toLowerCase();
+
+      // Try exact match at start first
+      let matchedAgent = allAgents.find((agent: any) => {
+        const agentName = (agent.name || '').toLowerCase();
+        return agentName.startsWith(codePattern + '_') || agentName.startsWith(codePattern + ' ');
+      });
+
+      // Fallback: code anywhere in name
+      if (!matchedAgent) {
+        matchedAgent = allAgents.find((agent: any) => {
+          const agentName = (agent.name || '').toLowerCase();
+          return agentName.includes(codePattern);
+        });
+      }
+
+      if (!matchedAgent) {
+        console.error(`❌ [Campaign Creation] No agent found for play code "${playCode}" in Octave workspace`);
+        return NextResponse.json(
+          {
+            success: false,
+            error: `No agent found matching play code "${playCode}" in your Octave workspace. Please ensure the agent exists and is named with the play code (e.g., "${playCode}_Agent Name").`
+          },
+          { status: 404 }
+        );
+      }
+
+      agentOId = matchedAgent.oId;
+      agentName = matchedAgent.name;
+      agentType = matchedAgent.type;
+
+      console.log(`✅ [Campaign Creation] Found agent in Octave:`, {
+        oId: agentOId,
+        name: agentName,
+        type: agentType,
+        playCode
+      });
+
+    } catch (octaveError: any) {
+      console.error('❌ [Campaign Creation] Error fetching agents from Octave:', octaveError.response?.data || octaveError.message);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to connect to Octave workspace',
+          details: octaveError.response?.data?.message || octaveError.message
+        },
+        { status: 500 }
+      );
+    }
+
+    // Create campaign (campaign_type derived from agent name)
     console.log('📝 [Campaign Creation] Creating campaign in database...');
     const campaignData = {
       user_id: effectiveUserId,
       play_code: playCode,
       campaign_name: campaignName.trim(),
-      campaign_type: play.name, // Use play name as campaign type
+      campaign_type: agentName, // Use agent name as campaign type
       campaign_brief: campaignBrief || {},
       additional_brief: additionalBrief?.trim() || null,
       workspace_api_key: workspaceData.workspace_api_key,
       workspace_oid: workspaceData.workspace_oid,
+      agent_oid: agentOId, // Store agent metadata
+      agent_type: agentType, // Store agent type (EMAIL, CONTENT, etc.)
       status: 'draft',
       approval_status: 'draft',
       list_status: 'pending_questions',
@@ -165,7 +211,9 @@ export async function POST(request: NextRequest) {
       userId: effectiveUserId,
       playCode,
       campaignName: campaignName.trim(),
-      campaignType: play.name
+      campaignType: agentName,
+      agentType,
+      agentOId
     });
 
     const { data: campaign, error: campaignError } = await supabaseAdmin
