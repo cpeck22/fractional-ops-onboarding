@@ -3,8 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 import { getAuthenticatedUser } from '@/lib/api-auth';
 import { highlightOutput } from '@/lib/output-highlighting';
 import axios from 'axios';
+import OpenAI from 'openai';
 
 export const dynamic = 'force-dynamic';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 const ADMIN_EMAILS = [
   'ali.hassan@fractionalops.com',
@@ -328,10 +333,62 @@ Example structure for post-conference (2010):
         
         console.log('📊 [Sequence Agent] Combined context length:', allContextString.length, 'characters');
         
+        // If context is too large (>10K chars), use GPT to intelligently summarize
+        let finalContextString = allContextString;
+        
+        if (allContextString.length > 10000) {
+          console.log('⚠️ [Sequence Agent] Context too large, using GPT-4o to extract key points...');
+          
+          try {
+            const summarizationPrompt = `You are a campaign strategist. Extract ONLY the key information needed to write compelling cold emails for this campaign.
+
+CAMPAIGN NAME: "${campaign.campaign_name}"
+
+FULL CONTEXT:
+${allContextString}
+
+TASK: Extract the most important campaign-relevant information in under 1000 characters. Focus on:
+1. Campaign objective/goal
+2. Target audience (who we're reaching)
+3. Main hook/shared context
+4. Key value proposition/offer
+5. Proof points (case studies, results)
+6. Call to action
+
+Format as a concise brief. Remove redundant information, filler words, and irrelevant details.`;
+
+            const completion = await openai.chat.completions.create({
+              model: 'gpt-4o',
+              messages: [
+                {
+                  role: 'system',
+                  content: 'You are an expert at extracting key campaign information. Be concise and focus only on what matters for writing personalized cold emails.'
+                },
+                {
+                  role: 'user',
+                  content: summarizationPrompt
+                }
+              ],
+              temperature: 0.3,
+              max_tokens: 500
+            });
+
+            const summarizedContext = completion.choices[0].message.content || allContextString;
+            finalContextString = summarizedContext;
+            
+            console.log('✅ [Sequence Agent] Context summarized from', allContextString.length, 'to', finalContextString.length, 'characters');
+            
+          } catch (summarizeError: any) {
+            console.error('❌ [Sequence Agent] Summarization failed, using original context:', summarizeError.message);
+            // Fall back to original if summarization fails
+            finalContextString = allContextString.substring(0, 15000); // At least truncate it
+          }
+        }
+        
         const sequenceAgentRequest = {
           agentOId: agentOId,
           runtimeContext: {
-            all: allContextString  // Single "all" key with everything
+            all: finalContextString  // Summarized or original context
           },
           email: null,
           companyDomain: null,
