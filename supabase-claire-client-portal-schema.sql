@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS play_executions (
   edited_output JSONB, -- Same structure as output, but with user edits
   
   -- Status workflow
-  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'pending_approval', 'approved', 'rejected')),
+  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'in_progress', 'pending_approval', 'approved', 'rejected')),
   
   -- Metadata
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

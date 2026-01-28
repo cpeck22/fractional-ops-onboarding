@@ -18,10 +18,19 @@ interface Play {
   is_active: boolean;
 }
 
+interface PlayWithStatus extends Play {
+  executions: {
+    draft: number;
+    in_progress: number;
+    approved: number;
+    total: number;
+  };
+}
+
 export default function OutboundPlaysPageContent() {
   const searchParams = useSearchParams();
   const impersonateUserId = searchParams.get('impersonate');
-  const [plays, setPlays] = useState<Play[]>([]);
+  const [plays, setPlays] = useState<PlayWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadPlays = useCallback(async () => {
@@ -30,6 +39,7 @@ export default function OutboundPlaysPageContent() {
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
 
+      // Load plays
       const url = addImpersonateParam('/api/client/plays?category=outbound', impersonateUserId);
       const response = await fetch(url, {
         credentials: 'include',
@@ -39,11 +49,35 @@ export default function OutboundPlaysPageContent() {
       });
       const data = await response.json();
       
-      if (data.success) {
-        setPlays(data.plays);
-      } else {
+      if (!data.success) {
         toast.error('Failed to load plays');
+        setLoading(false);
+        return;
       }
+
+      // Load execution statuses for each play
+      const statusUrl = addImpersonateParam('/api/client/play-execution-statuses', impersonateUserId);
+      const statusResponse = await fetch(statusUrl, {
+        credentials: 'include',
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        }
+      });
+      const statusData = await statusResponse.json();
+
+      // Merge play data with execution statuses
+      const playsWithStatus = data.plays.map((play: Play) => {
+        const playStatus = statusData.success && statusData.statuses 
+          ? statusData.statuses[play.code] 
+          : { draft: 0, in_progress: 0, approved: 0, total: 0 };
+        
+        return {
+          ...play,
+          executions: playStatus
+        };
+      });
+
+      setPlays(playsWithStatus);
       setLoading(false);
     } catch (error) {
       console.error('Error loading plays:', error);
@@ -131,6 +165,27 @@ export default function OutboundPlaysPageContent() {
                 <p className="text-sm text-fo-text-secondary leading-relaxed mb-3">
                   {getPlayDescription(play.code)}
                 </p>
+              )}
+              
+              {/* Execution Status Badges */}
+              {!isDisabled && play.executions.total > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {play.executions.draft > 0 && (
+                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-semibold">
+                      🟡 Draft ({play.executions.draft})
+                    </span>
+                  )}
+                  {play.executions.in_progress > 0 && (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold">
+                      📝 In Progress ({play.executions.in_progress})
+                    </span>
+                  )}
+                  {play.executions.approved > 0 && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">
+                      ✅ Approved ({play.executions.approved})
+                    </span>
+                  )}
+                </div>
               )}
               
               {isDisabled && (

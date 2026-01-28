@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, useCallback, Suspense, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
@@ -44,7 +44,10 @@ function PlayExecutionPageContent() {
   const [editing, setEditing] = useState(false);
   const [refining, setRefining] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [highlightsEnabled, setHighlightsEnabled] = useState(true); // Default ON
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Form state
   const [selectedPersona, setSelectedPersona] = useState<string>('');
@@ -103,6 +106,66 @@ function PlayExecutionPageContent() {
   useEffect(() => {
     loadPlayAndWorkspaceData();
   }, [loadPlayAndWorkspaceData]);
+
+  // Auto-save with debounce when editedOutput changes
+  useEffect(() => {
+    // Only auto-save if we have an execution and user is editing
+    if (!execution || !editing || execution.status === 'approved') {
+      return;
+    }
+
+    // Clear previous timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save (2 seconds after user stops typing)
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      setAutoSaving(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const authToken = session?.access_token;
+
+        const saveUrl = addImpersonateParam(`/api/client/executions/${execution.id}`, impersonateUserId);
+        const response = await fetch(saveUrl, {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(authToken && { Authorization: `Bearer ${authToken}` })
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            output: {
+              content: editedOutput,
+              jsonContent: execution.output?.jsonContent || {}
+            },
+            status: 'in_progress'
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          setExecution({
+            ...execution,
+            status: 'in_progress'
+          });
+          setLastSaved(new Date());
+        }
+      } catch (error) {
+        console.error('Auto-save error:', error);
+      } finally {
+        setAutoSaving(false);
+      }
+    }, 2000);
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [editedOutput, editing, execution, impersonateUserId]);
 
   const handleExecute = async () => {
     if (!selectedPersona || selectedUseCases.length === 0) {
@@ -258,9 +321,9 @@ Please output the exact same output but take the feedback the CEO provided in th
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
 
-      // Update execution output
-        const saveUrl = addImpersonateParam(`/api/client/executions/${execution.id}`, impersonateUserId);
-        const response = await fetch(saveUrl, {
+      // Update execution output and change status to 'in_progress'
+      const saveUrl = addImpersonateParam(`/api/client/executions/${execution.id}`, impersonateUserId);
+      const response = await fetch(saveUrl, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -272,7 +335,7 @@ Please output the exact same output but take the feedback the CEO provided in th
             content: editedOutput,
             jsonContent: execution.output?.jsonContent || {}
           },
-          status: 'draft'
+          status: 'in_progress' // Changed from 'draft' to 'in_progress'
         })
       });
 
@@ -286,7 +349,7 @@ Please output the exact same output but take the feedback the CEO provided in th
           status: result.execution.status
         });
         setEditing(false);
-        toast.success('Draft saved successfully!');
+        toast.success('Saved! Play is now In Progress');
         
         // Update URL to include execution ID and preserve impersonate parameter
         if (result.execution.id) {
@@ -296,13 +359,85 @@ Please output the exact same output but take the feedback the CEO provided in th
           router.replace(savedUrl);
         }
       } else {
-        toast.error(result.error || 'Failed to save draft');
+        toast.error(result.error || 'Failed to save');
       }
     } catch (error) {
-      console.error('Error saving draft:', error);
-      toast.error('Failed to save draft');
+      console.error('Error saving:', error);
+      toast.error('Failed to save');
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Direct approve function (no approval page needed)
+  const handleDirectApprove = async () => {
+    if (!execution) {
+      toast.error('No execution to approve');
+      return;
+    }
+
+    try {
+      // Get session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
+      // Save current edits first
+      const saveUrl = addImpersonateParam(`/api/client/executions/${execution.id}`, impersonateUserId);
+      await fetch(saveUrl, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          output: {
+            content: editedOutput,
+            jsonContent: execution.output?.jsonContent || {}
+          },
+          status: 'approved' // Directly set to approved
+        })
+      });
+
+      // Send approval notification via Zapier
+      const approveUrl = addImpersonateParam('/api/client/approve-execution', impersonateUserId);
+      const response = await fetch(approveUrl, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          executionId: execution.id,
+          playCode: code,
+          playName: play?.name || code,
+          editedOutput: editedOutput
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setExecution({
+          ...execution,
+          status: 'approved'
+        });
+        toast.success('✅ Approved! Notification sent to GTM Engineer');
+        
+        // Redirect back to play list after 2 seconds
+        setTimeout(() => {
+          const listUrl = impersonateUserId 
+            ? `/client/${category}?impersonate=${impersonateUserId}`
+            : `/client/${category}`;
+          router.push(listUrl);
+        }, 2000);
+      } else {
+        toast.error(result.error || 'Failed to approve');
+      }
+    } catch (error) {
+      console.error('Error approving:', error);
+      toast.error('Failed to approve');
     }
   };
 
@@ -521,6 +656,21 @@ Please output the exact same output but take the feedback the CEO provided in th
 
             {editing ? (
               <div className="space-y-4">
+                {/* Auto-save indicator */}
+                <div className="flex items-center justify-between text-xs text-fo-text-secondary">
+                  <div>
+                    {autoSaving && (
+                      <span className="text-blue-600">💾 Auto-saving...</span>
+                    )}
+                    {!autoSaving && lastSaved && (
+                      <span className="text-green-600">✅ Saved {lastSaved.toLocaleTimeString()}</span>
+                    )}
+                    {!autoSaving && !lastSaved && (
+                      <span>Auto-save enabled (saves 2 seconds after you stop typing)</span>
+                    )}
+                  </div>
+                </div>
+                
                 <textarea
                   value={editedOutput}
                   onChange={(e) => setEditedOutput(e.target.value)}
@@ -533,13 +683,13 @@ Please output the exact same output but take the feedback the CEO provided in th
                     disabled={saving}
                     className="px-4 py-2 bg-fo-light text-fo-dark rounded-lg hover:bg-fo-primary hover:text-white transition-all disabled:opacity-50"
                   >
-                    {saving ? 'Saving...' : 'Save Draft'}
+                    {saving ? 'Saving...' : 'Save Now'}
                   </button>
                   <button
                     onClick={() => setEditing(false)}
                     className="px-4 py-2 border border-fo-light text-fo-dark rounded-lg hover:bg-fo-light transition-all"
                   >
-                    Cancel
+                    Done Editing
                   </button>
                 </div>
               </div>
@@ -575,48 +725,52 @@ Please output the exact same output but take the feedback the CEO provided in th
             )}
           </div>
 
-          {/* Approve Button */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <button
-              onClick={async () => {
-                try {
-                  // Get session token for authentication
-                  const { data: { session } } = await supabase.auth.getSession();
-                  const authToken = session?.access_token;
-
-                  const approveUrl = addImpersonateParam('/api/client/approve', impersonateUserId);
-                  const response = await fetch(approveUrl, {
-                    method: 'POST',
-                    headers: { 
-                      'Content-Type': 'application/json',
-                      ...(authToken && { Authorization: `Bearer ${authToken}` })
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                      executionId: execution.id
-                    })
-                  });
-
-                  const result = await response.json();
-
-                  if (result.success) {
-                    toast.success('Approval request created!');
-                    const approveRedirectUrl = impersonateUserId 
-                      ? `/client/approve/${result.approval.shareableToken}?impersonate=${impersonateUserId}`
-                      : `/client/approve/${result.approval.shareableToken}`;
-                    router.push(approveRedirectUrl);
-                  } else {
-                    toast.error(result.error || 'Failed to create approval');
-                  }
-                } catch (error) {
-                  console.error('Error creating approval:', error);
-                  toast.error('Failed to create approval');
-                }
-              }}
-              className="w-full px-6 py-3 bg-fo-green text-white rounded-lg font-semibold hover:bg-opacity-90 transition-all"
-            >
-              Approve & Save
-            </button>
+          {/* Save & Approve Buttons */}
+          <div className="bg-white rounded-lg shadow-md p-6 space-y-3">
+            {/* Status Badge */}
+            {execution.status === 'draft' && (
+              <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
+                <span className="font-semibold">Status:</span>
+                <span>Draft (not saved)</span>
+              </div>
+            )}
+            {execution.status === 'in_progress' && (
+              <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-4 py-2 rounded-lg">
+                <span className="font-semibold">Status:</span>
+                <span>In Progress (saved)</span>
+              </div>
+            )}
+            {execution.status === 'approved' && (
+              <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-4 py-2 rounded-lg">
+                <span className="font-semibold">Status:</span>
+                <span>✅ Approved</span>
+              </div>
+            )}
+            
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleSaveDraft}
+                disabled={saving || execution.status === 'approved'}
+                className="flex-1 px-6 py-3 bg-fo-primary text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {saving ? 'Saving...' : 'Save as In Progress'}
+              </button>
+              
+              <button
+                onClick={handleDirectApprove}
+                disabled={execution.status === 'approved'}
+                className="flex-1 px-6 py-3 bg-fo-green text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {execution.status === 'approved' ? '✅ Approved' : 'Approve & Send'}
+              </button>
+            </div>
+            
+            <p className="text-xs text-fo-text-secondary text-center">
+              {execution.status === 'approved' 
+                ? 'This play has been approved and the GTM Engineer has been notified.'
+                : 'Click "Save as In Progress" to save your work, or "Approve & Send" to finalize and notify the GTM Engineer.'}
+            </p>
           </div>
         </div>
       )}
