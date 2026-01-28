@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
 import { ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import { renderHighlightedContent, hasHighlights } from '@/lib/render-highlights';
+import PlayGenerationLoader from '@/components/PlayGenerationLoader';
 
 interface Play {
   code: string;
@@ -51,6 +52,11 @@ export default function PlayExecutionPage() {
   const [highlightingError, setHighlightingError] = useState<string | null>(null);
   const [reHighlighting, setReHighlighting] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Loading modal state
+  const [showLoadingModal, setShowLoadingModal] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [generationStep, setGenerationStep] = useState('Initializing...');
 
   // Form state
   const [selectedPersona, setSelectedPersona] = useState<string>('');
@@ -269,6 +275,76 @@ export default function PlayExecutionPage() {
     };
   }, [editedOutput, editing, execution, impersonateUserId]);
 
+  // Poll for highlighting completion
+  const pollHighlightingCompletion = async (exeId: string): Promise<any> => {
+    return new Promise(async (resolve, reject) => {
+      const maxAttempts = 60; // 2 minutes max
+      let attempts = 0;
+      
+      const poll = async () => {
+        attempts++;
+        
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const authToken = session?.access_token;
+          
+          const checkUrl = addImpersonateParam(`/api/client/executions/${exeId}`, impersonateUserId);
+          const response = await fetch(checkUrl, {
+            credentials: 'include',
+            headers: {
+              ...(authToken && { Authorization: `Bearer ${authToken}` })
+            }
+          });
+          
+          const result = await response.json();
+          
+          if (result.success && result.execution) {
+            const hlStatus = result.execution.output?.highlighting_status;
+            
+            if (hlStatus === 'in_progress') {
+              const progressIncrement = Math.min(90, 50 + (attempts * 2));
+              setGenerationProgress(progressIncrement);
+              setGenerationStep('Applying semantic highlights...');
+            }
+            
+            if (hlStatus === 'completed' || hlStatus === 'completed_no_highlights') {
+              setGenerationProgress(100);
+              setGenerationStep('Complete!');
+              resolve(result.execution);
+              return;
+            }
+            
+            if (hlStatus === 'failed') {
+              console.warn('Highlighting failed, continuing');
+              setGenerationProgress(100);
+              setGenerationStep('Complete!');
+              resolve(result.execution);
+              return;
+            }
+            
+            if (attempts < maxAttempts) {
+              setTimeout(poll, 2000);
+            } else {
+              console.warn('Highlighting timed out');
+              resolve(result.execution);
+            }
+          } else {
+            reject(new Error('Failed to fetch execution status'));
+          }
+        } catch (error) {
+          console.error('Error polling:', error);
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 2000);
+          } else {
+            reject(error);
+          }
+        }
+      };
+      
+      poll();
+    });
+  };
+
   const handleReHighlight = async () => {
     if (!executionId) {
       toast.error('No execution ID found');
@@ -387,8 +463,16 @@ export default function PlayExecutionPage() {
       return;
     }
 
+    // Show loading modal
+    setShowLoadingModal(true);
+    setGenerationProgress(0);
+    setGenerationStep('Initializing refinement...');
     setRefining(true);
+
     try {
+      setGenerationProgress(10);
+      setGenerationStep('Preparing refinement...');
+
       // Get session token for authentication
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
@@ -413,8 +497,10 @@ Please output the exact same output but take the feedback the CEO provided in th
         personas: workspaceData?.personas.filter(p => p.oId === selectedPersona) || [],
         useCases: workspaceData?.useCases.filter(uc => selectedUseCases.includes(uc.oId)) || [],
         clientReferences: workspaceData?.clientReferences.filter(r => selectedReferences.includes(r.oId)) || []
-        // customInput removed - refinementPrompt is passed separately to API
       };
+
+      setGenerationProgress(25);
+      setGenerationStep('Running refinement agent...');
 
       const refineUrl = addImpersonateParam('/api/client/execute-play', impersonateUserId);
       const response = await fetch(refineUrl, {
@@ -427,37 +513,48 @@ Please output the exact same output but take the feedback the CEO provided in th
         body: JSON.stringify({
           playCode: code,
           runtimeContext,
-          refinementPrompt: refinementPrompt // Also pass as separate param for API
+          refinementPrompt: refinementPrompt
         })
       });
 
       const result = await response.json();
 
       if (result.success) {
+        setGenerationProgress(50);
+        setGenerationStep('Refinement complete! Now applying highlights...');
+
+        // Wait for highlighting
+        const finalExecution = await pollHighlightingCompletion(result.execution.id);
+        
+        setGenerationProgress(100);
+        setGenerationStep('Complete!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setShowLoadingModal(false);
+
         setExecution({
-          id: result.execution.id,
-          output: result.execution.output,
+          id: finalExecution.id,
+          output: finalExecution.output,
           status: 'draft'
         });
-        // CRITICAL: Only set editedOutput from raw content, never from rendered HTML
-        const rawContent = result.execution.output.content || JSON.stringify(result.execution.output, null, 2);
-        // Strip any HTML tags that might have been accidentally saved
+        
+        const rawContent = finalExecution.output.content || JSON.stringify(finalExecution.output, null, 2);
         const cleanContent = rawContent.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
         setEditedOutput(cleanContent);
         toast.success('Output refined successfully!');
         
-        // Update URL if execution ID changed (shouldn't happen, but just in case)
-        if (result.execution.id !== executionId) {
+        if (finalExecution.id !== executionId) {
           const newUrl = impersonateUserId 
-            ? `/client/${category}/${code}/${result.execution.id}?impersonate=${impersonateUserId}`
-            : `/client/${category}/${code}/${result.execution.id}`;
+            ? `/client/${category}/${code}/${finalExecution.id}?impersonate=${impersonateUserId}`
+            : `/client/${category}/${code}/${finalExecution.id}`;
           router.replace(newUrl);
         }
       } else {
+        setShowLoadingModal(false);
         toast.error(result.error || 'Failed to refine output');
       }
     } catch (error) {
       console.error('Error refining:', error);
+      setShowLoadingModal(false);
       toast.error('Failed to refine output');
     } finally {
       setRefining(false);
@@ -1001,6 +1098,15 @@ Please output the exact same output but take the feedback the CEO provided in th
             </p>
           </div>
         </div>
+      )}
+
+      {/* Generation Loading Modal */}
+      {showLoadingModal && (
+        <PlayGenerationLoader
+          progress={generationProgress}
+          currentStep={generationStep}
+          playName={play?.name || `Play ${code}`}
+        />
       )}
     </div>
   );
