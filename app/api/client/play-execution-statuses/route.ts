@@ -49,13 +49,7 @@ export async function GET(request: NextRequest) {
     // Get all executions for this user with play code
     const { data: executions, error } = await supabaseAdmin
       .from('play_executions')
-      .select(`
-        id,
-        status,
-        claire_plays!inner (
-          code
-        )
-      `)
+      .select('id, status, play_code')
       .eq('user_id', effectiveUserId);
 
     if (error) {
@@ -70,7 +64,7 @@ export async function GET(request: NextRequest) {
     const statusMap: Record<string, { draft: number; in_progress: number; approved: number; total: number }> = {};
 
     executions?.forEach((exec: any) => {
-      const playCode = exec.claire_plays?.code;
+      const playCode = exec.play_code;
       if (!playCode) return;
 
       if (!statusMap[playCode]) {

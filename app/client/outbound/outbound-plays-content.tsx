@@ -67,13 +67,14 @@ export default function OutboundPlaysPageContent() {
 
       // Merge play data with execution statuses
       const playsWithStatus = data.plays.map((play: Play) => {
-        const playStatus = statusData.success && statusData.statuses 
+        const defaultStatus = { draft: 0, in_progress: 0, approved: 0, total: 0 };
+        const playStatus = (statusData?.success && statusData?.statuses && statusData.statuses[play.code]) 
           ? statusData.statuses[play.code] 
-          : { draft: 0, in_progress: 0, approved: 0, total: 0 };
+          : defaultStatus;
         
         return {
           ...play,
-          executions: playStatus
+          executions: playStatus || defaultStatus
         };
       });
 
@@ -168,7 +169,7 @@ export default function OutboundPlaysPageContent() {
               )}
               
               {/* Execution Status Badges */}
-              {!isDisabled && play.executions.total > 0 && (
+              {!isDisabled && play.executions && play.executions.total > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {play.executions.draft > 0 && (
                     <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-semibold">
