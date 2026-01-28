@@ -10,10 +10,6 @@ import { ChevronLeft, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { renderHighlightedContent, hasHighlights } from '@/lib/render-highlights';
 import PlayGenerationLoader from '@/components/PlayGenerationLoader';
 
-// Force dynamic rendering - prevents caching issues with edits
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 interface Play {
   code: string;
   name: string;
