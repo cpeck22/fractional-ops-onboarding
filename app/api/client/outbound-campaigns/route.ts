@@ -182,6 +182,7 @@ export async function GET(request: NextRequest) {
         created_at: p.executed_at || p.created_at,
         updated_at: p.updated_at,
         output: p.output,
+        runtime_context: p.runtime_context, // Include the runtime context (personas, use cases, references)
         play_code: p.claire_plays?.code,
         play_category: p.claire_plays?.category,
         source: 'play_executions'

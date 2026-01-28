@@ -18,6 +18,7 @@ interface Campaign {
   intermediaryOutputs?: any;
   finalAssets?: any;
   output?: any; // For play_executions
+  runtime_context?: any; // For play_executions (personas, useCases, clientReferences)
   play_code?: string; // For play_executions
   play_category?: string; // For play_executions
   source?: string; // 'campaigns', 'outbound_campaigns', or 'play_executions'
@@ -131,8 +132,8 @@ export default function OutboundCampaignsListContent() {
     <div className="max-w-7xl mx-auto">
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-fo-dark mb-2">Outbound Campaigns</h1>
-          <p className="text-fo-text-secondary">View and manage all your outbound campaigns</p>
+          <h1 className="text-2xl font-bold text-fo-dark mb-2">Campaign Launch Status</h1>
+          <p className="text-fo-text-secondary">View and manage all your campaigns and play executions</p>
         </div>
         <Link
           href={createCampaignUrl}
@@ -228,27 +229,76 @@ export default function OutboundCampaignsListContent() {
                 {isExpanded && (
                   <div className="border-t border-fo-border p-6 space-y-6">
                     {campaign.source === 'play_executions' ? (
-                      // Display play execution output
-                      <div>
-                        <h3 className="text-lg font-semibold text-fo-dark mb-4">
-                          Play Output
-                        </h3>
-                        <div className="bg-fo-light rounded-lg p-4">
-                          <div className="text-sm text-fo-text whitespace-pre-wrap max-h-96 overflow-y-auto">
-                            {campaign.output?.content || 'No output available'}
+                      // Display play execution details
+                      <div className="space-y-6">
+                        {/* Runtime Context Section */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-fo-dark mb-4 flex items-center gap-2">
+                            <FileText className="w-5 h-5" />
+                            Play Configuration
+                          </h3>
+                          <div className="space-y-3">
+                            {/* Persona */}
+                            {campaign.runtime_context?.personas && campaign.runtime_context.personas.length > 0 && (
+                              <div>
+                                <h4 className="font-medium text-fo-dark mb-2 text-sm">Persona</h4>
+                                <div className="bg-fo-light rounded-lg p-3 text-sm text-fo-text">
+                                  {campaign.runtime_context.personas.map((p: any, idx: number) => (
+                                    <div key={idx}>{p.name || 'Unnamed Persona'}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Use Cases */}
+                            {campaign.runtime_context?.useCases && campaign.runtime_context.useCases.length > 0 && (
+                              <div>
+                                <h4 className="font-medium text-fo-dark mb-2 text-sm">Use Case(s)</h4>
+                                <div className="bg-fo-light rounded-lg p-3 text-sm text-fo-text">
+                                  {campaign.runtime_context.useCases.map((uc: any, idx: number) => (
+                                    <div key={idx}>• {uc.name || 'Unnamed Use Case'}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Client References */}
+                            {campaign.runtime_context?.clientReferences && campaign.runtime_context.clientReferences.length > 0 && (
+                              <div>
+                                <h4 className="font-medium text-fo-dark mb-2 text-sm">Client Reference(s)</h4>
+                                <div className="bg-fo-light rounded-lg p-3 text-sm text-fo-text">
+                                  {campaign.runtime_context.clientReferences.map((ref: any, idx: number) => (
+                                    <div key={idx}>• {ref.name || 'Unnamed Reference'}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
-                        <div className="mt-4 flex gap-2">
-                          <Link
-                            href={impersonateUserId
-                              ? `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}?impersonate=${impersonateUserId}`
-                              : `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}`
-                            }
-                            className="inline-flex items-center gap-1 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark text-sm"
-                          >
-                            <Edit className="w-4 h-4" />
-                            View Full Output & Edit
-                          </Link>
+
+                        {/* Play Output Section */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-fo-dark mb-4 flex items-center gap-2">
+                            <Mail className="w-5 h-5" />
+                            Generated Output
+                          </h3>
+                          <div className="bg-fo-light rounded-lg p-4">
+                            <div className="text-sm text-fo-text whitespace-pre-wrap max-h-96 overflow-y-auto">
+                              {campaign.output?.content || campaign.output?.highlighted_html || 'No output available'}
+                            </div>
+                          </div>
+                          <div className="mt-4 flex gap-2">
+                            <Link
+                              href={impersonateUserId
+                                ? `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}?impersonate=${impersonateUserId}`
+                                : `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}`
+                              }
+                              className="inline-flex items-center gap-1 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark text-sm"
+                            >
+                              <Edit className="w-4 h-4" />
+                              View Full Output & Edit
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     ) : (
