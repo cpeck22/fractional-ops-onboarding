@@ -10,6 +10,10 @@ import { ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import { renderHighlightedContent, hasHighlights } from '@/lib/render-highlights';
 import PlayGenerationLoader from '@/components/PlayGenerationLoader';
 
+// Force dynamic rendering - prevents caching issues with edits
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface Play {
   code: string;
   name: string;
@@ -1011,10 +1015,15 @@ Please output the exact same output but take the feedback the CEO provided in th
                     {saving ? 'Saving...' : 'Save Now'}
                   </button>
                   <button
-                    onClick={() => setEditing(false)}
-                    className="px-4 py-2 border border-fo-light text-fo-dark rounded-lg hover:bg-fo-light transition-all"
+                    onClick={async () => {
+                      // Save before closing edit mode
+                      await handleSaveDraft();
+                      setEditing(false);
+                    }}
+                    disabled={saving}
+                    className="px-4 py-2 border border-fo-light text-fo-dark rounded-lg hover:bg-fo-light transition-all disabled:opacity-50"
                   >
-                    Done Editing
+                    {saving ? 'Saving...' : 'Done Editing'}
                   </button>
                 </div>
               </div>

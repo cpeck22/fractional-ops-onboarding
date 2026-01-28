@@ -12,11 +12,15 @@ import { renderHighlightedContent } from '@/lib/render-highlights';
 interface Campaign {
   id: string;
   campaignName: string;
-  meetingTranscript: string | null;
-  writtenStrategy: string | null;
-  additionalBrief: string | null;
-  intermediaryOutputs: any;
-  finalAssets: any;
+  meetingTranscript?: string | null;
+  writtenStrategy?: string | null;
+  additionalBrief?: string | null;
+  intermediaryOutputs?: any;
+  finalAssets?: any;
+  output?: any; // For play_executions
+  play_code?: string; // For play_executions
+  play_category?: string; // For play_executions
+  source?: string; // 'campaigns', 'outbound_campaigns', or 'play_executions'
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -74,11 +78,28 @@ export default function OutboundCampaignsListContent() {
 
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
-      draft: 'bg-gray-100 text-gray-800',
+      draft: 'bg-amber-100 text-amber-800',
+      in_progress: 'bg-blue-100 text-blue-800',
       intermediary_generated: 'bg-blue-100 text-blue-800',
-      assets_generated: 'bg-green-100 text-green-800'
+      assets_generated: 'bg-green-100 text-green-800',
+      approved: 'bg-green-100 text-green-800',
+      pending_approval: 'bg-yellow-100 text-yellow-800',
+      rejected: 'bg-red-100 text-red-800'
     };
     return statusColors[status] || 'bg-gray-100 text-gray-800';
+  };
+  
+  const getStatusLabel = (status: string) => {
+    const statusLabels: Record<string, string> = {
+      draft: 'Draft',
+      in_progress: 'In Progress',
+      intermediary_generated: 'Intermediary Generated',
+      assets_generated: 'Assets Generated',
+      approved: 'Approved',
+      pending_approval: 'Pending Approval',
+      rejected: 'Rejected'
+    };
+    return statusLabels[status] || status;
   };
 
   const formatDate = (dateString: string) => {
@@ -153,26 +174,47 @@ export default function OutboundCampaignsListContent() {
                       <div className="flex items-center gap-3 mb-2">
                         <h2 className="text-xl font-semibold text-fo-dark">{campaign.campaignName}</h2>
                         <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadge(campaign.status)}`}>
-                          {campaign.status.replace('_', ' ').toUpperCase()}
+                          {getStatusLabel(campaign.status)}
                         </span>
+                        {campaign.source === 'play_executions' && (
+                          <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                            PLAY
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-4 text-sm text-fo-text-secondary">
                         <span>Created: {formatDate(campaign.createdAt)}</span>
-                        <span>Updated: {formatDate(campaign.updatedAt)}</span>
+                        {campaign.updatedAt && <span>Updated: {formatDate(campaign.updatedAt)}</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <Link
-                        href={impersonateUserId
-                          ? `/client/outbound-campaigns/${campaign.id}/intermediary?impersonate=${impersonateUserId}`
-                          : `/client/outbound-campaigns/${campaign.id}/intermediary`
-                        }
-                        onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-1 text-fo-primary hover:text-fo-primary-dark text-sm font-medium"
-                      >
-                        <Edit className="w-4 h-4" />
-                        Edit
-                      </Link>
+                      {campaign.source === 'play_executions' ? (
+                        // For play executions, link to the execution page
+                        <Link
+                          href={impersonateUserId
+                            ? `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}?impersonate=${impersonateUserId}`
+                            : `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}`
+                          }
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-fo-primary hover:text-fo-primary-dark text-sm font-medium"
+                        >
+                          <Edit className="w-4 h-4" />
+                          View/Edit
+                        </Link>
+                      ) : (
+                        // For campaigns, link to the intermediary page
+                        <Link
+                          href={impersonateUserId
+                            ? `/client/outbound-campaigns/${campaign.id}/intermediary?impersonate=${impersonateUserId}`
+                            : `/client/outbound-campaigns/${campaign.id}/intermediary`
+                          }
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-fo-primary hover:text-fo-primary-dark text-sm font-medium"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </Link>
+                      )}
                       {isExpanded ? (
                         <ChevronUp className="w-5 h-5 text-fo-text-secondary" />
                       ) : (
@@ -185,14 +227,40 @@ export default function OutboundCampaignsListContent() {
                 {/* Expanded Content */}
                 {isExpanded && (
                   <div className="border-t border-fo-border p-6 space-y-6">
-                    {/* Campaign Brief Section */}
-                    <div>
-                      <h3 className="text-lg font-semibold text-fo-dark mb-4 flex items-center gap-2">
-                        <FileText className="w-5 h-5" />
-                        Campaign Brief
-                      </h3>
-                      <div className="space-y-4">
-                        {campaign.meetingTranscript && (
+                    {campaign.source === 'play_executions' ? (
+                      // Display play execution output
+                      <div>
+                        <h3 className="text-lg font-semibold text-fo-dark mb-4">
+                          Play Output
+                        </h3>
+                        <div className="bg-fo-light rounded-lg p-4">
+                          <div className="text-sm text-fo-text whitespace-pre-wrap max-h-96 overflow-y-auto">
+                            {campaign.output?.content || 'No output available'}
+                          </div>
+                        </div>
+                        <div className="mt-4 flex gap-2">
+                          <Link
+                            href={impersonateUserId
+                              ? `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}?impersonate=${impersonateUserId}`
+                              : `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}`
+                            }
+                            className="inline-flex items-center gap-1 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark text-sm"
+                          >
+                            <Edit className="w-4 h-4" />
+                            View Full Output & Edit
+                          </Link>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Campaign Brief Section */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-fo-dark mb-4 flex items-center gap-2">
+                            <FileText className="w-5 h-5" />
+                            Campaign Brief
+                          </h3>
+                          <div className="space-y-4">
+                            {campaign.meetingTranscript && (
                           <div>
                             <h4 className="font-medium text-fo-dark mb-2">Meeting Transcript</h4>
                             <div className="bg-fo-light rounded-lg p-4 text-sm text-fo-text whitespace-pre-wrap">
@@ -439,6 +507,8 @@ export default function OutboundCampaignsListContent() {
                           Generate outputs →
                         </Link>
                       </div>
+                    )}
+                      </>
                     )}
                   </div>
                 )}

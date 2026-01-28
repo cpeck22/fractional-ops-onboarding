@@ -136,7 +136,7 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Query both campaigns and outbound_campaigns tables to show all campaigns
+    // Query all three sources: campaigns, outbound_campaigns, and play_executions
     const { data: newCampaigns, error: newError } = await supabaseAdmin
       .from('campaigns')
       .select('*')
@@ -149,18 +149,43 @@ export async function GET(request: NextRequest) {
       .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false });
 
-    if (newError && oldError) {
-      console.error('❌ Error fetching campaigns:', { newError, oldError });
+    // Also query play_executions to show approved plays from simple flow
+    const { data: playExecutions, error: playError } = await supabaseAdmin
+      .from('play_executions')
+      .select(`
+        *,
+        claire_plays (
+          code,
+          name,
+          category
+        )
+      `)
+      .eq('user_id', effectiveUserId)
+      .order('executed_at', { ascending: false });
+
+    if (newError && oldError && playError) {
+      console.error('❌ Error fetching campaigns:', { newError, oldError, playError });
       return NextResponse.json(
         { success: false, error: 'Failed to fetch campaigns' },
         { status: 500 }
       );
     }
 
-    // Merge both campaign sources
+    // Merge all three campaign sources
     const allCampaigns = [
       ...(newCampaigns || []).map((c: any) => ({ ...c, source: 'campaigns' })),
-      ...(oldCampaigns || []).map((c: any) => ({ ...c, source: 'outbound_campaigns' }))
+      ...(oldCampaigns || []).map((c: any) => ({ ...c, source: 'outbound_campaigns' })),
+      ...(playExecutions || []).map((p: any) => ({
+        id: p.id,
+        campaign_name: `${p.claire_plays?.name || 'Play'} (${p.claire_plays?.code || 'Unknown'})`,
+        status: p.status, // draft, in_progress, or approved
+        created_at: p.executed_at || p.created_at,
+        updated_at: p.updated_at,
+        output: p.output,
+        play_code: p.claire_plays?.code,
+        play_category: p.claire_plays?.category,
+        source: 'play_executions'
+      }))
     ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     const error = null; // Combined query succeeded
