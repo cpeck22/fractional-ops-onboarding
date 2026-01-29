@@ -50,9 +50,9 @@ export default function OutboundPlaysPageContent() {
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
       
-      // Check if user is admin
+      // Check if user is admin (but NOT when impersonating - show client view when impersonating)
       const { data: { user } } = await supabase.auth.getUser();
-      const userIsAdmin = !!(user?.email && ADMIN_EMAILS.some(
+      const userIsAdmin = !impersonateUserId && !!(user?.email && ADMIN_EMAILS.some(
         email => email.toLowerCase() === user.email?.toLowerCase()
       ));
       setIsAdmin(userIsAdmin);
