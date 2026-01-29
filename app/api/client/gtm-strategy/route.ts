@@ -190,7 +190,9 @@ export async function GET(request: NextRequest) {
         name: r.name || r.companyName || 'Unnamed Reference',
         companyName: r.companyName,
         companyDomain: r.companyDomain,
-        industry: r.industry
+        industry: r.industry,
+        description: r.description || r.data?.description || null,
+        data: r.data || null // ✅ Include full data object for details
       })),
       segments: segments.map((s: any) => ({
         oId: s.oId,

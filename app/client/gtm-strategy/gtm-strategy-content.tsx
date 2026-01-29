@@ -29,6 +29,8 @@ interface GTMStrategyData {
     companyName?: string;
     companyDomain?: string;
     industry?: string;
+    description?: string;
+    data?: any;
   }>;
   segments: Array<{
     oId: string;
@@ -218,7 +220,7 @@ export default function GTMStrategyPageContent() {
             <Package className="w-5 h-5 text-fo-primary" strokeWidth={2} />
             <h2 className="text-xl font-semibold text-fo-dark">Service Offering</h2>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
               <p className="text-sm font-semibold text-fo-text-secondary mb-1">Name</p>
               <p className="text-fo-dark font-medium">{data.serviceOffering.name}</p>
@@ -230,12 +232,75 @@ export default function GTMStrategyPageContent() {
               </div>
             )}
             {data.serviceOffering.data && (
-              <div>
-                <p className="text-sm font-semibold text-fo-text-secondary mb-1">Details</p>
-                <pre className="bg-fo-bg-light p-4 rounded-lg text-sm text-fo-text-secondary overflow-x-auto">
-                  {JSON.stringify(data.serviceOffering.data, null, 2)}
-                </pre>
-              </div>
+              <>
+                {/* Summary */}
+                {data.serviceOffering.data.summary && (
+                  <div>
+                    <p className="text-sm font-semibold text-fo-text-secondary mb-2">Summary</p>
+                    <p className="text-fo-text bg-fo-bg-light p-3 rounded-lg">{data.serviceOffering.data.summary}</p>
+                  </div>
+                )}
+                
+                {/* Capabilities */}
+                {data.serviceOffering.data.capabilities && data.serviceOffering.data.capabilities.length > 0 && (
+                  <div>
+                    <p className="text-sm font-semibold text-fo-text-secondary mb-2">Capabilities</p>
+                    <ul className="list-disc list-inside space-y-1 bg-fo-bg-light p-3 rounded-lg">
+                      {data.serviceOffering.data.capabilities.map((cap: string, idx: number) => (
+                        <li key={idx} className="text-fo-text">{cap}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Differentiated Value */}
+                {data.serviceOffering.data.differentiatedValue && data.serviceOffering.data.differentiatedValue.length > 0 && (
+                  <div>
+                    <p className="text-sm font-semibold text-fo-text-secondary mb-2">Differentiated Value</p>
+                    <ul className="list-disc list-inside space-y-1 bg-fo-bg-light p-3 rounded-lg">
+                      {data.serviceOffering.data.differentiatedValue.map((val: string, idx: number) => (
+                        <li key={idx} className="text-fo-text">{val}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Status Quo */}
+                {data.serviceOffering.data.statusQuo && data.serviceOffering.data.statusQuo.length > 0 && (
+                  <div>
+                    <p className="text-sm font-semibold text-fo-text-secondary mb-2">Status Quo</p>
+                    <ul className="list-disc list-inside space-y-1 bg-fo-bg-light p-3 rounded-lg">
+                      {data.serviceOffering.data.statusQuo.map((sq: string, idx: number) => (
+                        <li key={idx} className="text-fo-text">{sq}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Challenges Addressed */}
+                {data.serviceOffering.data.challengesAddressed && data.serviceOffering.data.challengesAddressed.length > 0 && (
+                  <div>
+                    <p className="text-sm font-semibold text-fo-text-secondary mb-2">Challenges Addressed</p>
+                    <ul className="list-disc list-inside space-y-1 bg-fo-bg-light p-3 rounded-lg">
+                      {data.serviceOffering.data.challengesAddressed.map((challenge: string, idx: number) => (
+                        <li key={idx} className="text-fo-text">{challenge}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Customer Benefits */}
+                {data.serviceOffering.data.customerBenefits && data.serviceOffering.data.customerBenefits.length > 0 && (
+                  <div>
+                    <p className="text-sm font-semibold text-fo-text-secondary mb-2">Customer Benefits</p>
+                    <ul className="list-disc list-inside space-y-1 bg-fo-bg-light p-3 rounded-lg">
+                      {data.serviceOffering.data.customerBenefits.map((benefit: string, idx: number) => (
+                        <li key={idx} className="text-fo-text">{benefit}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -311,12 +376,79 @@ export default function GTMStrategyPageContent() {
           <div className="space-y-4">
             {data.clientReferences.map((ref) => (
               <div key={ref.oId} className="border border-fo-border rounded-lg p-4">
-                <p className="font-semibold text-fo-dark">{ref.name}</p>
-                <div className="flex flex-wrap gap-4 mt-2 text-sm text-fo-text-secondary">
-                  {ref.companyName && <span>Company: {ref.companyName}</span>}
-                  {ref.companyDomain && <span>Domain: {ref.companyDomain}</span>}
-                  {ref.industry && <span>Industry: {ref.industry}</span>}
+                <p className="font-semibold text-fo-dark text-lg mb-3">{ref.name}</p>
+                
+                {/* Basic Info */}
+                <div className="flex flex-wrap gap-4 mb-3 text-sm">
+                  {ref.companyName && (
+                    <div className="bg-fo-bg-light px-3 py-1 rounded">
+                      <span className="font-semibold text-fo-text-secondary">Company:</span>{' '}
+                      <span className="text-fo-dark">{ref.companyName}</span>
+                    </div>
+                  )}
+                  {ref.companyDomain && (
+                    <div className="bg-fo-bg-light px-3 py-1 rounded">
+                      <span className="font-semibold text-fo-text-secondary">Domain:</span>{' '}
+                      <span className="text-fo-dark">{ref.companyDomain}</span>
+                    </div>
+                  )}
+                  {ref.industry && (
+                    <div className="bg-fo-bg-light px-3 py-1 rounded">
+                      <span className="font-semibold text-fo-text-secondary">Industry:</span>{' '}
+                      <span className="text-fo-dark">{ref.industry}</span>
+                    </div>
+                  )}
                 </div>
+                
+                {/* Description */}
+                {ref.description && (
+                  <div className="mb-3">
+                    <p className="text-sm font-semibold text-fo-text-secondary mb-1">Description</p>
+                    <p className="text-fo-text">{ref.description}</p>
+                  </div>
+                )}
+                
+                {/* Additional Data Fields */}
+                {ref.data && (
+                  <div className="space-y-2">
+                    {ref.data.challenge && (
+                      <div>
+                        <p className="text-sm font-semibold text-fo-text-secondary mb-1">Challenge</p>
+                        <p className="text-fo-text text-sm bg-fo-bg-light p-2 rounded">{ref.data.challenge}</p>
+                      </div>
+                    )}
+                    {ref.data.solution && (
+                      <div>
+                        <p className="text-sm font-semibold text-fo-text-secondary mb-1">Solution</p>
+                        <p className="text-fo-text text-sm bg-fo-bg-light p-2 rounded">{ref.data.solution}</p>
+                      </div>
+                    )}
+                    {ref.data.outcome && (
+                      <div>
+                        <p className="text-sm font-semibold text-fo-text-secondary mb-1">Outcome</p>
+                        <p className="text-fo-text text-sm bg-fo-bg-light p-2 rounded">{ref.data.outcome}</p>
+                      </div>
+                    )}
+                    {ref.data.metrics && ref.data.metrics.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold text-fo-text-secondary mb-1">Metrics</p>
+                        <ul className="list-disc list-inside text-fo-text text-sm bg-fo-bg-light p-2 rounded">
+                          {ref.data.metrics.map((metric: string, idx: number) => (
+                            <li key={idx}>{metric}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {ref.data.testimonial && (
+                      <div>
+                        <p className="text-sm font-semibold text-fo-text-secondary mb-1">Testimonial</p>
+                        <p className="text-fo-text text-sm italic bg-fo-bg-light p-2 rounded border-l-4 border-fo-primary">
+                          &ldquo;{ref.data.testimonial}&rdquo;
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
