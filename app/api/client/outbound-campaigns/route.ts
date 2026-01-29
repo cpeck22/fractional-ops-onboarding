@@ -179,7 +179,8 @@ export async function GET(request: NextRequest) {
       ...(oldCampaigns || []).map((c: any) => ({ ...c, source: 'outbound_campaigns' })),
       ...(playExecutions || []).map((p: any) => ({
         id: p.id,
-        campaign_name: `${p.claire_plays?.name || 'Play'} (${p.claire_plays?.code || 'Unknown'})`,
+        // ✅ FIX: Use user-provided campaign_name, fall back to play name/code
+        campaign_name: p.campaign_name || `${p.claire_plays?.name || 'Play'} (${p.claire_plays?.code || 'Unknown'})`,
         status: p.status, // draft, in_progress, or approved
         created_at: p.executed_at || p.created_at,
         updated_at: p.updated_at,

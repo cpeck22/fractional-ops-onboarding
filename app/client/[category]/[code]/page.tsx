@@ -56,6 +56,7 @@ function PlayExecutionPageContent() {
   const [generationStep, setGenerationStep] = useState('Initializing...');
 
   // Form state
+  const [campaignName, setCampaignName] = useState<string>(''); // ✅ NEW: Campaign name field
   const [selectedPersona, setSelectedPersona] = useState<string>('');
   const [selectedUseCases, setSelectedUseCases] = useState<string[]>([]);
   const [selectedReferences, setSelectedReferences] = useState<string[]>([]);
@@ -248,6 +249,12 @@ function PlayExecutionPageContent() {
   };
 
   const handleExecute = async () => {
+    // ✅ FIX: Validate campaign name
+    if (!campaignName.trim()) {
+      toast.error('Please enter a campaign name');
+      return;
+    }
+    
     if (!selectedPersona || selectedUseCases.length === 0) {
       toast.error('Please select a persona and at least one use case');
       return;
@@ -288,7 +295,8 @@ function PlayExecutionPageContent() {
         credentials: 'include',
         body: JSON.stringify({
           playCode: code,
-          runtimeContext
+          runtimeContext,
+          campaignName: campaignName.trim() // ✅ NEW: Send campaign name
         })
       });
 
@@ -652,6 +660,23 @@ Please output the exact same output but take the feedback the CEO provided in th
           <h2 className="text-xl font-bold text-fo-dark mb-6">Configure Your Play</h2>
           
           <div className="space-y-6">
+            {/* Campaign Name */}
+            <div>
+              <label className="block text-sm font-semibold text-fo-dark mb-2">
+                Campaign Name <span className="text-fo-orange">*</span>
+              </label>
+              <input
+                type="text"
+                value={campaignName}
+                onChange={(e) => setCampaignName(e.target.value)}
+                placeholder="e.g., Q1 Enterprise Outreach"
+                className="w-full px-4 py-2 border border-fo-light rounded-lg focus:outline-none focus:ring-2 focus:ring-fo-primary"
+              />
+              <p className="text-xs text-fo-text-secondary mt-1">
+                Give this campaign a descriptive name to identify it in Launch Status
+              </p>
+            </div>
+
             {/* Persona Selection */}
             <div>
               <label className="block text-sm font-semibold text-fo-dark mb-2">
@@ -730,7 +755,7 @@ Please output the exact same output but take the feedback the CEO provided in th
             {/* Execute Button */}
             <button
               onClick={handleExecute}
-              disabled={executing || !selectedPersona || selectedUseCases.length === 0}
+              disabled={executing || !campaignName.trim() || !selectedPersona || selectedUseCases.length === 0}
               className="w-full px-6 py-3 bg-fo-primary text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {executing ? 'Executing Play...' : 'Run Play'}

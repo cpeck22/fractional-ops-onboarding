@@ -245,7 +245,11 @@ export default function PlayExecutionPage() {
           body: JSON.stringify({
             output: {
               content: cleanContent,
-              jsonContent: execution.output?.jsonContent || {}
+              jsonContent: execution.output?.jsonContent || {},
+              // ✅ FIX: Clear stale highlights during auto-save too
+              highlighted_html: null,
+              highlighting_status: 'user_edited',
+              highlighting_error: null
             },
             status: 'in_progress'
           })
@@ -595,10 +599,11 @@ Please output the exact same output but take the feedback the CEO provided in th
           output: {
             content: cleanContent, // Always save clean text, never HTML
             jsonContent: execution.output?.jsonContent || {},
-            // Preserve highlighting fields - don't overwrite them
-            highlighted_html: execution.output?.highlighted_html,
-            highlighting_status: execution.output?.highlighting_status,
-            highlighting_error: execution.output?.highlighting_error
+            // ✅ FIX: Clear stale highlights when user edits content
+            // User has manually edited content, so old highlights are no longer valid
+            highlighted_html: null, // Clear old highlights
+            highlighting_status: 'user_edited', // Mark as manually edited
+            highlighting_error: null
           },
           status: 'in_progress' // Changed to in_progress
         })
@@ -657,7 +662,11 @@ Please output the exact same output but take the feedback the CEO provided in th
         body: JSON.stringify({
           output: {
             content: cleanContent,
-            jsonContent: execution.output?.jsonContent || {}
+            jsonContent: execution.output?.jsonContent || {},
+            // ✅ FIX: Clear stale highlights on approve too
+            highlighted_html: null,
+            highlighting_status: 'user_edited',
+            highlighting_error: null
           },
           status: 'approved'
         })

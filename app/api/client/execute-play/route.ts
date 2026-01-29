@@ -74,7 +74,8 @@ export async function POST(request: NextRequest) {
     const {
       playCode,
       runtimeContext, // { personas: [], useCases: [], clientReferences: [] }
-      refinementPrompt // Optional: if refining existing execution
+      refinementPrompt, // Optional: if refining existing execution
+      campaignName // ✅ NEW: User-provided campaign name
     } = body;
     
     if (!playCode || !runtimeContext) {
@@ -348,6 +349,7 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: effectiveUserId, // Use impersonated user's ID if admin is impersonating
         play_id: playId,
+        campaign_name: campaignName || null, // ✅ NEW: Save campaign name
         workspace_api_key: workspaceApiKey,
         workspace_oid: workspaceData.workspace_oid,
         runtime_context: runtimeContext,
