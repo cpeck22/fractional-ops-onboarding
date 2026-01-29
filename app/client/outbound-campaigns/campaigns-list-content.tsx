@@ -30,26 +30,57 @@ interface Campaign {
 export default function OutboundCampaignsListContent() {
   const searchParams = useSearchParams();
   const impersonateUserId = searchParams.get('impersonate');
+  const statusFilter = searchParams.get('status') || 'all';
+  const categoryFilter = searchParams.get('category') || 'all';
+  
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
+  const [stats, setStats] = useState({
+    total: 0,
+    draft: 0,
+    in_progress: 0,
+    pending_approval: 0,
+    approved: 0,
+    rejected: 0
+  });
 
   const loadCampaigns = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
 
-      const url = addImpersonateParam('/api/client/outbound-campaigns', impersonateUserId);
+      // Add cache-busting timestamp
+      const params = new URLSearchParams();
+      params.append('_t', Date.now().toString());
+      
+      const url = addImpersonateParam(`/api/client/outbound-campaigns?${params.toString()}`, impersonateUserId);
       const response = await fetch(url, {
+        method: 'GET',
+        cache: 'no-store',
         credentials: 'include',
         headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
           ...(authToken && { Authorization: `Bearer ${authToken}` })
         }
       });
 
       const result = await response.json();
       if (result.success) {
-        setCampaigns(result.campaigns || []);
+        const allCampaigns = result.campaigns || [];
+        setCampaigns(allCampaigns);
+        
+        // Calculate stats
+        setStats({
+          total: allCampaigns.length,
+          draft: allCampaigns.filter((c: Campaign) => c.status === 'draft').length,
+          in_progress: allCampaigns.filter((c: Campaign) => c.status === 'in_progress').length,
+          pending_approval: allCampaigns.filter((c: Campaign) => c.status === 'pending_approval').length,
+          approved: allCampaigns.filter((c: Campaign) => c.status === 'approved').length,
+          rejected: allCampaigns.filter((c: Campaign) => c.status === 'rejected').length
+        });
       } else {
         toast.error('Failed to load campaigns');
       }
@@ -63,7 +94,7 @@ export default function OutboundCampaignsListContent() {
 
   useEffect(() => {
     loadCampaigns();
-  }, [impersonateUserId]);
+  }, [impersonateUserId, statusFilter, categoryFilter]);
 
   const toggleCampaign = (campaignId: string) => {
     setExpandedCampaigns(prev => {
@@ -113,6 +144,23 @@ export default function OutboundCampaignsListContent() {
     });
   };
 
+  // Filter campaigns based on URL params
+  const filteredCampaigns = campaigns.filter(campaign => {
+    // Status filter
+    if (statusFilter !== 'all' && campaign.status !== statusFilter) {
+      return false;
+    }
+    
+    // Category filter (only for play executions)
+    if (categoryFilter !== 'all' && campaign.source === 'play_executions') {
+      if (campaign.play_category !== categoryFilter) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+
   const createCampaignUrl = impersonateUserId
     ? `/client/outbound-campaigns/new?impersonate=${impersonateUserId}`
     : '/client/outbound-campaigns/new';
@@ -130,10 +178,11 @@ export default function OutboundCampaignsListContent() {
 
   return (
     <div className="max-w-7xl mx-auto">
+      {/* Header */}
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-fo-dark mb-2">Campaign Launch Status</h1>
-          <p className="text-fo-text-secondary">View and manage all your campaigns and play executions</p>
+          <h1 className="text-2xl font-bold text-fo-dark mb-2">Campaign Status Hub</h1>
+          <p className="text-fo-text-secondary">Collaborate on campaigns, plays, and assets</p>
         </div>
         <Link
           href={createCampaignUrl}
@@ -144,7 +193,91 @@ export default function OutboundCampaignsListContent() {
         </Link>
       </div>
 
-      {campaigns.length === 0 ? (
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <Link
+          href={impersonateUserId ? `/client/outbound-campaigns?status=all&impersonate=${impersonateUserId}` : '/client/outbound-campaigns?status=all'}
+          className={`bg-white rounded-lg shadow-sm p-4 border ${statusFilter === 'all' ? 'border-fo-primary ring-2 ring-fo-primary/20' : 'border-fo-border'} hover:shadow-md transition-all cursor-pointer`}
+        >
+          <p className="text-xs font-medium text-fo-text-secondary mb-1">Total</p>
+          <p className="text-2xl font-bold text-fo-dark">{stats.total}</p>
+        </Link>
+
+        <Link
+          href={impersonateUserId ? `/client/outbound-campaigns?status=draft&impersonate=${impersonateUserId}` : '/client/outbound-campaigns?status=draft'}
+          className={`bg-white rounded-lg shadow-sm p-4 border ${statusFilter === 'draft' ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-fo-border'} hover:shadow-md transition-all cursor-pointer`}
+        >
+          <p className="text-xs font-medium text-fo-text-secondary mb-1">Draft</p>
+          <p className="text-2xl font-bold text-amber-600">{stats.draft}</p>
+        </Link>
+
+        <Link
+          href={impersonateUserId ? `/client/outbound-campaigns?status=in_progress&impersonate=${impersonateUserId}` : '/client/outbound-campaigns?status=in_progress'}
+          className={`bg-white rounded-lg shadow-sm p-4 border ${statusFilter === 'in_progress' ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-fo-border'} hover:shadow-md transition-all cursor-pointer`}
+        >
+          <p className="text-xs font-medium text-fo-text-secondary mb-1">In Progress</p>
+          <p className="text-2xl font-bold text-blue-600">{stats.in_progress}</p>
+        </Link>
+
+        <Link
+          href={impersonateUserId ? `/client/outbound-campaigns?status=pending_approval&impersonate=${impersonateUserId}` : '/client/outbound-campaigns?status=pending_approval'}
+          className={`bg-white rounded-lg shadow-sm p-4 border ${statusFilter === 'pending_approval' ? 'border-fo-orange ring-2 ring-fo-orange/20' : 'border-fo-border'} hover:shadow-md transition-all cursor-pointer`}
+        >
+          <p className="text-xs font-medium text-fo-text-secondary mb-1">Pending</p>
+          <p className="text-2xl font-bold text-fo-orange">{stats.pending_approval}</p>
+        </Link>
+
+        <Link
+          href={impersonateUserId ? `/client/outbound-campaigns?status=approved&impersonate=${impersonateUserId}` : '/client/outbound-campaigns?status=approved'}
+          className={`bg-white rounded-lg shadow-sm p-4 border ${statusFilter === 'approved' ? 'border-green-500 ring-2 ring-green-500/20' : 'border-fo-border'} hover:shadow-md transition-all cursor-pointer`}
+        >
+          <p className="text-xs font-medium text-fo-text-secondary mb-1">Approved</p>
+          <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
+        </Link>
+
+        <Link
+          href={impersonateUserId ? `/client/outbound-campaigns?status=rejected&impersonate=${impersonateUserId}` : '/client/outbound-campaigns?status=rejected'}
+          className={`bg-white rounded-lg shadow-sm p-4 border ${statusFilter === 'rejected' ? 'border-red-500 ring-2 ring-red-500/20' : 'border-fo-border'} hover:shadow-md transition-all cursor-pointer`}
+        >
+          <p className="text-xs font-medium text-fo-text-secondary mb-1">Rejected</p>
+          <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
+        </Link>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-6 border border-fo-border">
+        <div className="flex flex-wrap gap-4 items-center">
+          <div>
+            <label className="text-xs font-medium text-fo-text-secondary mb-1 block">Category</label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => {
+                const params = new URLSearchParams(searchParams.toString());
+                if (e.target.value === 'all') {
+                  params.delete('category');
+                } else {
+                  params.set('category', e.target.value);
+                }
+                if (impersonateUserId) {
+                  params.set('impersonate', impersonateUserId);
+                }
+                window.location.href = `/client/outbound-campaigns?${params.toString()}`;
+              }}
+              className="px-4 py-2 border border-fo-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-fo-primary"
+            >
+              <option value="all">All Categories</option>
+              <option value="allbound">Allbound</option>
+              <option value="outbound">Outbound</option>
+              <option value="nurture">Nurture</option>
+            </select>
+          </div>
+          <div className="ml-auto text-sm text-fo-text-secondary">
+            Showing {filteredCampaigns.length} of {campaigns.length} campaigns
+          </div>
+        </div>
+      </div>
+
+      {filteredCampaigns.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-fo-border">
           <p className="text-fo-text-secondary text-lg mb-4">No campaigns yet</p>
           <Link
@@ -157,7 +290,7 @@ export default function OutboundCampaignsListContent() {
         </div>
       ) : (
         <div className="space-y-4">
-          {campaigns.map((campaign) => {
+          {filteredCampaigns.map((campaign) => {
             const isExpanded = expandedCampaigns.has(campaign.id);
             const intermediary = campaign.intermediaryOutputs || {};
             const finalAssets = campaign.finalAssets || {};

@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getAuthenticatedUser } from '@/lib/api-auth';
 
+// CRITICAL: Force dynamic rendering and prevent caching
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const ADMIN_EMAILS = [
   'ali.hassan@fractionalops.com',
@@ -236,6 +238,12 @@ export async function GET(request: NextRequest) {
         additionalBrief: campaign.additional_brief,
         intermediaryOutputs: intermediaryOutputs,
         finalAssets: finalAssets,
+        // ✅ CRITICAL: Preserve play execution fields
+        output: campaign.output,
+        runtime_context: campaign.runtime_context,
+        play_code: campaign.play_code,
+        play_category: campaign.play_category,
+        source: campaign.source,
         status: campaign.status,
         createdAt: campaign.created_at,
         updatedAt: campaign.updated_at
@@ -245,6 +253,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       campaigns: formattedCampaigns
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
   } catch (error: any) {
     console.error('❌ Error in GET /api/client/outbound-campaigns:', error);
