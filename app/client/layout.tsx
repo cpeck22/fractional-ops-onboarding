@@ -150,7 +150,7 @@ export default function ClientLayout({
       icon: RefreshCw,
       items: [
         { href: '/client/allbound', label: 'Signal Based (Always On)', icon: RefreshCw },
-        { href: '/client/outbound', label: 'Campaigns', icon: Send },
+        { href: '/client/outbound', label: 'Outbound Campaigns', icon: Send },
         { href: '/client/nurture', label: 'CRM Nurture', icon: Heart },
         { href: '/client/outbound-campaigns', label: 'Launch Status', icon: Rocket },
         { href: '/client/account-based-marketing', label: 'Account-Based Marketing', icon: Building2, comingSoon: true },
@@ -348,7 +348,7 @@ export default function ClientLayout({
                   {pathname === '/client/gtm-strategy' && 'GTM Strategy'}
                   {pathname === '/client/sales-intelligence' && 'Sales Intelligence'}
                   {pathname === '/client/allbound' && 'Signal Based (Always On)'}
-                  {pathname === '/client/outbound' && 'Campaigns'}
+                  {pathname === '/client/outbound' && 'Outbound Campaigns'}
                   {pathname === '/client/nurture' && 'CRM Nurture'}
                   {pathname === '/client/outbound-campaigns' && 'Launch Status'}
                   {pathname === '/client/account-based-marketing' && 'Account-Based Marketing'}

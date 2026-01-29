@@ -27,17 +27,35 @@ interface PlayWithStatus extends Play {
   };
 }
 
+// Admin emails that can see all plays (including unavailable ones)
+const ADMIN_EMAILS = [
+  'ali.hassan@fractionalops.com',
+  'sharifali1000@gmail.com',
+  'corey@fractionalops.com',
+];
+
+// Plays that are hidden from client view
+const HIDDEN_PLAYS_NURTURE = ['1005', '1006', '1008'];
+
 export default function NurturePlaysPageContent() {
   const searchParams = useSearchParams();
   const impersonateUserId = searchParams.get('impersonate');
   const [plays, setPlays] = useState<PlayWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const loadPlays = useCallback(async () => {
     try {
       // Get session token for authentication
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
+      
+      // Check if user is admin
+      const { data: { user } } = await supabase.auth.getUser();
+      const userIsAdmin = !!(user?.email && ADMIN_EMAILS.some(
+        email => email.toLowerCase() === user.email?.toLowerCase()
+      ));
+      setIsAdmin(userIsAdmin);
 
       // Load plays
       const url = addImpersonateParam('/api/client/plays?category=nurture', impersonateUserId);
@@ -78,7 +96,12 @@ export default function NurturePlaysPageContent() {
         };
       });
 
-      setPlays(playsWithStatus);
+      // Filter out hidden plays if user is not admin
+      const filteredPlays = userIsAdmin 
+        ? playsWithStatus 
+        : playsWithStatus.filter((play: Play) => !HIDDEN_PLAYS_NURTURE.includes(play.code));
+
+      setPlays(filteredPlays);
       setLoading(false);
     } catch (error) {
       console.error('Error loading plays:', error);
