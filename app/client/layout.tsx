@@ -244,8 +244,16 @@ export default function ClientLayout({
                   {isExpanded && sidebarOpen && (
                     <div className="ml-4 space-y-1 border-l-2 border-gray-700 pl-2">
                       {section.items.map((item) => {
-                        const isActive = pathname === item.href || 
-                          (item.href !== '/client' && pathname?.startsWith(item.href));
+                        // ✅ FIX: Use exact matching for main routes, smart matching for sub-routes
+                        // Exact match for the item itself
+                        const exactMatch = pathname === item.href;
+                        
+                        // For sub-routes (like /client/outbound/0002), check if path starts with item href
+                        // BUT exclude if another item has a more specific match
+                        const isSubRoute = item.href !== '/client' && 
+                          pathname?.startsWith(item.href + '/'); // ✅ Must have trailing slash!
+                        
+                        const isActive = exactMatch || isSubRoute;
                         
                         // Add impersonate parameter to all links if impersonating
                         const href = impersonatedUserId 
