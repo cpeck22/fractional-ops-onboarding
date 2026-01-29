@@ -1,154 +1,119 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import toast from 'react-hot-toast';
-import { addImpersonateParam } from '@/lib/client-api-helpers';
-import { Send, Loader2 } from 'lucide-react';
-
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
+import Image from 'next/image';
+import { MessageCircle, Sparkles, Zap, Brain } from 'lucide-react';
 
 export default function AskClairePageContent() {
-  const searchParams = useSearchParams();
-  const impersonateUserId = searchParams.get('impersonate');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
-
-    const userMessage: Message = { role: 'user', content: input.trim() };
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setLoading(true);
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const authToken = session?.access_token;
-
-      const url = addImpersonateParam('/api/client/ask-claire', impersonateUserId);
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(authToken && { Authorization: `Bearer ${authToken}` })
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          message: userMessage.content,
-          conversationHistory: messages
-        })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        const assistantMessage: Message = { role: 'assistant', content: result.response };
-        setMessages(prev => [...prev, assistantMessage]);
-      } else {
-        toast.error(result.error || 'Failed to get response from Claire');
-        setMessages(prev => prev.slice(0, -1)); // Remove user message on error
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to send message');
-      setMessages(prev => prev.slice(0, -1)); // Remove user message on error
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-200px)] flex flex-col">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-fo-dark mb-2">Ask Claire</h1>
         <p className="text-fo-text-secondary">
-          Chat with Claire to get help with your campaigns, strategies, and marketing questions.
+          Your AI-powered marketing assistant for campaigns, strategies, and more.
         </p>
       </div>
 
-      <div className="flex-1 bg-white rounded-lg shadow-sm border border-fo-border flex flex-col overflow-hidden">
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.length === 0 ? (
-            <div className="text-center text-fo-text-secondary py-12">
-              <p className="text-lg mb-2">Start a conversation with Claire</p>
-              <p className="text-sm">Ask questions about your campaigns, get strategy advice, or request content generation.</p>
-            </div>
-          ) : (
-            messages.map((message, idx) => (
-              <div
-                key={idx}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-lg px-4 py-3 ${
-                    message.role === 'user'
-                      ? 'bg-fo-primary text-white'
-                      : 'bg-fo-light text-fo-dark'
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                </div>
+      <div className="flex-1 bg-white rounded-lg shadow-sm border border-fo-border flex flex-col overflow-hidden relative">
+        {/* Coming Soon Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-fo-primary/5 via-white to-fo-primary/10 z-10 flex items-center justify-center">
+          <div className="text-center px-8 py-12 max-w-2xl">
+            {/* Claire's Image with Animated Glow */}
+            <div className="relative inline-block mb-8">
+              <div className="absolute inset-0 bg-fo-primary/20 rounded-full blur-2xl animate-pulse"></div>
+              <div className="relative bg-white rounded-full p-6 shadow-2xl border-4 border-fo-primary/20">
+                <Image
+                  src="/Fractional-Ops_Symbol_Main.png"
+                  alt="Claire AI"
+                  width={120}
+                  height={120}
+                  className="rounded-full"
+                />
               </div>
-            ))
-          )}
-          {loading && (
-            <div className="flex justify-start">
-              <div className="bg-fo-light rounded-lg px-4 py-3">
-                <Loader2 className="w-5 h-5 animate-spin text-fo-primary" />
+              {/* Floating Sparkles */}
+              <Sparkles className="absolute -top-2 -right-2 w-8 h-8 text-fo-primary animate-bounce" />
+              <Zap className="absolute -bottom-2 -left-2 w-8 h-8 text-fo-primary animate-bounce" style={{ animationDelay: '0.2s' }} />
+            </div>
+
+            {/* Coming Soon Badge */}
+            <div className="inline-flex items-center gap-2 bg-fo-primary/10 border-2 border-fo-primary/30 px-6 py-2 rounded-full mb-6">
+              <Sparkles className="w-5 h-5 text-fo-primary animate-pulse" />
+              <span className="text-fo-primary font-bold text-lg">Coming Soon</span>
+              <Sparkles className="w-5 h-5 text-fo-primary animate-pulse" />
+            </div>
+
+            {/* Main Message */}
+            <h2 className="text-3xl font-bold text-fo-dark mb-4">
+              Chat with Claire is Almost Here!
+            </h2>
+            <p className="text-lg text-fo-text-secondary mb-8">
+              We&apos;re putting the finishing touches on Claire&apos;s conversational AI. Soon you&apos;ll be able to ask questions, 
+              get strategy advice, and generate content through natural conversation.
+            </p>
+
+            {/* Feature Preview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div className="bg-white/80 backdrop-blur rounded-lg p-4 border border-fo-border shadow-sm">
+                <MessageCircle className="w-8 h-8 text-fo-primary mx-auto mb-2" />
+                <h3 className="font-semibold text-fo-dark text-sm mb-1">Real-time Chat</h3>
+                <p className="text-xs text-fo-text-secondary">Instant answers to your marketing questions</p>
+              </div>
+              <div className="bg-white/80 backdrop-blur rounded-lg p-4 border border-fo-border shadow-sm">
+                <Brain className="w-8 h-8 text-fo-primary mx-auto mb-2" />
+                <h3 className="font-semibold text-fo-dark text-sm mb-1">Strategy Insights</h3>
+                <p className="text-xs text-fo-text-secondary">Deep analysis of your GTM approach</p>
+              </div>
+              <div className="bg-white/80 backdrop-blur rounded-lg p-4 border border-fo-border shadow-sm">
+                <Zap className="w-8 h-8 text-fo-primary mx-auto mb-2" />
+                <h3 className="font-semibold text-fo-dark text-sm mb-1">Content Generation</h3>
+                <p className="text-xs text-fo-text-secondary">On-demand campaign and copy creation</p>
               </div>
             </div>
-          )}
-          <div ref={messagesEndRef} />
+
+            {/* Status Message */}
+            <div className="bg-fo-primary/5 border border-fo-primary/20 rounded-lg p-4">
+              <p className="text-sm text-fo-dark">
+                <span className="font-semibold">🔧 In Development:</span> Our team is finalizing the API integration. 
+                We&apos;ll notify you as soon as Ask Claire goes live!
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Input */}
-        <div className="border-t border-fo-border p-4">
+        {/* Preview of Chat Interface (Disabled) */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 opacity-30">
+          <div className="text-center text-fo-text-secondary py-12">
+            <p className="text-lg mb-2">Start a conversation with Claire</p>
+            <p className="text-sm">Ask questions about your campaigns, get strategy advice, or request content generation.</p>
+          </div>
+        </div>
+
+        {/* Disabled Input (Preview) */}
+        <div className="border-t border-fo-border p-4 opacity-30">
           <div className="flex gap-2">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type your message..."
-              rows={3}
-              className="flex-1 px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent resize-none"
-              disabled={loading}
-            />
+            <div className="flex-1 relative">
+              <textarea
+                placeholder="Ask Claire anything... (Coming Soon)"
+                rows={3}
+                className="w-full px-4 py-2 border border-fo-border rounded-lg resize-none cursor-not-allowed bg-gray-50"
+                disabled
+              />
+              {/* Claire's Avatar in Input */}
+              <div className="absolute top-2 right-2">
+                <Image
+                  src="/Fractional-Ops_Symbol_Main.png"
+                  alt="Claire"
+                  width={32}
+                  height={32}
+                  className="rounded-full opacity-50"
+                />
+              </div>
+            </div>
             <button
-              onClick={handleSend}
-              disabled={loading || !input.trim()}
-              className="px-6 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              disabled
+              className="px-6 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed flex items-center gap-2"
             >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <Send className="w-5 h-5" />
-                  Send
-                </>
-              )}
+              <MessageCircle className="w-5 h-5" />
+              Send
             </button>
           </div>
         </div>
