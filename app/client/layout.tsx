@@ -152,7 +152,6 @@ export default function ClientLayout({
         { href: '/client/allbound', label: 'Signal Based (Always On)', icon: RefreshCw },
         { href: '/client/outbound', label: 'Outbound Campaigns', icon: Send },
         { href: '/client/nurture', label: 'CRM Nurture', icon: Heart },
-        { href: '/client/outbound-campaigns', label: 'Launch Status', icon: Rocket },
         { href: '/client/account-based-marketing', label: 'Account-Based Marketing', icon: Building2, comingSoon: true },
       ],
     },
@@ -161,7 +160,7 @@ export default function ClientLayout({
       label: 'Command Centre',
       icon: ListChecks,
       items: [
-        { href: '/client/approvals', label: 'Reviews & Approvals', icon: CheckCircle2 },
+        { href: '/client/outbound-campaigns', label: 'Launch Status', icon: Rocket },
       ],
     },
   ];
