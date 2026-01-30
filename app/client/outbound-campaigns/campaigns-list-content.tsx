@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
-import { Plus, Loader2, ChevronDown, ChevronUp, FileText, Mail, List, Heart, Image as ImageIcon, ExternalLink, Edit } from 'lucide-react';
+import { Plus, Loader2, ChevronDown, ChevronUp, FileText, Mail, List, Heart, Image as ImageIcon, ExternalLink, Edit, Trash2 } from 'lucide-react';
 import { renderHighlightedContent } from '@/lib/render-highlights';
 
 interface Campaign {
@@ -36,6 +36,9 @@ export default function OutboundCampaignsListContent() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
     draft: 0,
@@ -106,6 +109,53 @@ export default function OutboundCampaignsListContent() {
       }
       return newSet;
     });
+  };
+
+  const handleDeleteClick = (campaign: Campaign, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent campaign expansion
+    setCampaignToDelete(campaign);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!campaignToDelete) return;
+
+    setDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
+      const deleteUrl = addImpersonateParam(`/api/client/campaigns/${campaignToDelete.id}`, impersonateUserId);
+      const response = await fetch(deleteUrl, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('Campaign deleted successfully');
+        setDeleteModalOpen(false);
+        setCampaignToDelete(null);
+        // Reload campaigns
+        await loadCampaigns();
+      } else {
+        toast.error(result.error || 'Failed to delete campaign');
+      }
+    } catch (error) {
+      console.error('Error deleting campaign:', error);
+      toast.error('Failed to delete campaign');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setCampaignToDelete(null);
   };
 
   const getStatusBadge = (status: string) => {
@@ -349,6 +399,14 @@ export default function OutboundCampaignsListContent() {
                           Edit
                         </Link>
                       )}
+                      <button
+                        onClick={(e) => handleDeleteClick(campaign, e)}
+                        className="inline-flex items-center gap-1 text-red-600 hover:text-red-700 text-sm font-medium"
+                        title="Delete campaign"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </button>
                       {isExpanded ? (
                         <ChevronUp className="w-5 h-5 text-fo-text-secondary" />
                       ) : (
@@ -698,6 +756,57 @@ export default function OutboundCampaignsListContent() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && campaignToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <Trash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-fo-dark mb-2">Delete Campaign?</h3>
+                <p className="text-sm text-fo-text-secondary mb-2">
+                  Are you sure you want to delete this campaign?
+                </p>
+                <p className="text-sm font-medium text-fo-dark">
+                  &ldquo;{campaignToDelete.campaignName}&rdquo;
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-red-600 mb-6">
+              This action cannot be undone. All campaign data will be permanently deleted.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleDeleteCancel}
+                disabled={deleting}
+                className="px-4 py-2 border border-fo-border text-fo-dark rounded-lg hover:bg-fo-light transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={deleting}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Yes, Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
