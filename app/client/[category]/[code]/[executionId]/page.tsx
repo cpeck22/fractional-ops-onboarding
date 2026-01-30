@@ -260,8 +260,12 @@ export default function PlayExecutionPage() {
         if (result.success) {
           setExecution({
             ...execution,
+            output: result.execution.output,
             status: 'in_progress'
           });
+          // ✅ SYNC FIX: Update editedOutput after auto-save to keep in sync
+          const savedContent = result.execution.output?.content || cleanContent;
+          setEditedOutput(savedContent);
           setLastSaved(new Date());
         }
       } catch (error) {
@@ -618,6 +622,10 @@ Please output the exact same output but take the feedback the CEO provided in th
           output: result.execution.output,
           status: result.execution.status
         });
+        // ✅ SYNC FIX: Update editedOutput to match what was saved in database
+        // This ensures edit view and display view always show the same content
+        const savedContent = result.execution.output?.content || '';
+        setEditedOutput(savedContent);
         setEditing(false);
         toast.success('Saved! Play is now In Progress');
         
@@ -696,6 +704,8 @@ Please output the exact same output but take the feedback the CEO provided in th
           ...execution,
           status: 'approved'
         });
+        // ✅ SYNC FIX: Update editedOutput to match approved content
+        setEditedOutput(cleanContent);
         toast.success('✅ Approved! Notification sent to GTM Engineer');
         
         setTimeout(() => {
