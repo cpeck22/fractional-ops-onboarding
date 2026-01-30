@@ -179,29 +179,16 @@ export async function PUT(
       );
     }
 
-    // Fetch current execution to preserve existing fields like highlighted_html
-    const { data: currentExecution } = await supabaseAdmin
-      .from('play_executions')
-      .select('output')
-      .eq('id', executionId)
-      .single();
-    
-    // Merge new output with existing output to preserve highlighted_html and other fields
-    const existingOutput = currentExecution?.output || {};
+    // ✅ FIX: Use the NEW output values from frontend, don't preserve old ones
+    // The frontend explicitly sets highlighted_html: null when user edits
+    // We MUST respect that and not overwrite with old values
     const newOutput = typeof output === 'string' 
       ? { content: output, jsonContent: {} }
       : output;
     
-    // Update execution output - preserve highlighted_html, highlighting_status, etc.
+    // Update execution output - use NEW values from frontend
     const updateData: any = {
-      output: {
-        ...existingOutput, // Preserve all existing fields (highlighted_html, highlighting_status, etc.)
-        ...newOutput, // Override with new content/jsonContent
-        // Explicitly preserve these fields
-        highlighted_html: existingOutput.highlighted_html,
-        highlighting_status: existingOutput.highlighting_status,
-        highlighting_error: existingOutput.highlighting_error
-      },
+      output: newOutput, // ✅ Use exactly what frontend sends (including null values)
       updated_at: new Date().toISOString()
     };
 
