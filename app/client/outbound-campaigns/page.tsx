@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import OutboundCampaignsListContent from './campaigns-list-content';
+import OutboundCampaignsListContent from './new-campaigns-list-content';
 
 export const dynamic = 'force-dynamic';
 
