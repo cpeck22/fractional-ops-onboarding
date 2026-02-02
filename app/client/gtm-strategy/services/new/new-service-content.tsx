@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Package, Loader2, ArrowLeft, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
+import UnsavedChangesWarning from '@/components/UnsavedChangesWarning';
 
 export default function NewServiceContent() {
   const router = useRouter();
@@ -24,6 +26,40 @@ export default function NewServiceContent() {
     challengesAddressed: [''] as string[],
     customerBenefits: [''] as string[]
   });
+
+  // Unsaved changes tracking - consider form filled if name is entered
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Delete confirmation modal state
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    field: string;
+    index: number;
+    itemName: string;
+  }>({
+    isOpen: false,
+    field: '',
+    index: -1,
+    itemName: ''
+  });
+
+  // Track unsaved changes
+  useEffect(() => {
+    // Consider form filled if any field has content (except empty array items)
+    const hasContent = 
+      formData.name.trim() !== '' ||
+      formData.internalName.trim() !== '' ||
+      formData.description.trim() !== '' ||
+      formData.primaryUrl.trim() !== '' ||
+      formData.summary.trim() !== '' ||
+      formData.capabilities.some(c => c.trim() !== '') ||
+      formData.differentiatedValue.some(v => v.trim() !== '') ||
+      formData.statusQuo.some(s => s.trim() !== '') ||
+      formData.challengesAddressed.some(c => c.trim() !== '') ||
+      formData.customerBenefits.some(b => b.trim() !== '');
+    
+    setHasUnsavedChanges(hasContent);
+  }, [formData]);
 
   const handleSave = async () => {
     try {
@@ -48,6 +84,7 @@ export default function NewServiceContent() {
       }
 
       toast.success('Service created successfully');
+      setHasUnsavedChanges(false);
       const backUrl = impersonateUserId ? `/client/gtm-strategy?impersonate=${impersonateUserId}` : '/client/gtm-strategy';
       router.push(backUrl);
     } catch (err: any) {
@@ -70,7 +107,39 @@ export default function NewServiceContent() {
   };
 
   const handleRemoveArrayItem = (field: string, index: number) => {
+    // Get the item value for the confirmation modal
+    const fieldArray = formData[field as keyof typeof formData] as string[];
+    const itemName = fieldArray[index] || 'this item';
+    
+    // Show delete confirmation modal
+    setDeleteConfirmation({
+      isOpen: true,
+      field,
+      index,
+      itemName
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    // Actually delete the item
+    const { field, index } = deleteConfirmation;
     setFormData(prev => ({ ...prev, [field]: (prev[field as keyof typeof prev] as string[]).filter((_, i) => i !== index) }));
+    
+    // Close modal
+    setDeleteConfirmation({
+      isOpen: false,
+      field: '',
+      index: -1,
+      itemName: ''
+    });
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave this page?');
+      if (!confirmed) return;
+    }
+    router.back();
   };
 
   const renderArrayField = (title: string, field: keyof typeof formData, placeholder: string) => (
@@ -95,7 +164,7 @@ export default function NewServiceContent() {
       <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors">
+            <button onClick={handleBack} className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors">
               <ArrowLeft className="w-5 h-5 text-fo-text-secondary" strokeWidth={2} />
             </button>
             <div className="flex items-center gap-3">
@@ -143,6 +212,18 @@ export default function NewServiceContent() {
         {renderArrayField('Challenges Addressed', 'challengesAddressed', 'Challenge')}
         {renderArrayField('Customer Benefits', 'customerBenefits', 'Customer benefit')}
       </div>
+
+      {/* Unsaved Changes Warning */}
+      <UnsavedChangesWarning hasUnsavedChanges={hasUnsavedChanges} />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, field: '', index: -1, itemName: '' })}
+        onConfirm={handleConfirmDelete}
+        itemName={deleteConfirmation.itemName}
+        itemType="item"
+      />
     </div>
   );
 }

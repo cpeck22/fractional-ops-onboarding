@@ -5,6 +5,8 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { Package, Loader2, ArrowLeft, Edit, Save, X, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
+import UnsavedChangesWarning from '@/components/UnsavedChangesWarning';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,9 +67,48 @@ function ServiceDetailContent() {
     customerBenefits: [] as string[]
   });
 
+  // Unsaved changes tracking
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Delete confirmation modal state
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    field: string;
+    index: number;
+    itemName: string;
+  }>({
+    isOpen: false,
+    field: '',
+    index: -1,
+    itemName: ''
+  });
+
   useEffect(() => {
     loadService();
   }, [serviceOId, impersonateUserId]);
+
+  // Track unsaved changes
+  useEffect(() => {
+    if (!service || !isEditing) {
+      setHasUnsavedChanges(false);
+      return;
+    }
+
+    // Compare formData with original service data
+    const hasChanges = 
+      formData.name !== (service.name || '') ||
+      formData.internalName !== (service.internalName || '') ||
+      formData.description !== (service.description || '') ||
+      formData.primaryUrl !== (service.primaryUrl || '') ||
+      formData.summary !== (service.data?.summary || '') ||
+      JSON.stringify(formData.capabilities) !== JSON.stringify(service.data?.capabilities || []) ||
+      JSON.stringify(formData.differentiatedValue) !== JSON.stringify(service.data?.differentiatedValue || []) ||
+      JSON.stringify(formData.statusQuo) !== JSON.stringify(service.data?.statusQuo || []) ||
+      JSON.stringify(formData.challengesAddressed) !== JSON.stringify(service.data?.challengesAddressed || []) ||
+      JSON.stringify(formData.customerBenefits) !== JSON.stringify(service.data?.customerBenefits || []);
+
+    setHasUnsavedChanges(hasChanges);
+  }, [formData, service, isEditing]);
 
   const loadService = async () => {
     try {
@@ -180,6 +221,7 @@ function ServiceDetailContent() {
       }
 
       toast.success('Service updated successfully');
+      setHasUnsavedChanges(false);
       setIsEditing(false);
       await loadService();
 
@@ -192,6 +234,12 @@ function ServiceDetailContent() {
   };
 
   const handleCancel = () => {
+    // Check for unsaved changes
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to cancel?');
+      if (!confirmed) return;
+    }
+
     // Reset form data to original service data
     if (service) {
       setFormData({
@@ -207,6 +255,7 @@ function ServiceDetailContent() {
         customerBenefits: service.data?.customerBenefits || []
       });
     }
+    setHasUnsavedChanges(false);
     setIsEditing(false);
   };
 
@@ -227,10 +276,42 @@ function ServiceDetailContent() {
   };
 
   const handleRemoveArrayItem = (field: string, index: number) => {
+    // Get the item value for the confirmation modal
+    const fieldArray = formData[field as keyof typeof formData] as string[];
+    const itemName = fieldArray[index] || 'this item';
+    
+    // Show delete confirmation modal
+    setDeleteConfirmation({
+      isOpen: true,
+      field,
+      index,
+      itemName
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    // Actually delete the item
+    const { field, index } = deleteConfirmation;
     setFormData(prev => ({
       ...prev,
       [field]: (prev[field as keyof typeof prev] as string[]).filter((_, i) => i !== index)
     }));
+    
+    // Close modal
+    setDeleteConfirmation({
+      isOpen: false,
+      field: '',
+      index: -1,
+      itemName: ''
+    });
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave this page?');
+      if (!confirmed) return;
+    }
+    router.back();
   };
 
   if (loading) {
@@ -271,7 +352,7 @@ function ServiceDetailContent() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.back()}
+              onClick={handleBack}
               className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-fo-text-secondary" strokeWidth={2} />
@@ -681,6 +762,18 @@ function ServiceDetailContent() {
           </div>
         </div>
       </div>
+
+      {/* Unsaved Changes Warning */}
+      <UnsavedChangesWarning hasUnsavedChanges={hasUnsavedChanges} />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, field: '', index: -1, itemName: '' })}
+        onConfirm={handleConfirmDelete}
+        itemName={deleteConfirmation.itemName}
+        itemType="item"
+      />
     </div>
   );
 }
