@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Award, Loader2, ArrowLeft, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
+import UnsavedChangesWarning from '@/components/UnsavedChangesWarning';
 
 export default function NewProofPointContent() {
   const router = useRouter();
@@ -20,6 +22,31 @@ export default function NewProofPointContent() {
     howWeTalkAboutThis: [''] as string[],
     whyThisMatters: [''] as string[]
   });
+
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    field: string;
+    index: number;
+    itemName: string;
+  }>({
+    isOpen: false,
+    field: '',
+    index: -1,
+    itemName: ''
+  });
+
+  useEffect(() => {
+    const hasContent = 
+      formData.name.trim() !== '' ||
+      formData.internalName.trim() !== '' ||
+      formData.description.trim() !== '' ||
+      formData.type !== 'stat' ||
+      formData.howWeTalkAboutThis.some(item => item.trim() !== '') ||
+      formData.whyThisMatters.some(item => item.trim() !== '');
+    
+    setHasUnsavedChanges(hasContent);
+  }, [formData]);
 
   const handleSave = async () => {
     try {
@@ -44,6 +71,7 @@ export default function NewProofPointContent() {
       }
 
       toast.success('Proof point created successfully');
+      setHasUnsavedChanges(false);
       const backUrl = impersonateUserId ? `/client/gtm-strategy?impersonate=${impersonateUserId}` : '/client/gtm-strategy';
       router.push(backUrl);
     } catch (err: any) {
@@ -63,7 +91,35 @@ export default function NewProofPointContent() {
   };
 
   const handleRemoveArrayItem = (field: string, index: number) => {
+    const fieldArray = formData[field as keyof typeof formData] as string[];
+    const itemName = fieldArray[index] || 'this item';
+    
+    setDeleteConfirmation({
+      isOpen: true,
+      field,
+      index,
+      itemName
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    const { field, index } = deleteConfirmation;
     setFormData(prev => ({ ...prev, [field]: (prev[field as keyof typeof prev] as string[]).filter((_, i) => i !== index) }));
+    
+    setDeleteConfirmation({
+      isOpen: false,
+      field: '',
+      index: -1,
+      itemName: ''
+    });
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave this page?');
+      if (!confirmed) return;
+    }
+    router.back();
   };
 
   const renderArrayField = (title: string, field: keyof typeof formData, placeholder: string) => (
@@ -90,7 +146,7 @@ export default function NewProofPointContent() {
       <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors">
+            <button onClick={handleBack} className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors">
               <ArrowLeft className="w-5 h-5 text-fo-text-secondary" strokeWidth={2} />
             </button>
             <div className="flex items-center gap-3">
@@ -132,6 +188,18 @@ export default function NewProofPointContent() {
         {renderArrayField('How We Talk About This', 'howWeTalkAboutThis', 'Talking point')}
         {renderArrayField('Why This Matters', 'whyThisMatters', 'Reason it matters')}
       </div>
+
+      {/* Unsaved Changes Warning */}
+      <UnsavedChangesWarning hasUnsavedChanges={hasUnsavedChanges} />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, field: '', index: -1, itemName: '' })}
+        onConfirm={handleConfirmDelete}
+        itemName={deleteConfirmation.itemName}
+        itemType="item"
+      />
     </div>
   );
 }

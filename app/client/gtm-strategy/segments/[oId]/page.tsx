@@ -5,6 +5,8 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { Layers, Loader2, ArrowLeft, Edit, Save, X, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
+import UnsavedChangesWarning from '@/components/UnsavedChangesWarning';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +33,38 @@ function SegmentDetailContent() {
     uniqueApproach: [] as string[]
   });
 
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    field: string;
+    index: number;
+    itemName: string;
+  }>({
+    isOpen: false,
+    field: '',
+    index: -1,
+    itemName: ''
+  });
+
   useEffect(() => { loadSegment(); }, [segmentOId, impersonateUserId]);
+
+  useEffect(() => {
+    if (!segment || !isEditing) {
+      setHasUnsavedChanges(false);
+      return;
+    }
+
+    const hasChanges = 
+      formData.name !== (segment.name || '') ||
+      formData.internalName !== (segment.internalName || '') ||
+      formData.description !== (segment.description || '') ||
+      formData.fitExplanation !== (segment.data?.fitExplanation || '') ||
+      JSON.stringify(formData.keyPriorities) !== JSON.stringify(segment.data?.keyPriorities || []) ||
+      JSON.stringify(formData.keyConsiderations) !== JSON.stringify(segment.data?.keyConsiderations || []) ||
+      JSON.stringify(formData.uniqueApproach) !== JSON.stringify(segment.data?.uniqueApproach || []);
+
+    setHasUnsavedChanges(hasChanges);
+  }, [formData, segment, isEditing]);
 
   const loadSegment = async () => {
     try {
@@ -92,6 +125,7 @@ function SegmentDetailContent() {
       }
 
       toast.success('Segment updated successfully');
+      setHasUnsavedChanges(false);
       setIsEditing(false);
       await loadSegment();
     } catch (err: any) {
@@ -103,6 +137,11 @@ function SegmentDetailContent() {
   };
 
   const handleCancel = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to cancel?');
+      if (!confirmed) return;
+    }
+
     if (segment) {
       setFormData({
         name: segment.name || '',
@@ -129,7 +168,38 @@ function SegmentDetailContent() {
   };
 
   const handleRemoveArrayItem = (field: string, index: number) => {
-    setFormData(prev => ({ ...prev, [field]: (prev[field as keyof typeof prev] as string[]).filter((_, i) => i !== index) }));
+    const fieldArray = formData[field as keyof typeof formData] as string[];
+    const itemName = fieldArray[index] || 'this item';
+    
+    setDeleteConfirmation({
+      isOpen: true,
+      field,
+      index,
+      itemName
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    const { field, index } = deleteConfirmation;
+    setFormData(prev => ({
+      ...prev,
+      [field]: (prev[field as keyof typeof prev] as string[]).filter((_, i) => i !== index)
+    }));
+    
+    setDeleteConfirmation({
+      isOpen: false,
+      field: '',
+      index: -1,
+      itemName: ''
+    });
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave this page?');
+      if (!confirmed) return;
+    }
+    router.back();
   };
 
   if (loading) {
@@ -152,7 +222,7 @@ function SegmentDetailContent() {
           </div>
           <h1 className="text-2xl font-bold text-fo-dark mb-4">Error Loading Segment</h1>
           <p className="text-fo-text-secondary mb-6">{error || 'Segment not found'}</p>
-          <button onClick={() => router.back()} className="px-6 py-3 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold">Go Back</button>
+          <button onClick={handleBack} className="px-6 py-3 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold">Go Back</button>
         </div>
       </div>
     );
@@ -186,7 +256,7 @@ function SegmentDetailContent() {
       <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors">
+            <button onClick={handleBack} className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors">
               <ArrowLeft className="w-5 h-5 text-fo-text-secondary" strokeWidth={2} />
             </button>
             <div className="flex items-center gap-3">
@@ -283,6 +353,18 @@ function SegmentDetailContent() {
           </div>
         </div>
       </div>
+
+      {/* Unsaved Changes Warning */}
+      <UnsavedChangesWarning hasUnsavedChanges={hasUnsavedChanges} />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, field: '', index: -1, itemName: '' })}
+        onConfirm={handleConfirmDelete}
+        itemName={deleteConfirmation.itemName}
+        itemType="item"
+      />
     </div>
   );
 }

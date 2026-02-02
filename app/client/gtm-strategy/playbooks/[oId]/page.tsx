@@ -5,6 +5,8 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { BookOpen, Loader2, ArrowLeft, Edit, Save, X, AlertCircle, Eye, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
+import UnsavedChangesWarning from '@/components/UnsavedChangesWarning';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,7 +50,41 @@ function PlaybookDetailContent() {
     productOId: ''
   });
 
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    field: string;
+    index: number;
+    itemName: string;
+  }>({
+    isOpen: false,
+    field: '',
+    index: -1,
+    itemName: ''
+  });
+
   useEffect(() => { loadPlaybookAndEntities(); }, [playbookOId, impersonateUserId]);
+
+  useEffect(() => {
+    if (!playbook || !isEditing) {
+      setHasUnsavedChanges(false);
+      return;
+    }
+
+    const hasChanges = 
+      formData.name !== (playbook.name || '') ||
+      formData.description !== (playbook.description || '') ||
+      formData.type !== (playbook.type || '') ||
+      formData.status !== (playbook.status || 'active') ||
+      JSON.stringify(formData.keyInsight) !== JSON.stringify(playbook.data?.keyInsight || []) ||
+      JSON.stringify(formData.exampleDomains) !== JSON.stringify(playbook.data?.exampleDomains || []) ||
+      JSON.stringify(formData.approachAngle) !== JSON.stringify(playbook.data?.approachAngle || []) ||
+      JSON.stringify(formData.strategicNarrative) !== JSON.stringify(playbook.data?.strategicNarrative || []) ||
+      JSON.stringify(formData.selectedPersonaOIds) !== JSON.stringify(playbook.buyerPersonas?.map((p: any) => p.oId) || []) ||
+      JSON.stringify(formData.selectedUseCaseOIds) !== JSON.stringify(playbook.useCases?.map((uc: any) => uc.oId) || []);
+
+    setHasUnsavedChanges(hasChanges);
+  }, [formData, playbook, isEditing]);
 
   const loadPlaybookAndEntities = async () => {
     try {
@@ -128,6 +164,7 @@ function PlaybookDetailContent() {
       }
 
       toast.success('Playbook updated successfully');
+      setHasUnsavedChanges(false);
       setIsEditing(false);
       await loadPlaybookAndEntities();
     } catch (err: any) {
@@ -139,6 +176,11 @@ function PlaybookDetailContent() {
   };
 
   const handleCancel = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to cancel?');
+      if (!confirmed) return;
+    }
+
     if (playbook) {
       setFormData({
         name: playbook.name || '',
@@ -173,7 +215,38 @@ function PlaybookDetailContent() {
   };
 
   const handleRemoveArrayItem = (field: string, index: number) => {
-    setFormData(prev => ({ ...prev, [field]: (prev[field as keyof typeof prev] as string[]).filter((_, i) => i !== index) }));
+    const fieldArray = formData[field as keyof typeof formData] as string[];
+    const itemName = fieldArray[index] || 'this item';
+    
+    setDeleteConfirmation({
+      isOpen: true,
+      field,
+      index,
+      itemName
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    const { field, index } = deleteConfirmation;
+    setFormData(prev => ({
+      ...prev,
+      [field]: (prev[field as keyof typeof prev] as string[]).filter((_, i) => i !== index)
+    }));
+    
+    setDeleteConfirmation({
+      isOpen: false,
+      field: '',
+      index: -1,
+      itemName: ''
+    });
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave this page?');
+      if (!confirmed) return;
+    }
+    router.back();
   };
 
   const toggleMultiSelect = (field: string, oId: string) => {
@@ -214,7 +287,7 @@ function PlaybookDetailContent() {
           </div>
           <h1 className="text-2xl font-bold text-fo-dark mb-4">Error Loading Playbook</h1>
           <p className="text-fo-text-secondary mb-6">{error || 'Playbook not found'}</p>
-          <button onClick={() => router.back()} className="px-6 py-3 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold">Go Back</button>
+          <button onClick={handleBack} className="px-6 py-3 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold">Go Back</button>
         </div>
       </div>
     );
@@ -331,7 +404,7 @@ function PlaybookDetailContent() {
       <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors">
+            <button onClick={handleBack} className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors">
               <ArrowLeft className="w-5 h-5 text-fo-text-secondary" strokeWidth={2} />
             </button>
             <div className="flex items-center gap-3">
@@ -462,6 +535,18 @@ function PlaybookDetailContent() {
           </div>
         </div>
       </div>
+
+      {/* Unsaved Changes Warning */}
+      <UnsavedChangesWarning hasUnsavedChanges={hasUnsavedChanges} />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, field: '', index: -1, itemName: '' })}
+        onConfirm={handleConfirmDelete}
+        itemName={deleteConfirmation.itemName}
+        itemType="item"
+      />
     </div>
   );
 }

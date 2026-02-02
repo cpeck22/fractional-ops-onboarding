@@ -5,6 +5,8 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { Building2, Loader2, ArrowLeft, Edit, Save, X, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
+import UnsavedChangesWarning from '@/components/UnsavedChangesWarning';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,9 +57,42 @@ function ReferenceDetailContent() {
     keyStats: [] as string[]
   });
 
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    field: string;
+    index: number;
+    itemName: string;
+  }>({
+    isOpen: false,
+    field: '',
+    index: -1,
+    itemName: ''
+  });
+
   useEffect(() => {
     loadReference();
   }, [referenceOId, impersonateUserId]);
+
+  useEffect(() => {
+    if (!reference || !isEditing) {
+      setHasUnsavedChanges(false);
+      return;
+    }
+
+    const hasChanges = 
+      formData.name !== (reference.name || '') ||
+      formData.internalName !== (reference.internalName || '') ||
+      formData.description !== (reference.description || '') ||
+      formData.howTheyMakeMoney !== (reference.data?.howTheyMakeMoney || '') ||
+      formData.howTheyUseProduct !== (reference.data?.howTheyUseProduct || '') ||
+      formData.howTheyBenefitFromProduct !== (reference.data?.howTheyBenefitFromProduct || '') ||
+      JSON.stringify(formData.emailSnippets) !== JSON.stringify(reference.data?.emailSnippets || []) ||
+      JSON.stringify(formData.howWeImpactedTheirBusiness) !== JSON.stringify(reference.data?.howWeImpactedTheirBusiness || []) ||
+      JSON.stringify(formData.keyStats) !== JSON.stringify(reference.data?.keyStats || []);
+
+    setHasUnsavedChanges(hasChanges);
+  }, [formData, reference, isEditing]);
 
   const loadReference = async () => {
     try {
@@ -141,6 +176,7 @@ function ReferenceDetailContent() {
       }
 
       toast.success('Reference updated successfully');
+      setHasUnsavedChanges(false);
       setIsEditing(false);
       await loadReference();
 
@@ -153,6 +189,11 @@ function ReferenceDetailContent() {
   };
 
   const handleCancel = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to cancel?');
+      if (!confirmed) return;
+    }
+
     if (reference) {
       setFormData({
         name: reference.name || '',
@@ -186,10 +227,38 @@ function ReferenceDetailContent() {
   };
 
   const handleRemoveArrayItem = (field: string, index: number) => {
+    const fieldArray = formData[field as keyof typeof formData] as string[];
+    const itemName = fieldArray[index] || 'this item';
+    
+    setDeleteConfirmation({
+      isOpen: true,
+      field,
+      index,
+      itemName
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    const { field, index } = deleteConfirmation;
     setFormData(prev => ({
       ...prev,
       [field]: (prev[field as keyof typeof prev] as string[]).filter((_, i) => i !== index)
     }));
+    
+    setDeleteConfirmation({
+      isOpen: false,
+      field: '',
+      index: -1,
+      itemName: ''
+    });
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave this page?');
+      if (!confirmed) return;
+    }
+    router.back();
   };
 
   if (loading) {
@@ -212,7 +281,7 @@ function ReferenceDetailContent() {
           </div>
           <h1 className="text-2xl font-bold text-fo-dark mb-4">Error Loading Reference</h1>
           <p className="text-fo-text-secondary mb-6">{error || 'Reference not found'}</p>
-          <button onClick={() => router.back()} className="px-6 py-3 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold">
+          <button onClick={handleBack} className="px-6 py-3 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold">
             Go Back
           </button>
         </div>
@@ -261,7 +330,7 @@ function ReferenceDetailContent() {
       <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors">
+            <button onClick={handleBack} className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors">
               <ArrowLeft className="w-5 h-5 text-fo-text-secondary" strokeWidth={2} />
             </button>
             <div className="flex items-center gap-3">
@@ -409,6 +478,18 @@ function ReferenceDetailContent() {
           </div>
         </div>
       </div>
+
+      {/* Unsaved Changes Warning */}
+      <UnsavedChangesWarning hasUnsavedChanges={hasUnsavedChanges} />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, field: '', index: -1, itemName: '' })}
+        onConfirm={handleConfirmDelete}
+        itemName={deleteConfirmation.itemName}
+        itemType="item"
+      />
     </div>
   );
 }
