@@ -95,9 +95,11 @@ export async function GET(request: NextRequest) {
       referencesResponse,
       segmentsResponse,
       playbooksResponse,
-      productResponse
+      competitorsResponse,
+      proofPointsResponse,
+      productsResponse
     ] = await Promise.all([
-      // Personas
+      // Personas - fetch ALL data
       axios.get('https://app.octavehq.com/api/v2/persona/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
@@ -106,7 +108,7 @@ export async function GET(request: NextRequest) {
         return { data: { data: [] } };
       }),
       
-      // Use Cases
+      // Use Cases - fetch ALL data
       axios.get('https://app.octavehq.com/api/v2/use-case/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
@@ -115,7 +117,7 @@ export async function GET(request: NextRequest) {
         return { data: { data: [] } };
       }),
       
-      // References
+      // References - fetch ALL data
       axios.get('https://app.octavehq.com/api/v2/reference/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
@@ -124,7 +126,7 @@ export async function GET(request: NextRequest) {
         return { data: { data: [] } };
       }),
       
-      // Segments
+      // Segments - fetch ALL data
       axios.get('https://app.octavehq.com/api/v2/segment/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
@@ -133,7 +135,7 @@ export async function GET(request: NextRequest) {
         return { data: { data: [] } };
       }),
       
-      // Playbooks
+      // Playbooks - fetch ALL data
       axios.get('https://app.octavehq.com/api/v2/playbook/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
@@ -142,13 +144,32 @@ export async function GET(request: NextRequest) {
         return { data: { data: [] } };
       }),
       
-      // Service Offering/Product (if productOId exists)
-      productOId ? axios.get(`https://app.octavehq.com/api/v2/product/get?oId=${productOId}`, {
-        headers: { 'api_key': workspaceApiKey }
+      // Competitors - NEW: fetch ALL competitor data
+      axios.get('https://app.octavehq.com/api/v2/competitor/list', {
+        headers: { 'api_key': workspaceApiKey },
+        params: { limit: 100 }
       }).catch((error: any) => {
-        console.error('❌ Error fetching product from Octave:', error.response?.status, error.response?.data || error.message);
-        return { data: null };
-      }) : Promise.resolve({ data: null })
+        console.error('❌ Error fetching competitors from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: { data: [] } };
+      }),
+      
+      // Proof Points - NEW: fetch ALL proof point data
+      axios.get('https://app.octavehq.com/api/v2/proof-point/list', {
+        headers: { 'api_key': workspaceApiKey },
+        params: { limit: 100 }
+      }).catch((error: any) => {
+        console.error('❌ Error fetching proof points from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: { data: [] } };
+      }),
+      
+      // Products/Services - NEW: fetch ALL products (not just one)
+      axios.get('https://app.octavehq.com/api/v2/product/list', {
+        headers: { 'api_key': workspaceApiKey },
+        params: { limit: 100 }
+      }).catch((error: any) => {
+        console.error('❌ Error fetching products from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: { data: [] } };
+      })
     ]);
     
     const personas = personasResponse.data?.data || [];
@@ -156,7 +177,9 @@ export async function GET(request: NextRequest) {
     const references = referencesResponse.data?.data || [];
     const segments = segmentsResponse.data?.data || [];
     const playbooks = playbooksResponse.data?.data || [];
-    const serviceOffering = productResponse.data || workspaceData.service_offering || null;
+    const competitors = competitorsResponse.data?.data || [];
+    const proofPoints = proofPointsResponse.data?.data || [];
+    const products = productsResponse.data?.data || [];
     
     console.log('📊 Octave API Results:', {
       personas: personas.length,
@@ -164,52 +187,146 @@ export async function GET(request: NextRequest) {
       references: references.length,
       segments: segments.length,
       playbooks: playbooks.length,
-      hasProduct: !!serviceOffering
+      competitors: competitors.length,
+      proofPoints: proofPoints.length,
+      products: products.length
     });
     
     return NextResponse.json({
       success: true,
       workspace: {
         workspace_oid: workspaceData.workspace_oid,
-        company_name: workspaceData.company_name
+        company_name: workspaceData.company_name,
+        workspace_api_key: workspaceApiKey // Include for frontend API calls
       },
+      // Return ALL persona data
       personas: personas.map((p: any) => ({
         oId: p.oId,
         name: p.name,
         internalName: p.internalName,
-        description: p.description || p.data?.description || null
+        description: p.description,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+        active: p.active,
+        data: p.data, // Full data object with all fields
+        qualifyingQuestions: p.qualifyingQuestions,
+        user: p.user,
+        workspace: p.workspace
       })),
+      // Return ALL use case data
       useCases: useCases.map((uc: any) => ({
         oId: uc.oId,
         name: uc.name,
         internalName: uc.internalName,
-        description: uc.description || uc.data?.description || null
+        description: uc.description,
+        primaryUrl: uc.primaryUrl,
+        createdAt: uc.createdAt,
+        updatedAt: uc.updatedAt,
+        active: uc.active,
+        data: uc.data, // Full data object
+        scenarios: uc.scenarios,
+        desiredOutcomes: uc.desiredOutcomes,
+        user: uc.user,
+        workspace: uc.workspace
       })),
+      // Return ALL reference data
       clientReferences: references.map((r: any) => ({
         oId: r.oId,
-        name: r.name || r.companyName || 'Unnamed Reference',
-        companyName: r.companyName,
-        companyDomain: r.companyDomain,
-        industry: r.industry,
-        description: r.description || r.data?.description || null,
-        data: r.data || null // ✅ Include full data object for details
+        name: r.name,
+        internalName: r.internalName,
+        description: r.description,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+        active: r.active,
+        data: r.data, // Full data object
+        user: r.user,
+        workspace: r.workspace,
+        unrecognized: r.unrecognized
       })),
+      // Return ALL segment data
       segments: segments.map((s: any) => ({
         oId: s.oId,
         name: s.name,
-        description: s.description || s.data?.description || null
+        internalName: s.internalName,
+        description: s.description,
+        createdAt: s.createdAt,
+        updatedAt: s.updatedAt,
+        active: s.active,
+        data: s.data, // Full data object
+        qualifyingQuestions: s.qualifyingQuestions,
+        user: s.user,
+        workspace: s.workspace,
+        unrecognized: s.unrecognized,
+        rejected: s.rejected
       })),
+      // Return ALL playbook data
       playbooks: playbooks.map((pb: any) => ({
         oId: pb.oId,
         name: pb.name,
-        description: pb.description || pb.data?.description || null
+        description: pb.description,
+        createdAt: pb.createdAt,
+        updatedAt: pb.updatedAt,
+        active: pb.active,
+        shared: pb.shared,
+        type: pb.type,
+        framework: pb.framework,
+        status: pb.status,
+        referenceMode: pb.referenceMode,
+        proofPointMode: pb.proofPointMode,
+        data: pb.data, // Full data object
+        qualifyingQuestions: pb.qualifyingQuestions,
+        user: pb.user,
+        workspace: pb.workspace,
+        product: pb.product,
+        buyerPersonas: pb.buyerPersonas,
+        useCases: pb.useCases,
+        references: pb.references,
+        segment: pb.segment,
+        competitor: pb.competitor,
+        proofPoints: pb.proofPoints
       })),
-      serviceOffering: serviceOffering ? {
-        oId: serviceOffering.oId,
-        name: serviceOffering.name,
-        description: serviceOffering.description,
-        data: serviceOffering.data
-      } : null
+      // Return ALL competitor data
+      competitors: competitors.map((c: any) => ({
+        oId: c.oId,
+        name: c.name,
+        internalName: c.internalName,
+        description: c.description,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+        active: c.active,
+        shared: c.shared,
+        data: c.data, // Full data object
+        user: c.user,
+        workspace: c.workspace
+      })),
+      // Return ALL proof point data
+      proofPoints: proofPoints.map((pp: any) => ({
+        oId: pp.oId,
+        name: pp.name,
+        internalName: pp.internalName,
+        description: pp.description,
+        createdAt: pp.createdAt,
+        updatedAt: pp.updatedAt,
+        active: pp.active,
+        data: pp.data, // Full data object
+        user: pp.user,
+        workspace: pp.workspace
+      })),
+      // Return ALL products/services (max 3 for UI)
+      services: products.map((p: any) => ({
+        oId: p.oId,
+        name: p.name,
+        internalName: p.internalName,
+        description: p.description,
+        primaryUrl: p.primaryUrl,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+        active: p.active,
+        data: p.data, // Full data object
+        qualifyingQuestions: p.qualifyingQuestions,
+        user: p.user,
+        workspace: p.workspace
+      }))
     });
     
   } catch (error: any) {

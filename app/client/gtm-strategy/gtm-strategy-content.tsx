@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Target, Loader2, Users, Briefcase, Building2, Layers, BookOpen, Package } from 'lucide-react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Target, Loader2, Users, Briefcase, Building2, Layers, BookOpen, Package, Swords, Award, Eye, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
 
@@ -10,47 +10,132 @@ interface GTMStrategyData {
   workspace: {
     workspace_oid: string;
     company_name: string;
+    workspace_api_key?: string;
   };
   personas: Array<{
     oId: string;
     name: string;
     internalName?: string;
     description?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    active?: boolean;
+    data?: any;
+    qualifyingQuestions?: any[];
+    user?: any;
+    workspace?: any;
   }>;
   useCases: Array<{
     oId: string;
     name: string;
     internalName?: string;
     description?: string;
+    primaryUrl?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    active?: boolean;
+    data?: any;
+    scenarios?: string[];
+    desiredOutcomes?: string[];
+    user?: any;
+    workspace?: any;
   }>;
   clientReferences: Array<{
     oId: string;
     name: string;
-    companyName?: string;
-    companyDomain?: string;
-    industry?: string;
+    internalName?: string;
     description?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    active?: boolean;
     data?: any;
+    user?: any;
+    workspace?: any;
+    unrecognized?: boolean;
   }>;
   segments: Array<{
     oId: string;
     name: string;
+    internalName?: string;
     description?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    active?: boolean;
+    data?: any;
+    qualifyingQuestions?: any[];
+    user?: any;
+    workspace?: any;
+    unrecognized?: boolean;
+    rejected?: boolean;
   }>;
   playbooks: Array<{
     oId: string;
     name: string;
     description?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    active?: boolean;
+    shared?: boolean;
+    type?: string;
+    framework?: string;
+    status?: string;
+    referenceMode?: string;
+    proofPointMode?: string;
+    data?: any;
+    qualifyingQuestions?: any[];
+    user?: any;
+    workspace?: any;
+    product?: any;
+    buyerPersonas?: any[];
+    useCases?: any[];
+    references?: any[];
+    segment?: any;
+    competitor?: any;
+    proofPoints?: any[];
   }>;
-  serviceOffering: {
+  competitors: Array<{
     oId: string;
     name: string;
+    internalName?: string;
     description?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    active?: boolean;
+    shared?: boolean;
     data?: any;
-  } | null;
+    user?: any;
+    workspace?: any;
+  }>;
+  proofPoints: Array<{
+    oId: string;
+    name: string;
+    internalName?: string;
+    description?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    active?: boolean;
+    data?: any;
+    user?: any;
+    workspace?: any;
+  }>;
+  services: Array<{
+    oId: string;
+    name: string;
+    internalName?: string;
+    description?: string;
+    primaryUrl?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    active?: boolean;
+    data?: any;
+    qualifyingQuestions?: any[];
+    user?: any;
+    workspace?: any;
+  }>;
 }
 
 export default function GTMStrategyPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const impersonateUserId = searchParams.get('impersonate');
   const [loading, setLoading] = useState(true);
@@ -200,6 +285,28 @@ export default function GTMStrategyPageContent() {
     );
   }
 
+  const MAX_SERVICES = 3;
+  const serviceCount = data.services?.length || 0;
+  const canAddService = serviceCount < MAX_SERVICES;
+
+  const handleViewDetails = (entityType: string, oId: string) => {
+    const url = impersonateUserId
+      ? `/client/gtm-strategy/${entityType}/${oId}?impersonate=${impersonateUserId}`
+      : `/client/gtm-strategy/${entityType}/${oId}`;
+    router.push(url);
+  };
+
+  const handleAddService = () => {
+    if (!canAddService) {
+      toast.error(`Maximum ${MAX_SERVICES} services allowed`);
+      return;
+    }
+    const url = impersonateUserId
+      ? `/client/gtm-strategy/services/new?impersonate=${impersonateUserId}`
+      : `/client/gtm-strategy/services/new`;
+    router.push(url);
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
@@ -209,126 +316,120 @@ export default function GTMStrategyPageContent() {
           <h1 className="text-2xl font-bold text-fo-dark">GTM Strategy</h1>
         </div>
         <p className="text-fo-text-secondary">
-          View your Octave workspace elements. This is a read-only view of your go-to-market strategy configuration.
+          View and manage your Octave workspace elements. Click on any item to view full details and edit.
         </p>
       </div>
 
-      {/* Service Offering */}
-      {data.serviceOffering && (
-        <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
-          <div className="flex items-center gap-3 mb-4">
+      {/* Services Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
             <Package className="w-5 h-5 text-fo-primary" strokeWidth={2} />
-            <h2 className="text-xl font-semibold text-fo-dark">Service Offering</h2>
+            <h2 className="text-xl font-semibold text-fo-dark">Services</h2>
+            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+              serviceCount >= MAX_SERVICES 
+                ? 'bg-fo-primary text-white' 
+                : 'bg-fo-bg-light text-fo-text-secondary'
+            }`}>
+              {serviceCount}/{MAX_SERVICES}
+            </span>
           </div>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm font-semibold text-fo-text-secondary mb-1">Name</p>
-              <p className="text-fo-dark font-medium">{data.serviceOffering.name}</p>
-            </div>
-            {data.serviceOffering.description && (
-              <div>
-                <p className="text-sm font-semibold text-fo-text-secondary mb-1">Description</p>
-                <p className="text-fo-text-secondary">{data.serviceOffering.description}</p>
-              </div>
-            )}
-            {data.serviceOffering.data && (
-              <>
-                {/* Summary */}
-                {data.serviceOffering.data.summary && (
-                  <div>
-                    <p className="text-sm font-semibold text-fo-text-secondary mb-2">Summary</p>
-                    <p className="text-fo-text bg-fo-bg-light p-3 rounded-lg">{data.serviceOffering.data.summary}</p>
-                  </div>
-                )}
-                
-                {/* Capabilities */}
-                {data.serviceOffering.data.capabilities && data.serviceOffering.data.capabilities.length > 0 && (
-                  <div>
-                    <p className="text-sm font-semibold text-fo-text-secondary mb-2">Capabilities</p>
-                    <ul className="list-disc list-inside space-y-1 bg-fo-bg-light p-3 rounded-lg">
-                      {data.serviceOffering.data.capabilities.map((cap: string, idx: number) => (
-                        <li key={idx} className="text-fo-text">{cap}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                
-                {/* Differentiated Value */}
-                {data.serviceOffering.data.differentiatedValue && data.serviceOffering.data.differentiatedValue.length > 0 && (
-                  <div>
-                    <p className="text-sm font-semibold text-fo-text-secondary mb-2">Differentiated Value</p>
-                    <ul className="list-disc list-inside space-y-1 bg-fo-bg-light p-3 rounded-lg">
-                      {data.serviceOffering.data.differentiatedValue.map((val: string, idx: number) => (
-                        <li key={idx} className="text-fo-text">{val}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                
-                {/* Status Quo */}
-                {data.serviceOffering.data.statusQuo && data.serviceOffering.data.statusQuo.length > 0 && (
-                  <div>
-                    <p className="text-sm font-semibold text-fo-text-secondary mb-2">Status Quo</p>
-                    <ul className="list-disc list-inside space-y-1 bg-fo-bg-light p-3 rounded-lg">
-                      {data.serviceOffering.data.statusQuo.map((sq: string, idx: number) => (
-                        <li key={idx} className="text-fo-text">{sq}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                
-                {/* Challenges Addressed */}
-                {data.serviceOffering.data.challengesAddressed && data.serviceOffering.data.challengesAddressed.length > 0 && (
-                  <div>
-                    <p className="text-sm font-semibold text-fo-text-secondary mb-2">Challenges Addressed</p>
-                    <ul className="list-disc list-inside space-y-1 bg-fo-bg-light p-3 rounded-lg">
-                      {data.serviceOffering.data.challengesAddressed.map((challenge: string, idx: number) => (
-                        <li key={idx} className="text-fo-text">{challenge}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                
-                {/* Customer Benefits */}
-                {data.serviceOffering.data.customerBenefits && data.serviceOffering.data.customerBenefits.length > 0 && (
-                  <div>
-                    <p className="text-sm font-semibold text-fo-text-secondary mb-2">Customer Benefits</p>
-                    <ul className="list-disc list-inside space-y-1 bg-fo-bg-light p-3 rounded-lg">
-                      {data.serviceOffering.data.customerBenefits.map((benefit: string, idx: number) => (
-                        <li key={idx} className="text-fo-text">{benefit}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+          <button
+            onClick={handleAddService}
+            disabled={!canAddService}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+              canAddService
+                ? 'bg-fo-primary text-white hover:bg-fo-primary/90'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            <Plus className="w-4 h-4" strokeWidth={2} />
+            Add Service
+          </button>
         </div>
-      )}
+        
+        {data.services.length === 0 ? (
+          <div className="text-center py-8">
+            <Package className="w-12 h-12 text-fo-text-secondary mx-auto mb-3 opacity-50" strokeWidth={1.5} />
+            <p className="text-fo-text-secondary mb-4">No services configured yet</p>
+            <button
+              onClick={handleAddService}
+              className="px-6 py-3 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold"
+            >
+              Add Your First Service
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {data.services.map((service) => (
+              <div 
+                key={service.oId} 
+                className="border border-fo-border rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
+                <h3 className="font-semibold text-fo-dark mb-2 line-clamp-1">{service.name}</h3>
+                {service.description && (
+                  <p className="text-sm text-fo-text-secondary mb-3 line-clamp-2">{service.description}</p>
+                )}
+                <button
+                  onClick={() => handleViewDetails('services', service.oId)}
+                  className="flex items-center gap-2 text-sm text-fo-primary hover:text-fo-primary/80 font-semibold"
+                >
+                  <Eye className="w-4 h-4" strokeWidth={2} />
+                  View Details
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Personas */}
       <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Users className="w-5 h-5 text-fo-primary" strokeWidth={2} />
-          <h2 className="text-xl font-semibold text-fo-dark">Personas ({data.personas.length})</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Users className="w-5 h-5 text-fo-primary" strokeWidth={2} />
+            <h2 className="text-xl font-semibold text-fo-dark">Personas</h2>
+            <span className="px-3 py-1 rounded-full text-sm font-semibold bg-fo-bg-light text-fo-text-secondary">
+              {data.personas.length}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              const url = impersonateUserId 
+                ? `/client/gtm-strategy/personas/new?impersonate=${impersonateUserId}`
+                : `/client/gtm-strategy/personas/new`;
+              router.push(url);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold"
+          >
+            <Plus className="w-4 h-4" strokeWidth={2} />
+            Add Persona
+          </button>
         </div>
+        
         {data.personas.length === 0 ? (
-          <p className="text-fo-text-secondary">No personas configured</p>
+          <div className="text-center py-8">
+            <Users className="w-12 h-12 text-fo-text-secondary mx-auto mb-3 opacity-50" strokeWidth={1.5} />
+            <p className="text-fo-text-secondary">No personas configured yet</p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.personas.map((persona) => (
-              <div key={persona.oId} className="border border-fo-border rounded-lg p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <p className="font-semibold text-fo-dark">{persona.name}</p>
-                    {persona.internalName && (
-                      <p className="text-sm text-fo-text-secondary">Internal: {persona.internalName}</p>
-                    )}
-                  </div>
-                </div>
+              <div 
+                key={persona.oId} 
+                className="border border-fo-border rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
+                <h3 className="font-semibold text-fo-dark mb-2 line-clamp-1">{persona.name}</h3>
                 {persona.description && (
-                  <p className="text-sm text-fo-text-secondary mt-2">{persona.description}</p>
+                  <p className="text-sm text-fo-text-secondary mb-3 line-clamp-2">{persona.description}</p>
                 )}
+                <button
+                  onClick={() => handleViewDetails('personas', persona.oId)}
+                  className="flex items-center gap-2 text-sm text-fo-primary hover:text-fo-primary/80 font-semibold"
+                >
+                  <Eye className="w-4 h-4" strokeWidth={2} />
+                  View Details
+                </button>
               </div>
             ))}
           </div>
@@ -337,27 +438,51 @@ export default function GTMStrategyPageContent() {
 
       {/* Use Cases */}
       <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Briefcase className="w-5 h-5 text-fo-primary" strokeWidth={2} />
-          <h2 className="text-xl font-semibold text-fo-dark">Use Cases ({data.useCases.length})</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Briefcase className="w-5 h-5 text-fo-primary" strokeWidth={2} />
+            <h2 className="text-xl font-semibold text-fo-dark">Use Cases</h2>
+            <span className="px-3 py-1 rounded-full text-sm font-semibold bg-fo-bg-light text-fo-text-secondary">
+              {data.useCases.length}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              const url = impersonateUserId 
+                ? `/client/gtm-strategy/use-cases/new?impersonate=${impersonateUserId}`
+                : `/client/gtm-strategy/use-cases/new`;
+              router.push(url);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold"
+          >
+            <Plus className="w-4 h-4" strokeWidth={2} />
+            Add Use Case
+          </button>
         </div>
+        
         {data.useCases.length === 0 ? (
-          <p className="text-fo-text-secondary">No use cases configured</p>
+          <div className="text-center py-8">
+            <Briefcase className="w-12 h-12 text-fo-text-secondary mx-auto mb-3 opacity-50" strokeWidth={1.5} />
+            <p className="text-fo-text-secondary">No use cases configured yet</p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.useCases.map((useCase) => (
-              <div key={useCase.oId} className="border border-fo-border rounded-lg p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <p className="font-semibold text-fo-dark">{useCase.name}</p>
-                    {useCase.internalName && (
-                      <p className="text-sm text-fo-text-secondary">Internal: {useCase.internalName}</p>
-                    )}
-                  </div>
-                </div>
+              <div 
+                key={useCase.oId} 
+                className="border border-fo-border rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
+                <h3 className="font-semibold text-fo-dark mb-2 line-clamp-1">{useCase.name}</h3>
                 {useCase.description && (
-                  <p className="text-sm text-fo-text-secondary mt-2">{useCase.description}</p>
+                  <p className="text-sm text-fo-text-secondary mb-3 line-clamp-2">{useCase.description}</p>
                 )}
+                <button
+                  onClick={() => handleViewDetails('use-cases', useCase.oId)}
+                  className="flex items-center gap-2 text-sm text-fo-primary hover:text-fo-primary/80 font-semibold"
+                >
+                  <Eye className="w-4 h-4" strokeWidth={2} />
+                  View Details
+                </button>
               </div>
             ))}
           </div>
@@ -366,89 +491,51 @@ export default function GTMStrategyPageContent() {
 
       {/* Client References */}
       <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Building2 className="w-5 h-5 text-fo-primary" strokeWidth={2} />
-          <h2 className="text-xl font-semibold text-fo-dark">Client References ({data.clientReferences.length})</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Building2 className="w-5 h-5 text-fo-primary" strokeWidth={2} />
+            <h2 className="text-xl font-semibold text-fo-dark">Client References</h2>
+            <span className="px-3 py-1 rounded-full text-sm font-semibold bg-fo-bg-light text-fo-text-secondary">
+              {data.clientReferences.length}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              const url = impersonateUserId 
+                ? `/client/gtm-strategy/references/new?impersonate=${impersonateUserId}`
+                : `/client/gtm-strategy/references/new`;
+              router.push(url);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold"
+          >
+            <Plus className="w-4 h-4" strokeWidth={2} />
+            Add Reference
+          </button>
         </div>
+        
         {data.clientReferences.length === 0 ? (
-          <p className="text-fo-text-secondary">No client references configured</p>
+          <div className="text-center py-8">
+            <Building2 className="w-12 h-12 text-fo-text-secondary mx-auto mb-3 opacity-50" strokeWidth={1.5} />
+            <p className="text-fo-text-secondary">No client references configured yet</p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.clientReferences.map((ref) => (
-              <div key={ref.oId} className="border border-fo-border rounded-lg p-4">
-                <p className="font-semibold text-fo-dark text-lg mb-3">{ref.name}</p>
-                
-                {/* Basic Info */}
-                <div className="flex flex-wrap gap-4 mb-3 text-sm">
-                  {ref.companyName && (
-                    <div className="bg-fo-bg-light px-3 py-1 rounded">
-                      <span className="font-semibold text-fo-text-secondary">Company:</span>{' '}
-                      <span className="text-fo-dark">{ref.companyName}</span>
-                    </div>
-                  )}
-                  {ref.companyDomain && (
-                    <div className="bg-fo-bg-light px-3 py-1 rounded">
-                      <span className="font-semibold text-fo-text-secondary">Domain:</span>{' '}
-                      <span className="text-fo-dark">{ref.companyDomain}</span>
-                    </div>
-                  )}
-                  {ref.industry && (
-                    <div className="bg-fo-bg-light px-3 py-1 rounded">
-                      <span className="font-semibold text-fo-text-secondary">Industry:</span>{' '}
-                      <span className="text-fo-dark">{ref.industry}</span>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Description */}
+              <div 
+                key={ref.oId} 
+                className="border border-fo-border rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
+                <h3 className="font-semibold text-fo-dark mb-2 line-clamp-1">{ref.name}</h3>
                 {ref.description && (
-                  <div className="mb-3">
-                    <p className="text-sm font-semibold text-fo-text-secondary mb-1">Description</p>
-                    <p className="text-fo-text">{ref.description}</p>
-                  </div>
+                  <p className="text-sm text-fo-text-secondary mb-3 line-clamp-2">{ref.description}</p>
                 )}
-                
-                {/* Additional Data Fields */}
-                {ref.data && (
-                  <div className="space-y-2">
-                    {ref.data.challenge && (
-                      <div>
-                        <p className="text-sm font-semibold text-fo-text-secondary mb-1">Challenge</p>
-                        <p className="text-fo-text text-sm bg-fo-bg-light p-2 rounded">{ref.data.challenge}</p>
-                      </div>
-                    )}
-                    {ref.data.solution && (
-                      <div>
-                        <p className="text-sm font-semibold text-fo-text-secondary mb-1">Solution</p>
-                        <p className="text-fo-text text-sm bg-fo-bg-light p-2 rounded">{ref.data.solution}</p>
-                      </div>
-                    )}
-                    {ref.data.outcome && (
-                      <div>
-                        <p className="text-sm font-semibold text-fo-text-secondary mb-1">Outcome</p>
-                        <p className="text-fo-text text-sm bg-fo-bg-light p-2 rounded">{ref.data.outcome}</p>
-                      </div>
-                    )}
-                    {ref.data.metrics && ref.data.metrics.length > 0 && (
-                      <div>
-                        <p className="text-sm font-semibold text-fo-text-secondary mb-1">Metrics</p>
-                        <ul className="list-disc list-inside text-fo-text text-sm bg-fo-bg-light p-2 rounded">
-                          {ref.data.metrics.map((metric: string, idx: number) => (
-                            <li key={idx}>{metric}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {ref.data.testimonial && (
-                      <div>
-                        <p className="text-sm font-semibold text-fo-text-secondary mb-1">Testimonial</p>
-                        <p className="text-fo-text text-sm italic bg-fo-bg-light p-2 rounded border-l-4 border-fo-primary">
-                          &ldquo;{ref.data.testimonial}&rdquo;
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <button
+                  onClick={() => handleViewDetails('references', ref.oId)}
+                  className="flex items-center gap-2 text-sm text-fo-primary hover:text-fo-primary/80 font-semibold"
+                >
+                  <Eye className="w-4 h-4" strokeWidth={2} />
+                  View Details
+                </button>
               </div>
             ))}
           </div>
@@ -457,20 +544,51 @@ export default function GTMStrategyPageContent() {
 
       {/* Segments */}
       <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Layers className="w-5 h-5 text-fo-primary" strokeWidth={2} />
-          <h2 className="text-xl font-semibold text-fo-dark">Segments ({data.segments.length})</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Layers className="w-5 h-5 text-fo-primary" strokeWidth={2} />
+            <h2 className="text-xl font-semibold text-fo-dark">Segments</h2>
+            <span className="px-3 py-1 rounded-full text-sm font-semibold bg-fo-bg-light text-fo-text-secondary">
+              {data.segments.length}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              const url = impersonateUserId 
+                ? `/client/gtm-strategy/segments/new?impersonate=${impersonateUserId}`
+                : `/client/gtm-strategy/segments/new`;
+              router.push(url);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold"
+          >
+            <Plus className="w-4 h-4" strokeWidth={2} />
+            Add Segment
+          </button>
         </div>
+        
         {data.segments.length === 0 ? (
-          <p className="text-fo-text-secondary">No segments configured</p>
+          <div className="text-center py-8">
+            <Layers className="w-12 h-12 text-fo-text-secondary mx-auto mb-3 opacity-50" strokeWidth={1.5} />
+            <p className="text-fo-text-secondary">No segments configured yet</p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.segments.map((segment) => (
-              <div key={segment.oId} className="border border-fo-border rounded-lg p-4">
-                <p className="font-semibold text-fo-dark">{segment.name}</p>
+              <div 
+                key={segment.oId} 
+                className="border border-fo-border rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
+                <h3 className="font-semibold text-fo-dark mb-2 line-clamp-1">{segment.name}</h3>
                 {segment.description && (
-                  <p className="text-sm text-fo-text-secondary mt-2">{segment.description}</p>
+                  <p className="text-sm text-fo-text-secondary mb-3 line-clamp-2">{segment.description}</p>
                 )}
+                <button
+                  onClick={() => handleViewDetails('segments', segment.oId)}
+                  className="flex items-center gap-2 text-sm text-fo-primary hover:text-fo-primary/80 font-semibold"
+                >
+                  <Eye className="w-4 h-4" strokeWidth={2} />
+                  View Details
+                </button>
               </div>
             ))}
           </div>
@@ -479,20 +597,157 @@ export default function GTMStrategyPageContent() {
 
       {/* Playbooks */}
       <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <BookOpen className="w-5 h-5 text-fo-primary" strokeWidth={2} />
-          <h2 className="text-xl font-semibold text-fo-dark">Playbooks ({data.playbooks.length})</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <BookOpen className="w-5 h-5 text-fo-primary" strokeWidth={2} />
+            <h2 className="text-xl font-semibold text-fo-dark">Playbooks</h2>
+            <span className="px-3 py-1 rounded-full text-sm font-semibold bg-fo-bg-light text-fo-text-secondary">
+              {data.playbooks.length}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              const url = impersonateUserId 
+                ? `/client/gtm-strategy/playbooks/new?impersonate=${impersonateUserId}`
+                : `/client/gtm-strategy/playbooks/new`;
+              router.push(url);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold"
+          >
+            <Plus className="w-4 h-4" strokeWidth={2} />
+            Add Playbook
+          </button>
         </div>
+        
         {data.playbooks.length === 0 ? (
-          <p className="text-fo-text-secondary">No playbooks configured</p>
+          <div className="text-center py-8">
+            <BookOpen className="w-12 h-12 text-fo-text-secondary mx-auto mb-3 opacity-50" strokeWidth={1.5} />
+            <p className="text-fo-text-secondary">No playbooks configured yet</p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.playbooks.map((playbook) => (
-              <div key={playbook.oId} className="border border-fo-border rounded-lg p-4">
-                <p className="font-semibold text-fo-dark">{playbook.name}</p>
+              <div 
+                key={playbook.oId} 
+                className="border border-fo-border rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
+                <h3 className="font-semibold text-fo-dark mb-2 line-clamp-1">{playbook.name}</h3>
                 {playbook.description && (
-                  <p className="text-sm text-fo-text-secondary mt-2">{playbook.description}</p>
+                  <p className="text-sm text-fo-text-secondary mb-3 line-clamp-2">{playbook.description}</p>
                 )}
+                <button
+                  onClick={() => handleViewDetails('playbooks', playbook.oId)}
+                  className="flex items-center gap-2 text-sm text-fo-primary hover:text-fo-primary/80 font-semibold"
+                >
+                  <Eye className="w-4 h-4" strokeWidth={2} />
+                  View Details
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Competitors */}
+      <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Swords className="w-5 h-5 text-fo-primary" strokeWidth={2} />
+            <h2 className="text-xl font-semibold text-fo-dark">Competitors</h2>
+            <span className="px-3 py-1 rounded-full text-sm font-semibold bg-fo-bg-light text-fo-text-secondary">
+              {data.competitors.length}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              const url = impersonateUserId 
+                ? `/client/gtm-strategy/competitors/new?impersonate=${impersonateUserId}`
+                : `/client/gtm-strategy/competitors/new`;
+              router.push(url);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold"
+          >
+            <Plus className="w-4 h-4" strokeWidth={2} />
+            Add Competitor
+          </button>
+        </div>
+        
+        {data.competitors.length === 0 ? (
+          <div className="text-center py-8">
+            <Swords className="w-12 h-12 text-fo-text-secondary mx-auto mb-3 opacity-50" strokeWidth={1.5} />
+            <p className="text-fo-text-secondary">No competitors configured yet</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {data.competitors.map((competitor) => (
+              <div 
+                key={competitor.oId} 
+                className="border border-fo-border rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
+                <h3 className="font-semibold text-fo-dark mb-2 line-clamp-1">{competitor.name}</h3>
+                {competitor.description && (
+                  <p className="text-sm text-fo-text-secondary mb-3 line-clamp-2">{competitor.description}</p>
+                )}
+                <button
+                  onClick={() => handleViewDetails('competitors', competitor.oId)}
+                  className="flex items-center gap-2 text-sm text-fo-primary hover:text-fo-primary/80 font-semibold"
+                >
+                  <Eye className="w-4 h-4" strokeWidth={2} />
+                  View Details
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Proof Points */}
+      <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Award className="w-5 h-5 text-fo-primary" strokeWidth={2} />
+            <h2 className="text-xl font-semibold text-fo-dark">Proof Points</h2>
+            <span className="px-3 py-1 rounded-full text-sm font-semibold bg-fo-bg-light text-fo-text-secondary">
+              {data.proofPoints.length}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              const url = impersonateUserId 
+                ? `/client/gtm-strategy/proof-points/new?impersonate=${impersonateUserId}`
+                : `/client/gtm-strategy/proof-points/new`;
+              router.push(url);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold"
+          >
+            <Plus className="w-4 h-4" strokeWidth={2} />
+            Add Proof Point
+          </button>
+        </div>
+        
+        {data.proofPoints.length === 0 ? (
+          <div className="text-center py-8">
+            <Award className="w-12 h-12 text-fo-text-secondary mx-auto mb-3 opacity-50" strokeWidth={1.5} />
+            <p className="text-fo-text-secondary">No proof points configured yet</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {data.proofPoints.map((proofPoint) => (
+              <div 
+                key={proofPoint.oId} 
+                className="border border-fo-border rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
+                <h3 className="font-semibold text-fo-dark mb-2 line-clamp-1">{proofPoint.name}</h3>
+                {proofPoint.description && (
+                  <p className="text-sm text-fo-text-secondary mb-3 line-clamp-2">{proofPoint.description}</p>
+                )}
+                <button
+                  onClick={() => handleViewDetails('proof-points', proofPoint.oId)}
+                  className="flex items-center gap-2 text-sm text-fo-primary hover:text-fo-primary/80 font-semibold"
+                >
+                  <Eye className="w-4 h-4" strokeWidth={2} />
+                  View Details
+                </button>
               </div>
             ))}
           </div>
