@@ -200,7 +200,7 @@ export default function NewCampaignsListContent() {
     if (type === 'list' || type === 'launch') {
       switch (status) {
         case 'not_started': return 'bg-gray-400';
-        case 'in_progress': return 'bg-orange-500';
+        case 'in_progress': return 'bg-fo-orange';
         case 'approved': return 'bg-green-500';
         case 'live': return 'bg-green-500';
         default: return 'bg-gray-400';
