@@ -285,128 +285,117 @@ export default function NewCampaignsListContent() {
         <div className="space-y-4">
           {campaigns.map((campaign) => (
             <div key={campaign.id} className="bg-white rounded-lg shadow-sm border border-fo-border overflow-hidden hover:shadow-md transition-shadow">
-              <div className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="p-3 py-2">
+                <div className="grid grid-cols-12 gap-3 items-center">
                   {/* Left Side: Campaign Details */}
-                  <div className="lg:col-span-4 space-y-2">
-                    <div className="text-sm">
+                  <div className="col-span-3 space-y-0.5">
+                    <div className="text-xs">
                       <span className="font-mono font-bold text-fo-primary">[ID#{campaign.id.substring(0, 6)}]</span>
-                      <span className="text-fo-dark font-semibold ml-2">- {campaign.campaignName}</span>
+                      <span className="text-fo-dark font-semibold ml-1">- {campaign.campaignName}</span>
                     </div>
                     {campaign.play_code && (
-                      <div className="text-sm text-fo-text-secondary">
+                      <div className="text-xs text-fo-text-secondary">
                         <span className="font-mono font-bold">[Play {campaign.play_code}]</span>
-                        <span className="ml-2">- {campaign.play_name || 'Unknown Play'}</span>
+                        <span className="ml-1">- {campaign.play_name || 'Unknown Play'}</span>
                       </div>
                     )}
-                    <div className="text-xs text-fo-text-secondary">
-                      Created: {campaign.created_by || 'User'} {new Date(campaign.created_at).toLocaleString()}
-                    </div>
-                    <div className="text-xs text-fo-text-secondary">
-                      Last Updated: {campaign.updated_by || 'User'} {new Date(campaign.updated_at).toLocaleString()}
-                    </div>
                   </div>
 
-                  {/* Right Side: Three Column Status */}
-                  <div className="lg:col-span-7 grid grid-cols-3 gap-4">
+                  {/* Middle: Three Column Status (tighter) */}
+                  <div className="col-span-6 grid grid-cols-3 gap-2">
                     {/* Copy Column */}
                     <div className="flex flex-col items-center">
-                      <div className="text-sm font-semibold text-fo-dark mb-2">Copy</div>
-                      <div className="relative w-full">
-                        <Link
-                          href={
-                            // Route to the correct edit page based on campaign source
-                            campaign.source === 'play_executions' && campaign.play_category && campaign.play_code
-                              ? impersonateUserId
-                                ? `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}?impersonate=${impersonateUserId}`
-                                : `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}`
-                              : impersonateUserId
-                                ? `/client/outbound-campaigns/${campaign.id}/intermediary?impersonate=${impersonateUserId}`
-                                : `/client/outbound-campaigns/${campaign.id}/intermediary`
-                          }
-                          className={`h-24 ${getStatusColor(campaign.copy_status, 'copy')} rounded-lg flex items-center justify-center text-white font-semibold text-xs hover:opacity-90 transition-opacity cursor-pointer`}
-                        >
-                          {getStatusLabel(campaign.copy_status, 'copy')}
-                        </Link>
-                      </div>
+                      <div className="text-[10px] font-semibold text-fo-dark mb-1">Copy</div>
+                      <Link
+                        href={
+                          campaign.source === 'play_executions' && campaign.play_category && campaign.play_code
+                            ? impersonateUserId
+                              ? `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}?impersonate=${impersonateUserId}`
+                              : `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}`
+                            : impersonateUserId
+                              ? `/client/outbound-campaigns/${campaign.id}/intermediary?impersonate=${impersonateUserId}`
+                              : `/client/outbound-campaigns/${campaign.id}/intermediary`
+                        }
+                        className={`w-full h-10 ${getStatusColor(campaign.copy_status, 'copy')} rounded flex items-center justify-center text-white font-semibold text-[10px] hover:opacity-90 transition-opacity cursor-pointer`}
+                      >
+                        {getStatusLabel(campaign.copy_status, 'copy')}
+                      </Link>
                     </div>
 
                     {/* List Column */}
                     <div className="flex flex-col items-center">
-                      <div className="text-sm font-semibold text-fo-dark mb-2">List</div>
-                      <div className="relative w-full">
-                        {campaign.list_status === 'not_started' ? (
-                          <div className="space-y-2">
-                            <button
-                              onClick={() => handleSelectExistingList(campaign.id)}
-                              className="w-full px-3 py-2 bg-green-600 text-white rounded text-xs font-semibold hover:bg-green-700 transition-colors"
-                            >
-                              Select Existing
-                            </button>
-                            <button
-                              onClick={handleCreateNewList}
-                              className="w-full px-3 py-2 bg-gray-400 text-white rounded text-xs font-semibold hover:bg-gray-500 transition-colors"
-                            >
-                              Create New
-                            </button>
-                          </div>
-                        ) : (
-                          <div className={`h-24 ${getStatusColor(campaign.list_status, 'list')} rounded-lg flex flex-col items-center justify-center text-white font-semibold text-xs p-2`}>
-                            <div>{getStatusLabel(campaign.list_status, 'list')}</div>
-                            {campaign.list_name && (
-                              <div className="text-[10px] mt-1 opacity-90 text-center truncate w-full px-2">
-                                {campaign.list_name}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      <div className="text-[10px] font-semibold text-fo-dark mb-1">List</div>
+                      {campaign.list_status === 'not_started' ? (
+                        <div className="flex gap-1 w-full">
+                          <button
+                            onClick={() => handleSelectExistingList(campaign.id)}
+                            className="flex-1 px-1.5 py-2 bg-green-600 text-white rounded text-[10px] font-semibold hover:bg-green-700 transition-colors"
+                          >
+                            Select
+                          </button>
+                          <button
+                            onClick={handleCreateNewList}
+                            className="flex-1 px-1.5 py-2 bg-gray-400 text-white rounded text-[10px] font-semibold hover:bg-gray-500 transition-colors"
+                          >
+                            Create
+                          </button>
+                        </div>
+                      ) : (
+                        <div className={`w-full h-10 ${getStatusColor(campaign.list_status, 'list')} rounded flex flex-col items-center justify-center text-white font-semibold text-[10px] px-1`}>
+                          <div>{getStatusLabel(campaign.list_status, 'list')}</div>
+                          {campaign.list_name && (
+                            <div className="text-[8px] mt-0.5 opacity-90 text-center truncate w-full">
+                              {campaign.list_name}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Launch Column */}
                     <div className="flex flex-col items-center">
-                      <div className="text-sm font-semibold text-fo-dark mb-2">Launch</div>
-                      <div className="relative w-full">
-                        {isLaunchLocked(campaign) ? (
-                          <div className="h-24 bg-gray-400 rounded-lg flex flex-col items-center justify-center text-white font-semibold text-xs">
-                            <Lock className="w-6 h-6 mb-1" />
-                            <div>Not Started</div>
-                          </div>
-                        ) : campaign.launch_status === 'not_started' || campaign.launch_status === 'in_progress' ? (
-                          <button
-                            onClick={() => handleUpdateLaunchStatus(campaign.id, campaign.launch_status === 'not_started' ? 'in_progress' : 'live')}
-                            className={`h-24 w-full ${getStatusColor(campaign.launch_status, 'launch')} rounded-lg flex flex-col items-center justify-center text-white font-semibold text-xs hover:opacity-90 transition-opacity`}
-                          >
-                            <LockOpen className="w-6 h-6 mb-1" />
-                            <div>{campaign.launch_status === 'not_started' ? 'Click to Start' : getStatusLabel(campaign.launch_status, 'launch')}</div>
-                            {campaign.launch_status === 'in_progress' && (
-                              <div className="text-[10px] mt-1 opacity-90">Click to Launch</div>
-                            )}
-                          </button>
-                        ) : (
-                          <div className={`h-24 ${getStatusColor(campaign.launch_status, 'launch')} rounded-lg flex items-center justify-center text-white font-semibold text-xs`}>
-                            {getStatusLabel(campaign.launch_status, 'launch')}
-                          </div>
-                        )}
-                      </div>
+                      <div className="text-[10px] font-semibold text-fo-dark mb-1">Launch</div>
+                      {isLaunchLocked(campaign) ? (
+                        <div className="w-full h-10 bg-gray-400 rounded flex items-center justify-center text-white font-semibold text-[10px] gap-1">
+                          <Lock className="w-3 h-3" />
+                          <span>Locked</span>
+                        </div>
+                      ) : campaign.launch_status === 'not_started' || campaign.launch_status === 'in_progress' ? (
+                        <button
+                          onClick={() => handleUpdateLaunchStatus(campaign.id, campaign.launch_status === 'not_started' ? 'in_progress' : 'live')}
+                          className={`w-full h-10 ${getStatusColor(campaign.launch_status, 'launch')} rounded flex items-center justify-center text-white font-semibold text-[10px] hover:opacity-90 transition-opacity gap-1`}
+                        >
+                          <LockOpen className="w-3 h-3" />
+                          <span>{campaign.launch_status === 'not_started' ? 'Start' : 'Launch'}</span>
+                        </button>
+                      ) : (
+                        <div className={`w-full h-10 ${getStatusColor(campaign.launch_status, 'launch')} rounded flex items-center justify-center text-white font-semibold text-[10px]`}>
+                          {getStatusLabel(campaign.launch_status, 'launch')}
+                        </div>
+                      )}
                     </div>
                   </div>
 
+                  {/* Right Side: Timestamps */}
+                  <div className="col-span-2 text-[10px] text-fo-text-secondary space-y-0.5">
+                    <div>Created: {new Date(campaign.created_at).toLocaleDateString()}</div>
+                    <div>Updated: {new Date(campaign.updated_at).toLocaleDateString()}</div>
+                  </div>
+
                   {/* Actions Menu */}
-                  <div className="lg:col-span-1 flex items-start justify-end">
+                  <div className="col-span-1 flex items-center justify-end">
                     <div className="relative">
                       <button
                         onClick={() => setExpandedMenu(expandedMenu === campaign.id ? null : campaign.id)}
-                        className="p-2 hover:bg-fo-light rounded-lg transition-colors"
+                        className="p-1 hover:bg-fo-light rounded transition-colors"
                       >
-                        <ChevronDown className="w-5 h-5 text-fo-text-secondary" />
+                        <ChevronDown className="w-4 h-4 text-fo-text-secondary" />
                       </button>
                       
                       {expandedMenu === campaign.id && (
-                        <div className="absolute right-0 top-full mt-1 bg-white border border-fo-border rounded-lg shadow-xl z-10 min-w-[150px]">
+                        <div className="absolute right-0 top-full mt-1 bg-white border border-fo-border rounded-lg shadow-xl z-10 min-w-[130px]">
                           <Link
                             href={
-                              // Route to the correct edit page based on campaign source
                               campaign.source === 'play_executions' && campaign.play_category && campaign.play_code
                                 ? impersonateUserId
                                   ? `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}?impersonate=${impersonateUserId}`
@@ -415,17 +404,17 @@ export default function NewCampaignsListContent() {
                                   ? `/client/outbound-campaigns/${campaign.id}/intermediary?impersonate=${impersonateUserId}`
                                   : `/client/outbound-campaigns/${campaign.id}/intermediary`
                             }
-                            className="flex items-center gap-2 px-4 py-2 text-fo-primary hover:bg-fo-light text-sm transition-colors"
+                            className="flex items-center gap-2 px-3 py-2 text-fo-primary hover:bg-fo-light text-xs transition-colors"
                             onClick={() => setExpandedMenu(null)}
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-3 h-3" />
                             View/Edit
                           </Link>
                           <button
                             onClick={() => handleDeleteClick(campaign)}
-                            className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 text-sm transition-colors w-full text-left border-t border-fo-border"
+                            className="flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 text-xs transition-colors w-full text-left border-t border-fo-border"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3 h-3" />
                             Delete
                           </button>
                         </div>
