@@ -36,6 +36,11 @@ export default function ClientLayout({
     allboundTactics: true,
     commandCentre: true,
   });
+  
+  // Admin UI states
+  const [allClients, setAllClients] = useState<Array<{user_id: string; company_name: string; email: string}>>([]);
+  const [clientDropdownOpen, setClientDropdownOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
     // Check auth and handle impersonation
@@ -129,6 +134,55 @@ export default function ClientLayout({
     
     loadUserData();
   }, [router, searchParams]);
+
+  // Load all clients for admin dropdown
+  useEffect(() => {
+    const loadAllClients = async () => {
+      if (!isAdmin || !impersonatedUserId) return;
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const authToken = session?.access_token;
+        
+        const response = await fetch('/api/admin/claire-clients', {
+          credentials: 'include',
+          headers: {
+            ...(authToken && { Authorization: `Bearer ${authToken}` })
+          }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          setAllClients(result.clients || []);
+        }
+      } catch (error) {
+        console.error('Error loading clients:', error);
+      }
+    };
+    
+    loadAllClients();
+  }, [isAdmin, impersonatedUserId]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      
+      // Close client dropdown if clicking outside
+      if (clientDropdownOpen && !target.closest('.client-dropdown')) {
+        setClientDropdownOpen(false);
+      }
+      
+      // Close user menu if clicking outside
+      if (userMenuOpen && !target.closest('.user-menu')) {
+        setUserMenuOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [clientDropdownOpen, userMenuOpen]);
 
   // Navigation structure with collapsible sections
   const navigationSections = [
@@ -356,17 +410,122 @@ export default function ClientLayout({
                   {pathname?.match(/\/client\/(allbound|outbound|nurture)\/\d+/) && 'Play Execution'}
                 </h2>
               </div>
+              
+              {/* Right side: Client Selector + User Menu */}
               <div className="flex items-center gap-4">
-                <div className="hidden md:block text-sm font-normal text-fo-text-secondary">
-                  {companyName && <span className="font-medium">{companyName}</span>}
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="hidden md:block text-sm text-fo-text-secondary">
-                  {companyName && <span className="font-medium">{companyName}</span>}
-                </div>
-                <div className="w-8 h-8 rounded-full bg-fo-primary flex items-center justify-center text-white font-semibold text-sm shadow-sm">
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                {/* Client Selector Dropdown (Admin Impersonation Only) */}
+                {isAdmin && impersonatedUserId ? (
+                  <div className="relative client-dropdown">
+                    <button
+                      onClick={() => setClientDropdownOpen(!clientDropdownOpen)}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <span className="font-medium text-fo-dark text-sm">
+                        {companyName || 'Select Client'}
+                      </span>
+                      <ChevronDown className="w-4 h-4 text-fo-text-secondary" />
+                    </button>
+                    
+                    {clientDropdownOpen && (
+                      <div className="absolute top-full right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-xl max-h-96 overflow-y-auto z-50">
+                        <div className="p-2 border-b border-gray-100 bg-gray-50">
+                          <p className="text-xs font-semibold text-fo-text-secondary uppercase">Switch Client</p>
+                        </div>
+                        {allClients.map(client => (
+                          <button
+                            key={client.user_id}
+                            onClick={() => {
+                              router.push(`${pathname}?impersonate=${client.user_id}`);
+                              setClientDropdownOpen(false);
+                            }}
+                            className={`w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors ${
+                              client.user_id === impersonatedUserId ? 'bg-fo-light/30' : ''
+                            }`}
+                          >
+                            <div className="font-medium text-fo-dark text-sm">{client.company_name || 'Unnamed Company'}</div>
+                            <div className="text-xs text-fo-text-secondary mt-0.5">{client.email}</div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="hidden md:block text-sm text-fo-text-secondary">
+                    {companyName && <span className="font-medium">{companyName}</span>}
+                  </div>
+                )}
+                
+                {/* User Profile Menu */}
+                <div className="relative user-menu">
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="w-8 h-8 rounded-full bg-fo-primary flex items-center justify-center text-white font-semibold text-sm shadow-sm hover:bg-fo-primary/90 transition-all"
+                  >
+                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                  </button>
+                  
+                  {userMenuOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <p className="text-sm font-medium text-fo-dark truncate">
+                          {user?.email}
+                        </p>
+                      </div>
+                      
+                      <div className="py-2">
+                        {/* Future: Settings */}
+                        <button
+                          className="w-full px-4 py-2 text-left text-sm text-gray-400 cursor-not-allowed flex items-center gap-2"
+                          disabled
+                        >
+                          <Settings className="w-4 h-4" />
+                          Settings (Coming Soon)
+                        </button>
+                        
+                        {/* Future: Change Password */}
+                        <button
+                          className="w-full px-4 py-2 text-left text-sm text-gray-400 cursor-not-allowed"
+                          disabled
+                        >
+                          Change Password (Coming Soon)
+                        </button>
+                        
+                        {/* Admin Panel - only for admins */}
+                        {isAdmin && (
+                          <Link
+                            href="/admin"
+                            className="block w-full px-4 py-2 text-left text-sm text-fo-dark hover:bg-gray-50 flex items-center gap-2 border-t border-gray-100 mt-2 pt-2"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            <Settings className="w-4 h-4" />
+                            Go to Admin Panel
+                          </Link>
+                        )}
+                        
+                        {/* Sign Out */}
+                        <button
+                          onClick={async () => {
+                            setUserMenuOpen(false);
+                            try {
+                              const { error } = await signOut();
+                              if (error) {
+                                toast.error('Failed to sign out');
+                              } else {
+                                toast.success('Signed out successfully');
+                                router.push('/signin');
+                              }
+                            } catch (error) {
+                              console.error('Error signing out:', error);
+                              toast.error('Failed to sign out');
+                            }
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 mt-2 transition-colors"
+                        >
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -428,17 +587,6 @@ export default function ClientLayout({
             </div>
           </main>
         </div>
-
-        {/* Go to Admin Panel Button - Only shown when impersonating */}
-        {impersonatedUserId && isAdmin && (
-          <Link
-            href="/admin"
-            className="fixed bottom-6 right-6 bg-fo-primary hover:bg-fo-primary/90 text-white px-4 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 font-semibold text-sm z-50"
-          >
-            <Settings className="w-4 h-4" strokeWidth={2} />
-            Go to Admin Panel
-          </Link>
-        )}
       </div>
     </ProtectedRoute>
   );
