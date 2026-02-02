@@ -100,7 +100,7 @@ If you want campaigns to trigger Zapier when launched:
    - Saves metadata to database
 6. List appears in repository table
 
-**Required Columns:**
+**Recommended Columns (Optional):**
 
 **Account Lists:**
 - Company Name
@@ -117,6 +117,8 @@ If you want campaigns to trigger Zapier when launched:
 - Title
 - Company Name
 - LinkedIn URL
+
+**Note:** These columns are recommended but not required. Any CSV/XLSX file with data rows will be accepted.
 
 ### Phase 2: Create/Approve Campaign Copy
 

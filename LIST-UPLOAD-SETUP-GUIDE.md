@@ -17,11 +17,11 @@
    - Supports admin impersonation
    - Orders by upload date (newest first)
 
-3. **Column Validation**:
-   - **Account Lists**: Company Name, Company Domain, LinkedIn URL, Location, Headcount, Revenue
-   - **Prospect Lists**: First Name, Last Name, Email, Title, Company Name, LinkedIn URL
-   - Case-insensitive matching
-   - Detailed error messages if columns are missing
+3. **Column Recommendations** (Not Enforced):
+   - **Account Lists**: Company Name, Company Domain, LinkedIn URL, Location, Headcount, Revenue (recommended)
+   - **Prospect Lists**: First Name, Last Name, Email, Title, Company Name, LinkedIn URL (recommended)
+   - Any CSV/XLSX with data rows will be accepted
+   - No validation errors for missing columns
 
 4. **File Storage**:
    - Files stored in Supabase Storage bucket: `campaign-lists`
@@ -82,7 +82,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 1. **User selects file** → Upload button in Lists page
 2. **File validation** → Check file type (CSV/XLSX only)
 3. **File parsing** → Extract rows and headers
-4. **Column validation** → Verify required columns exist
+4. **Row count check** → Verify file has at least 1 data row
 5. **Storage upload** → Upload file to Supabase Storage
 6. **Database save** → Save metadata to `campaign_lists` table
 7. **Success response** → Return list details to frontend
@@ -101,9 +101,9 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 - Converts to JSON format
 - Handles both .xlsx and .xls
 
-### Column Validation:
+### Recommended Columns (Optional):
 
-Headers are normalized to lowercase and trimmed before comparison.
+These columns are recommended but not required. Any CSV/XLSX format is accepted.
 
 **Account List Example:**
 ```csv
@@ -116,6 +116,8 @@ Acme Corp, acme.com, linkedin.com/company/acme, San Francisco, 500, $50M
 First Name, Last Name, Email, Title, Company Name, LinkedIn URL
 John, Doe, john@acme.com, CEO, Acme Corp, linkedin.com/in/johndoe
 ```
+
+**Note:** You can upload lists with any column structure. The system will accept any file with data rows.
 
 ## 📊 Database Schema
 
@@ -140,7 +142,7 @@ campaign_lists
 - **Private Bucket**: Files not publicly accessible
 - **Authentication Required**: Must be logged in to upload/view
 - **File Type Validation**: Only CSV and Excel files accepted
-- **Column Validation**: Ensures data integrity
+- **Data Validation**: Ensures file has at least one data row
 
 ## 🧪 Testing the Feature
 
@@ -168,10 +170,9 @@ campaign_lists
 - **Cause**: Storage bucket doesn't exist
 - **Fix**: Create `campaign-lists` bucket in Supabase Dashboard
 
-### "Missing required columns: X, Y, Z"
-- **Cause**: CSV/Excel file missing required column headers
-- **Fix**: Add the missing columns to your file
-- **Note**: Column names are case-insensitive
+### "File is empty or contains no valid data rows"
+- **Cause**: CSV/Excel file has no data rows (only headers or completely empty)
+- **Fix**: Add at least one row of data to your file
 
 ### "No file provided"
 - **Cause**: File didn't upload properly
