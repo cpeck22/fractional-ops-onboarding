@@ -97,8 +97,7 @@ export async function GET(request: NextRequest) {
       playbooksResponse,
       competitorsResponse,
       proofPointsResponse,
-      productsResponse,
-      servicesResponse
+      productsAndServicesResponse
     ] = await Promise.all([
       // Personas - fetch ALL data
       axios.get('https://app.octavehq.com/api/v2/persona/list', {
@@ -163,21 +162,12 @@ export async function GET(request: NextRequest) {
         return { data: { data: [] } };
       }),
       
-      // Products - fetch ALL products
+      // Products AND Services - use type: 'ALL' to get both in one request
       axios.get('https://app.octavehq.com/api/v2/product/list', {
         headers: { 'api_key': workspaceApiKey },
-        params: { limit: 100 }
+        params: { limit: 100, type: 'ALL' }
       }).catch((error: any) => {
-        console.error('❌ Error fetching products from Octave:', error.response?.status, error.response?.data || error.message);
-        return { data: { data: [] } };
-      }),
-      
-      // Services - fetch ALL services (Octave distinguishes between Products and Services)
-      axios.get('https://app.octavehq.com/api/v2/service/list', {
-        headers: { 'api_key': workspaceApiKey },
-        params: { limit: 100 }
-      }).catch((error: any) => {
-        console.error('❌ Error fetching services from Octave:', error.response?.status, error.response?.data || error.message);
+        console.error('❌ Error fetching products/services from Octave:', error.response?.status, error.response?.data || error.message);
         return { data: { data: [] } };
       })
     ]);
@@ -189,11 +179,7 @@ export async function GET(request: NextRequest) {
     const playbooks = playbooksResponse.data?.data || [];
     const competitors = competitorsResponse.data?.data || [];
     const proofPoints = proofPointsResponse.data?.data || [];
-    const products = productsResponse.data?.data || [];
-    const services = servicesResponse.data?.data || [];
-    
-    // Combine products and services into a single array
-    const allServices = [...products, ...services];
+    const allServices = productsAndServicesResponse.data?.data || [];
     
     console.log('📊 Octave API Results:', {
       personas: personas.length,
@@ -203,15 +189,11 @@ export async function GET(request: NextRequest) {
       playbooks: playbooks.length,
       competitors: competitors.length,
       proofPoints: proofPoints.length,
-      products: products.length,
-      services: services.length,
-      totalServices: allServices.length
+      services: allServices.length
     });
     
     // Debug: Log actual service data
-    console.log('🔍 Products from Octave:', JSON.stringify(products, null, 2));
-    console.log('🔍 Services from Octave:', JSON.stringify(services, null, 2));
-    console.log('🔍 Combined services:', JSON.stringify(allServices, null, 2));
+    console.log('🔍 Products/Services from Octave (type=ALL):', JSON.stringify(allServices, null, 2));
     
     return NextResponse.json({
       success: true,
