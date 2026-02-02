@@ -272,18 +272,6 @@ export default function ProofPointDetailPage() {
         <Loader2 className="w-12 h-12 text-fo-primary animate-spin" strokeWidth={2} />
       </div>
     }>
-      <ProofPointDetailContentWrapper />
-    </Suspense>
-  );
-}
-
-export default function ProofPointDetailPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-12 h-12 text-fo-primary animate-spin" strokeWidth={2} />
-      </div>
-    }>
       <ProofPointDetailContent />
     </Suspense>
   );

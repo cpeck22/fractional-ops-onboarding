@@ -294,18 +294,6 @@ export default function SegmentDetailPage() {
         <Loader2 className="w-12 h-12 text-fo-primary animate-spin" strokeWidth={2} />
       </div>
     }>
-      <SegmentDetailContentWrapper />
-    </Suspense>
-  );
-}
-
-export default function SegmentDetailPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-12 h-12 text-fo-primary animate-spin" strokeWidth={2} />
-      </div>
-    }>
       <SegmentDetailContent />
     </Suspense>
   );
