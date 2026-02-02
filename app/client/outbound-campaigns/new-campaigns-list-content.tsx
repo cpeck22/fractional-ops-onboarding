@@ -290,12 +290,12 @@ export default function NewCampaignsListContent() {
                   {/* Left Side: Campaign Details */}
                   <div className="col-span-3 space-y-0.5">
                     <div className="text-xs">
-                      <span className="font-mono font-bold text-fo-primary">[ID#{campaign.id.substring(0, 6)}]</span>
-                      <span className="text-fo-dark font-semibold ml-1">- {campaign.campaignName}</span>
+                      <span className="font-mono font-medium text-fo-primary">[ID#{campaign.id.substring(0, 6)}]</span>
+                      <span className="text-fo-dark font-medium ml-1">- {campaign.campaignName}</span>
                     </div>
                     {campaign.play_code && (
                       <div className="text-xs text-fo-text-secondary">
-                        <span className="font-mono font-bold">[Play {campaign.play_code}]</span>
+                        <span className="font-mono font-medium">[Play {campaign.play_code}]</span>
                         <span className="ml-1">- {campaign.play_name || 'Unknown Play'}</span>
                       </div>
                     )}
@@ -305,7 +305,7 @@ export default function NewCampaignsListContent() {
                   <div className="col-span-6 grid grid-cols-3 gap-2">
                     {/* Copy Column */}
                     <div className="flex flex-col items-center">
-                      <div className="text-[10px] font-semibold text-fo-dark mb-1">Copy</div>
+                      <div className="text-[11px] font-normal text-fo-dark mb-1">Copy</div>
                       <Link
                         href={
                           campaign.source === 'play_executions' && campaign.play_category && campaign.play_code
@@ -316,7 +316,7 @@ export default function NewCampaignsListContent() {
                               ? `/client/outbound-campaigns/${campaign.id}/intermediary?impersonate=${impersonateUserId}`
                               : `/client/outbound-campaigns/${campaign.id}/intermediary`
                         }
-                        className={`w-full h-10 ${getStatusColor(campaign.copy_status, 'copy')} rounded flex items-center justify-center text-white font-semibold text-[10px] hover:opacity-90 transition-opacity cursor-pointer`}
+                        className={`w-full h-8 ${getStatusColor(campaign.copy_status, 'copy')} rounded flex items-center justify-center text-white font-medium text-[11px] hover:opacity-90 transition-opacity cursor-pointer`}
                       >
                         {getStatusLabel(campaign.copy_status, 'copy')}
                       </Link>
@@ -324,27 +324,27 @@ export default function NewCampaignsListContent() {
 
                     {/* List Column */}
                     <div className="flex flex-col items-center">
-                      <div className="text-[10px] font-semibold text-fo-dark mb-1">List</div>
+                      <div className="text-[11px] font-normal text-fo-dark mb-1">List</div>
                       {campaign.list_status === 'not_started' ? (
-                        <div className="flex gap-1 w-full">
+                        <div className="flex gap-1.5 w-full">
                           <button
                             onClick={() => handleSelectExistingList(campaign.id)}
-                            className="flex-1 px-1.5 py-2 bg-green-600 text-white rounded text-[10px] font-semibold hover:bg-green-700 transition-colors"
+                            className="flex-1 px-2 py-1.5 bg-green-600 text-white rounded text-[11px] font-medium hover:bg-green-700 transition-colors"
                           >
                             Select
                           </button>
                           <button
                             onClick={handleCreateNewList}
-                            className="flex-1 px-1.5 py-2 bg-gray-400 text-white rounded text-[10px] font-semibold hover:bg-gray-500 transition-colors"
+                            className="flex-1 px-2 py-1.5 bg-gray-400 text-white rounded text-[11px] font-medium hover:bg-gray-500 transition-colors"
                           >
                             Create
                           </button>
                         </div>
                       ) : (
-                        <div className={`w-full h-10 ${getStatusColor(campaign.list_status, 'list')} rounded flex flex-col items-center justify-center text-white font-semibold text-[10px] px-1`}>
+                        <div className={`w-full h-8 ${getStatusColor(campaign.list_status, 'list')} rounded flex flex-col items-center justify-center text-white font-medium text-[11px] px-1`}>
                           <div>{getStatusLabel(campaign.list_status, 'list')}</div>
                           {campaign.list_name && (
-                            <div className="text-[8px] mt-0.5 opacity-90 text-center truncate w-full">
+                            <div className="text-[9px] mt-0.5 opacity-90 text-center truncate w-full font-normal">
                               {campaign.list_name}
                             </div>
                           )}
@@ -354,22 +354,22 @@ export default function NewCampaignsListContent() {
 
                     {/* Launch Column */}
                     <div className="flex flex-col items-center">
-                      <div className="text-[10px] font-semibold text-fo-dark mb-1">Launch</div>
+                      <div className="text-[11px] font-normal text-fo-dark mb-1">Launch</div>
                       {isLaunchLocked(campaign) ? (
-                        <div className="w-full h-10 bg-gray-400 rounded flex items-center justify-center text-white font-semibold text-[10px] gap-1">
+                        <div className="w-full h-8 bg-gray-400 rounded flex items-center justify-center text-white font-medium text-[11px] gap-1">
                           <Lock className="w-3 h-3" />
                           <span>Locked</span>
                         </div>
                       ) : campaign.launch_status === 'not_started' || campaign.launch_status === 'in_progress' ? (
                         <button
                           onClick={() => handleUpdateLaunchStatus(campaign.id, campaign.launch_status === 'not_started' ? 'in_progress' : 'live')}
-                          className={`w-full h-10 ${getStatusColor(campaign.launch_status, 'launch')} rounded flex items-center justify-center text-white font-semibold text-[10px] hover:opacity-90 transition-opacity gap-1`}
+                          className={`w-full h-8 ${getStatusColor(campaign.launch_status, 'launch')} rounded flex items-center justify-center text-white font-medium text-[11px] hover:opacity-90 transition-opacity gap-1`}
                         >
                           <LockOpen className="w-3 h-3" />
                           <span>{campaign.launch_status === 'not_started' ? 'Start' : 'Launch'}</span>
                         </button>
                       ) : (
-                        <div className={`w-full h-10 ${getStatusColor(campaign.launch_status, 'launch')} rounded flex items-center justify-center text-white font-semibold text-[10px]`}>
+                        <div className={`w-full h-8 ${getStatusColor(campaign.launch_status, 'launch')} rounded flex items-center justify-center text-white font-medium text-[11px]`}>
                           {getStatusLabel(campaign.launch_status, 'launch')}
                         </div>
                       )}
@@ -377,7 +377,7 @@ export default function NewCampaignsListContent() {
                   </div>
 
                   {/* Right Side: Timestamps */}
-                  <div className="col-span-2 text-[10px] text-fo-text-secondary space-y-0.5">
+                  <div className="col-span-2 text-[10px] text-fo-text-secondary font-normal space-y-0.5">
                     <div>Created: {new Date(campaign.created_at).toLocaleDateString()}</div>
                     <div>Updated: {new Date(campaign.updated_at).toLocaleDateString()}</div>
                   </div>
