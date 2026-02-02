@@ -32,9 +32,9 @@ export default function ClientLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    management: true,
-    allboundTactics: true,
-    commandCentre: true,
+    management: false,
+    allboundTactics: false,
+    commandCentre: false,
   });
   
   // Admin UI states
@@ -341,15 +341,6 @@ export default function ClientLayout({
                           </Link>
                         );
                       })}
-                    </div>
-                  )}
-                  
-                  {/* Collapsed view - show section icon only */}
-                  {!sidebarOpen && (
-                    <div className="ml-0">
-                      <div className="flex items-center justify-center px-4 py-2">
-                        <SectionIcon className="w-5 h-5 text-gray-300" strokeWidth={2} />
-                      </div>
                     </div>
                   )}
                 </div>
