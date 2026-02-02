@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Users, Loader2, ArrowLeft, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
+import UnsavedChangesWarning from '@/components/UnsavedChangesWarning';
 
 export default function NewPersonaContent() {
   const router = useRouter();
@@ -24,6 +26,35 @@ export default function NewPersonaContent() {
     whyTheyMatterToUs: [''] as string[],
     whyWeMatterToThem: [''] as string[]
   });
+
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    field: string;
+    index: number;
+    itemName: string;
+  }>({
+    isOpen: false,
+    field: '',
+    index: -1,
+    itemName: ''
+  });
+
+  useEffect(() => {
+    const hasContent = 
+      formData.name.trim() !== '' ||
+      formData.internalName.trim() !== '' ||
+      formData.description.trim() !== '' ||
+      formData.primaryResponsibilities.some(r => r.trim() !== '') ||
+      formData.painPoints.some(p => p.trim() !== '') ||
+      formData.keyConcerns.some(k => k.trim() !== '') ||
+      formData.keyObjectives.some(o => o.trim() !== '') ||
+      formData.commonJobTitles.some(j => j.trim() !== '') ||
+      formData.whyTheyMatterToUs.some(w => w.trim() !== '') ||
+      formData.whyWeMatterToThem.some(w => w.trim() !== '');
+    
+    setHasUnsavedChanges(hasContent);
+  }, [formData]);
 
   const handleSave = async () => {
     try {
@@ -48,6 +79,7 @@ export default function NewPersonaContent() {
       }
 
       toast.success('Persona created successfully');
+      setHasUnsavedChanges(false);
       const backUrl = impersonateUserId ? `/client/gtm-strategy?impersonate=${impersonateUserId}` : '/client/gtm-strategy';
       router.push(backUrl);
     } catch (err: any) {
@@ -70,7 +102,35 @@ export default function NewPersonaContent() {
   };
 
   const handleRemoveArrayItem = (field: string, index: number) => {
+    const fieldArray = formData[field as keyof typeof formData] as string[];
+    const itemName = fieldArray[index] || 'this item';
+    
+    setDeleteConfirmation({
+      isOpen: true,
+      field,
+      index,
+      itemName
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    const { field, index } = deleteConfirmation;
     setFormData(prev => ({ ...prev, [field]: (prev[field as keyof typeof prev] as string[]).filter((_, i) => i !== index) }));
+    
+    setDeleteConfirmation({
+      isOpen: false,
+      field: '',
+      index: -1,
+      itemName: ''
+    });
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave this page?');
+      if (!confirmed) return;
+    }
+    router.back();
   };
 
   const renderArrayField = (title: string, field: keyof typeof formData, placeholder: string) => (
@@ -95,7 +155,7 @@ export default function NewPersonaContent() {
       <div className="bg-white rounded-lg shadow-sm border border-fo-border p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors">
+            <button onClick={handleBack} className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors">
               <ArrowLeft className="w-5 h-5 text-fo-text-secondary" strokeWidth={2} />
             </button>
             <div className="flex items-center gap-3">
@@ -136,6 +196,18 @@ export default function NewPersonaContent() {
         {renderArrayField('Why They Matter to Us', 'whyTheyMatterToUs', 'Reason they matter')}
         {renderArrayField('Why We Matter to Them', 'whyWeMatterToThem', 'Reason we matter')}
       </div>
+
+      {/* Unsaved Changes Warning */}
+      <UnsavedChangesWarning hasUnsavedChanges={hasUnsavedChanges} />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, field: '', index: -1, itemName: '' })}
+        onConfirm={handleConfirmDelete}
+        itemName={deleteConfirmation.itemName}
+        itemType="item"
+      />
     </div>
   );
 }

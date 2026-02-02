@@ -66,9 +66,47 @@ function PersonaDetailContent() {
     whyWeMatterToThem: [] as string[]
   });
 
+  // Unsaved changes tracking
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Delete confirmation modal state
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    field: string;
+    index: number;
+    itemName: string;
+  }>({
+    isOpen: false,
+    field: '',
+    index: -1,
+    itemName: ''
+  });
+
   useEffect(() => {
     loadPersona();
   }, [personaOId, impersonateUserId]);
+
+  // Track unsaved changes
+  useEffect(() => {
+    if (!persona || !isEditing) {
+      setHasUnsavedChanges(false);
+      return;
+    }
+
+    const hasChanges = 
+      formData.name !== (persona.name || '') ||
+      formData.internalName !== (persona.internalName || '') ||
+      formData.description !== (persona.description || '') ||
+      JSON.stringify(formData.primaryResponsibilities) !== JSON.stringify(persona.data?.primaryResponsibilities || []) ||
+      JSON.stringify(formData.painPoints) !== JSON.stringify(persona.data?.painPoints || []) ||
+      JSON.stringify(formData.keyConcerns) !== JSON.stringify(persona.data?.keyConcerns || []) ||
+      JSON.stringify(formData.keyObjectives) !== JSON.stringify(persona.data?.keyObjectives || []) ||
+      JSON.stringify(formData.commonJobTitles) !== JSON.stringify(persona.data?.commonJobTitles || []) ||
+      JSON.stringify(formData.whyTheyMatterToUs) !== JSON.stringify(persona.data?.whyTheyMatterToUs || []) ||
+      JSON.stringify(formData.whyWeMatterToThem) !== JSON.stringify(persona.data?.whyWeMatterToThem || []);
+
+    setHasUnsavedChanges(hasChanges);
+  }, [formData, persona, isEditing]);
 
   const loadPersona = async () => {
     try {
@@ -168,6 +206,7 @@ function PersonaDetailContent() {
       }
 
       toast.success('Persona updated successfully');
+      setHasUnsavedChanges(false);
       setIsEditing(false);
       await loadPersona();
 
@@ -180,6 +219,11 @@ function PersonaDetailContent() {
   };
 
   const handleCancel = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to cancel?');
+      if (!confirmed) return;
+    }
+
     if (persona) {
       setFormData({
         name: persona.name || '',
@@ -194,6 +238,7 @@ function PersonaDetailContent() {
         whyWeMatterToThem: persona.data?.whyWeMatterToThem || []
       });
     }
+    setHasUnsavedChanges(false);
     setIsEditing(false);
   };
 
@@ -214,10 +259,38 @@ function PersonaDetailContent() {
   };
 
   const handleRemoveArrayItem = (field: string, index: number) => {
+    const fieldArray = formData[field as keyof typeof formData] as string[];
+    const itemName = fieldArray[index] || 'this item';
+    
+    setDeleteConfirmation({
+      isOpen: true,
+      field,
+      index,
+      itemName
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    const { field, index } = deleteConfirmation;
     setFormData(prev => ({
       ...prev,
       [field]: (prev[field as keyof typeof prev] as string[]).filter((_, i) => i !== index)
     }));
+    
+    setDeleteConfirmation({
+      isOpen: false,
+      field: '',
+      index: -1,
+      itemName: ''
+    });
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave this page?');
+      if (!confirmed) return;
+    }
+    router.back();
   };
 
   if (loading) {
@@ -241,7 +314,7 @@ function PersonaDetailContent() {
           <h1 className="text-2xl font-bold text-fo-dark mb-4">Error Loading Persona</h1>
           <p className="text-fo-text-secondary mb-6">{error || 'Persona not found'}</p>
           <button
-            onClick={() => router.back()}
+            onClick={handleBack}
             className="px-6 py-3 bg-fo-primary text-white rounded-lg hover:bg-fo-primary/90 font-semibold"
           >
             Go Back
@@ -304,7 +377,7 @@ function PersonaDetailContent() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.back()}
+              onClick={handleBack}
               className="p-2 hover:bg-fo-bg-light rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-fo-text-secondary" strokeWidth={2} />
@@ -522,6 +595,18 @@ function PersonaDetailContent() {
           </div>
         </div>
       </div>
+
+      {/* Unsaved Changes Warning */}
+      <UnsavedChangesWarning hasUnsavedChanges={hasUnsavedChanges} />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, field: '', index: -1, itemName: '' })}
+        onConfirm={handleConfirmDelete}
+        itemName={deleteConfirmation.itemName}
+        itemType="item"
+      />
     </div>
   );
 }
