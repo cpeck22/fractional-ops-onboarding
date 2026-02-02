@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
-import { AlertTriangle, Plus } from 'lucide-react';
+import { AlertTriangle, Plus, LayoutGrid, List } from 'lucide-react';
 import { getPlayDescription } from '@/lib/play-descriptions';
 
 interface Play {
@@ -43,6 +43,7 @@ export default function OutboundPlaysPageContent() {
   const [plays, setPlays] = useState<PlayWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const loadPlays = useCallback(async () => {
     try {
@@ -141,6 +142,32 @@ export default function OutboundPlaysPageContent() {
           <p className="text-fo-text-secondary">Create and manage your outbound campaigns</p>
         </div>
         <div className="flex items-center gap-3">
+          {/* View Toggle */}
+          <div className="inline-flex rounded-lg border border-fo-border bg-white shadow-sm">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-4 py-2 flex items-center gap-2 rounded-l-lg transition-colors ${
+                viewMode === 'grid'
+                  ? 'bg-fo-primary text-white'
+                  : 'text-fo-text-secondary hover:bg-fo-light'
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span className="text-sm font-medium">Icon View</span>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-4 py-2 flex items-center gap-2 rounded-r-lg border-l border-fo-border transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-fo-primary text-white'
+                  : 'text-fo-text-secondary hover:bg-fo-light'
+              }`}
+            >
+              <List className="w-4 h-4" />
+              <span className="text-sm font-medium">List View</span>
+            </button>
+          </div>
+          
           <Link
             href={createCampaignUrl}
             className="inline-flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark transition-colors"
@@ -151,7 +178,9 @@ export default function OutboundPlaysPageContent() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Grid View (Icon View) */}
+      {viewMode === 'grid' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plays.map((play) => {
           const isDisabled = play.documentation_status === 'Blocked' || 
                            (play.content_agent_status === 'Not Required' && play.documentation_status !== 'Completed');
@@ -221,7 +250,117 @@ export default function OutboundPlaysPageContent() {
             </Link>
           );
         })}
-      </div>
+        </div>
+      )}
+
+      {/* List View (Table View) */}
+      {viewMode === 'list' && (
+        <div className="bg-white rounded-lg shadow-sm border border-fo-border overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-fo-light border-b border-fo-border">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase tracking-wider">
+                  Play #
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-fo-dark uppercase tracking-wider">
+                  Description
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-semibold text-fo-dark uppercase tracking-wider">
+                  Draft
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-semibold text-fo-dark uppercase tracking-wider">
+                  In Progress
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-semibold text-fo-dark uppercase tracking-wider">
+                  Approved
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-fo-border">
+              {plays.map((play) => {
+                const isDisabled = play.documentation_status === 'Blocked' || 
+                                 (play.content_agent_status === 'Not Required' && play.documentation_status !== 'Completed');
+                
+                return (
+                  <tr key={play.code} className={isDisabled ? 'opacity-60' : 'hover:bg-fo-light/50 transition-colors'}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {isDisabled ? (
+                        <span className="text-sm font-mono font-bold text-fo-primary bg-fo-primary/10 px-2 py-1 rounded">
+                          {play.code}
+                        </span>
+                      ) : (
+                        <Link
+                          href={impersonateUserId 
+                            ? `/client/outbound/${play.code}?impersonate=${impersonateUserId}` 
+                            : `/client/outbound/${play.code}`}
+                          className="text-sm font-mono font-bold text-fo-primary bg-fo-primary/10 px-2 py-1 rounded hover:bg-fo-primary/20 transition-colors"
+                        >
+                          {play.code}
+                        </Link>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {isDisabled ? (
+                        <div>
+                          <div className="text-sm font-semibold text-fo-dark">{play.name}</div>
+                          <div className="text-xs text-fo-text-secondary mt-1 flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3" strokeWidth={2} />
+                            Currently unavailable
+                          </div>
+                        </div>
+                      ) : (
+                        <Link
+                          href={impersonateUserId 
+                            ? `/client/outbound/${play.code}?impersonate=${impersonateUserId}` 
+                            : `/client/outbound/${play.code}`}
+                          className="text-sm font-semibold text-fo-dark hover:text-fo-primary transition-colors"
+                        >
+                          {play.name}
+                        </Link>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-fo-text-secondary line-clamp-2">
+                        {getPlayDescription(play.code) || '—'}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {!isDisabled && play.executions.draft > 0 ? (
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-700 text-sm font-semibold">
+                          {play.executions.draft}
+                        </span>
+                      ) : (
+                        <span className="text-fo-text-secondary text-sm">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {!isDisabled && play.executions.in_progress > 0 ? (
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold">
+                          {play.executions.in_progress}
+                        </span>
+                      ) : (
+                        <span className="text-fo-text-secondary text-sm">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {!isDisabled && play.executions.approved > 0 ? (
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
+                          {play.executions.approved}
+                        </span>
+                      ) : (
+                        <span className="text-fo-text-secondary text-sm">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {plays.length === 0 && (
         <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-fo-border">
