@@ -6,8 +6,8 @@ import * as XLSX from 'xlsx';
 
 export const dynamic = 'force-dynamic';
 
-// Required columns for each list type
-const REQUIRED_COLUMNS = {
+// Recommended columns for each list type (informational only, not enforced)
+const RECOMMENDED_COLUMNS = {
   account: ['company name', 'company domain', 'linkedin url', 'location', 'headcount', 'revenue'],
   prospect: ['first name', 'last name', 'email', 'title', 'company name', 'linkedin url']
 };
@@ -83,22 +83,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validate columns
-    const requiredColumns = REQUIRED_COLUMNS[listType];
-    const missingColumns = requiredColumns.filter(col => !headers.includes(col));
-    
-    if (missingColumns.length > 0) {
-      return NextResponse.json({ 
-        success: false, 
-        error: `Missing required columns: ${missingColumns.join(', ')}`,
-        details: {
-          found: headers,
-          required: requiredColumns,
-          missing: missingColumns
-        }
-      }, { status: 400 });
-    }
-
+    // Check if file has data rows (no column validation required)
     if (rows.length === 0) {
       return NextResponse.json({ 
         success: false, 

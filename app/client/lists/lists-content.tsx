@@ -272,11 +272,11 @@ export default function ListsPageContent() {
         <p className="text-sm text-blue-700">
           {activeTab === 'account' ? (
             <>
-              <strong>Required columns:</strong> Company Name, Company Domain, LinkedIn URL, Location, Headcount, Revenue
+              <strong>Recommended columns:</strong> Company Name, Company Domain, LinkedIn URL, Location, Headcount, Revenue
             </>
           ) : (
             <>
-              <strong>Required columns:</strong> First Name, Last Name, Email, Title, Company Name, LinkedIn URL
+              <strong>Recommended columns:</strong> First Name, Last Name, Email, Title, Company Name, LinkedIn URL
             </>
           )}
         </p>
