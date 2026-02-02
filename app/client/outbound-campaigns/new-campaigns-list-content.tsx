@@ -284,7 +284,7 @@ export default function NewCampaignsListContent() {
       ) : (
         <div className="space-y-4">
           {campaigns.map((campaign) => (
-            <div key={campaign.id} className="bg-white rounded-lg shadow-sm border border-fo-border overflow-hidden hover:shadow-md transition-shadow">
+            <div key={campaign.id} className="bg-white rounded-lg shadow-sm border border-fo-border hover:shadow-md transition-shadow">
               <div className="p-3 py-2">
                 <div className="grid grid-cols-12 gap-3 items-center">
                   {/* Left Side: Campaign Details */}
@@ -329,13 +329,13 @@ export default function NewCampaignsListContent() {
                         <div className="flex gap-1.5 w-full">
                           <button
                             onClick={() => handleSelectExistingList(campaign.id)}
-                            className="flex-1 px-2 py-1.5 bg-green-600 text-white rounded text-[11px] font-medium hover:bg-green-700 transition-colors"
+                            className="flex-1 h-8 px-2 bg-green-600 text-white rounded text-[11px] font-medium hover:bg-green-700 transition-colors flex items-center justify-center"
                           >
                             Select
                           </button>
                           <button
                             onClick={handleCreateNewList}
-                            className="flex-1 px-2 py-1.5 bg-gray-400 text-white rounded text-[11px] font-medium hover:bg-gray-500 transition-colors"
+                            className="flex-1 h-8 px-2 bg-gray-400 text-white rounded text-[11px] font-medium hover:bg-gray-500 transition-colors flex items-center justify-center"
                           >
                             Create
                           </button>
@@ -393,7 +393,7 @@ export default function NewCampaignsListContent() {
                       </button>
                       
                       {expandedMenu === campaign.id && (
-                        <div className="absolute right-0 top-full mt-1 bg-white border border-fo-border rounded-lg shadow-xl z-10 min-w-[130px]">
+                        <div className="absolute right-0 top-full mt-1 bg-white border border-fo-border rounded-lg shadow-xl z-50 min-w-[130px]">
                           <Link
                             href={
                               campaign.source === 'play_executions' && campaign.play_category && campaign.play_code
