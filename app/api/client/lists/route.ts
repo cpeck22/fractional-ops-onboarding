@@ -42,6 +42,8 @@ export async function GET(request: NextRequest) {
     );
 
     // Fetch lists from database
+    console.log('📋 Fetching lists for user:', effectiveUserId);
+    
     const { data: lists, error: listsError } = await supabaseAdmin
       .from('campaign_lists')
       .select('*')
@@ -49,13 +51,18 @@ export async function GET(request: NextRequest) {
       .order('uploaded_at', { ascending: false });
 
     if (listsError) {
-      console.error('Error fetching lists:', listsError);
+      console.error('❌ Error fetching lists:', listsError);
       return NextResponse.json({ 
         success: false, 
         error: 'Failed to fetch lists',
         details: listsError.message 
       }, { status: 500 });
     }
+
+    console.log('✅ Lists fetched successfully:', {
+      count: lists?.length || 0,
+      lists: lists?.map(l => ({ id: l.id, name: l.name, type: l.type, user_id: l.user_id }))
+    });
 
     return NextResponse.json({
       success: true,

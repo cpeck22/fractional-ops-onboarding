@@ -41,9 +41,17 @@ export default function ListsPageContent() {
 
       const result = await response.json();
       
+      console.log('📋 Lists fetch result:', {
+        success: result.success,
+        listsCount: result.lists?.length || 0,
+        lists: result.lists
+      });
+      
       if (result.success) {
         setLists(result.lists || []);
+        console.log('✅ Lists set in state:', result.lists?.length || 0);
       } else {
+        console.error('❌ Failed to load lists:', result.error);
         toast.error(result.error || 'Failed to load lists');
       }
       setLoading(false);
@@ -61,6 +69,9 @@ export default function ListsPageContent() {
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    
+    // Reset input so same file can be uploaded again
+    event.target.value = '';
 
     // Validate file type
     const validTypes = ['.csv', '.xlsx', '.xls'];
@@ -94,9 +105,11 @@ export default function ListsPageContent() {
       const result = await response.json();
       
       if (result.success) {
+        console.log('✅ Upload successful, reloading lists...', result);
         toast.success('List uploaded successfully!');
-        loadLists();
+        await loadLists();
       } else {
+        console.error('❌ Upload failed:', result.error);
         toast.error(result.error || 'Failed to upload list');
       }
     } catch (error) {

@@ -124,6 +124,13 @@ export async function POST(request: NextRequest) {
       .getPublicUrl(storagePath);
 
     // Save metadata to database (simplified)
+    console.log('💾 Saving list to database:', {
+      user_id: effectiveUserId,
+      name: fileName,
+      type: listType,
+      row_count: rows.length
+    });
+    
     const { data: listRecord, error: dbError } = await supabaseAdmin
       .from('campaign_lists')
       .insert({
@@ -137,6 +144,14 @@ export async function POST(request: NextRequest) {
       })
       .select()
       .single();
+    
+    if (!dbError && listRecord) {
+      console.log('✅ List saved successfully:', {
+        id: listRecord.id,
+        user_id: listRecord.user_id,
+        name: listRecord.name
+      });
+    }
 
     if (dbError) {
       console.error('Database insert error:', dbError);
