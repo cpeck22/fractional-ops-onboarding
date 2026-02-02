@@ -187,6 +187,7 @@ export async function GET(request: NextRequest) {
         output: p.output,
         runtime_context: p.runtime_context, // Include the runtime context (personas, use cases, references)
         play_code: p.claire_plays?.code,
+        play_name: p.claire_plays?.name,
         play_category: p.claire_plays?.category,
         source: 'play_executions'
       }))
@@ -203,8 +204,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Map existing status to three-column status workflow
+    const mapStatusFields = (campaign: any) => {
+      // For play executions and campaigns, map the single status field to the three new fields
+      const status = campaign.status || 'draft';
+      
+      let copy_status: 'in_progress' | 'changes_required' | 'approved' = 'in_progress';
+      let list_status: 'not_started' | 'in_progress' | 'approved' = 'not_started';
+      let launch_status: 'not_started' | 'in_progress' | 'live' = 'not_started';
+      
+      // Map based on current status
+      if (status === 'approved') {
+        copy_status = 'approved';
+        // If copy is approved, list can be worked on
+        list_status = 'not_started';
+      } else if (status === 'in_progress') {
+        copy_status = 'in_progress';
+        list_status = 'not_started';
+      } else if (status === 'draft') {
+        copy_status = 'in_progress';
+        list_status = 'not_started';
+      }
+      
+      return { copy_status, list_status, launch_status };
+    };
+
     // Parse JSONB fields and format response
     const formattedCampaigns = (campaigns || []).map((campaign: any) => {
+      const statusFields = mapStatusFields(campaign);
       // Handle JSONB that might be returned as string
       let finalAssets = campaign.final_assets;
       if (typeof finalAssets === 'string') {
@@ -243,9 +270,14 @@ export async function GET(request: NextRequest) {
         output: campaign.output,
         runtime_context: campaign.runtime_context,
         play_code: campaign.play_code,
+        play_name: campaign.play_name,
         play_category: campaign.play_category,
         source: campaign.source,
         status: campaign.status,
+        // ✅ NEW: Three-column status workflow
+        copy_status: statusFields.copy_status,
+        list_status: statusFields.list_status,
+        launch_status: statusFields.launch_status,
         createdAt: campaign.created_at,
         updatedAt: campaign.updated_at
       };

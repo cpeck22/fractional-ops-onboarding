@@ -16,6 +16,7 @@ interface Campaign {
   play_code?: string;
   play_name?: string;
   play_category?: string;
+  source?: string; // 'play_executions', 'campaigns', or 'outbound_campaigns'
   copy_status: 'in_progress' | 'changes_required' | 'approved';
   list_status: 'not_started' | 'in_progress' | 'approved';
   launch_status: 'not_started' | 'in_progress' | 'live';
@@ -268,22 +269,6 @@ export default function NewCampaignsListContent() {
         </Link>
       </div>
 
-      {/* Select Existing / Create New Buttons */}
-      <div className="mb-6 flex justify-center gap-4">
-        <button
-          onClick={() => toast('Select a campaign below, then choose Select Existing from the List column')}
-          className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-md"
-        >
-          Select Existing
-        </button>
-        <button
-          onClick={handleCreateNewList}
-          className="px-8 py-3 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors font-semibold shadow-md"
-        >
-          Create New
-        </button>
-      </div>
-
       {/* Campaigns List */}
       {campaigns.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-fo-border">
@@ -328,9 +313,21 @@ export default function NewCampaignsListContent() {
                     <div className="flex flex-col items-center">
                       <div className="text-sm font-semibold text-fo-dark mb-2">Copy</div>
                       <div className="relative w-full">
-                        <div className={`h-24 ${getStatusColor(campaign.copy_status, 'copy')} rounded-lg flex items-center justify-center text-white font-semibold text-xs`}>
+                        <Link
+                          href={
+                            // Route to the correct edit page based on campaign source
+                            campaign.source === 'play_executions' && campaign.play_category && campaign.play_code
+                              ? impersonateUserId
+                                ? `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}?impersonate=${impersonateUserId}`
+                                : `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}`
+                              : impersonateUserId
+                                ? `/client/outbound-campaigns/${campaign.id}/intermediary?impersonate=${impersonateUserId}`
+                                : `/client/outbound-campaigns/${campaign.id}/intermediary`
+                          }
+                          className={`h-24 ${getStatusColor(campaign.copy_status, 'copy')} rounded-lg flex items-center justify-center text-white font-semibold text-xs hover:opacity-90 transition-opacity cursor-pointer`}
+                        >
                           {getStatusLabel(campaign.copy_status, 'copy')}
-                        </div>
+                        </Link>
                       </div>
                     </div>
 
@@ -408,9 +405,16 @@ export default function NewCampaignsListContent() {
                       {expandedMenu === campaign.id && (
                         <div className="absolute right-0 top-full mt-1 bg-white border border-fo-border rounded-lg shadow-xl z-10 min-w-[150px]">
                           <Link
-                            href={impersonateUserId
-                              ? `/client/outbound-campaigns/${campaign.id}/intermediary?impersonate=${impersonateUserId}`
-                              : `/client/outbound-campaigns/${campaign.id}/intermediary`}
+                            href={
+                              // Route to the correct edit page based on campaign source
+                              campaign.source === 'play_executions' && campaign.play_category && campaign.play_code
+                                ? impersonateUserId
+                                  ? `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}?impersonate=${impersonateUserId}`
+                                  : `/client/${campaign.play_category}/${campaign.play_code}/${campaign.id}`
+                                : impersonateUserId
+                                  ? `/client/outbound-campaigns/${campaign.id}/intermediary?impersonate=${impersonateUserId}`
+                                  : `/client/outbound-campaigns/${campaign.id}/intermediary`
+                            }
                             className="flex items-center gap-2 px-4 py-2 text-fo-primary hover:bg-fo-light text-sm transition-colors"
                             onClick={() => setExpandedMenu(null)}
                           >
