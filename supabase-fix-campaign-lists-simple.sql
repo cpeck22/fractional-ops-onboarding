@@ -1,0 +1,51 @@
+-- ============================================
+-- Simplify campaign_lists table (remove uploaded_by)
+-- ============================================
+-- This fixes the "Could not find the 'uploaded_by' column" error
+-- Run this if you already created the table with uploaded_by column
+
+-- Option 1: If table exists with uploaded_by, remove that column
+ALTER TABLE campaign_lists DROP COLUMN IF EXISTS uploaded_by;
+
+-- Option 2: Or recreate the table from scratch (drops existing data!)
+-- Uncomment the lines below if you want to start fresh:
+
+-- DROP TABLE IF EXISTS campaign_lists CASCADE;
+-- 
+-- CREATE TABLE campaign_lists (
+--   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+--   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+--   name TEXT NOT NULL,
+--   type TEXT NOT NULL CHECK (type IN ('account', 'prospect')),
+--   file_type TEXT NOT NULL CHECK (file_type IN ('csv', 'xlsx')),
+--   file_url TEXT NOT NULL,
+--   row_count INTEGER NOT NULL DEFAULT 0,
+--   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'approved')),
+--   uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+--   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+--   UNIQUE(user_id, name, type)
+-- );
+-- 
+-- -- Enable RLS
+-- ALTER TABLE campaign_lists ENABLE ROW LEVEL SECURITY;
+-- 
+-- -- Create policies
+-- CREATE POLICY "Users can view own lists"
+--   ON campaign_lists FOR SELECT
+--   USING (auth.uid() = user_id);
+-- 
+-- CREATE POLICY "Users can insert own lists"
+--   ON campaign_lists FOR INSERT
+--   WITH CHECK (auth.uid() = user_id);
+-- 
+-- CREATE POLICY "Users can update own lists"
+--   ON campaign_lists FOR UPDATE
+--   USING (auth.uid() = user_id);
+-- 
+-- CREATE POLICY "Users can delete own lists"
+--   ON campaign_lists FOR DELETE
+--   USING (auth.uid() = user_id);
+
+-- ============================================
+-- That's it! Simple CSV upload is ready to use
+-- ============================================

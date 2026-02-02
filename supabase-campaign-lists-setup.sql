@@ -2,7 +2,7 @@
 -- Campaign Lists Feature - Complete Setup
 -- ============================================
 
--- 1. Create campaign_lists table (if not already created)
+-- 1. Create campaign_lists table (simplified - just the essentials)
 CREATE TABLE IF NOT EXISTS campaign_lists (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS campaign_lists (
   file_url TEXT NOT NULL,
   row_count INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'approved')),
-  uploaded_by TEXT,
   uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(user_id, name, type)

@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       .from('campaign-lists')
       .getPublicUrl(storagePath);
 
-    // Save metadata to database
+    // Save metadata to database (simplified)
     const { data: listRecord, error: dbError } = await supabaseAdmin
       .from('campaign_lists')
       .insert({
@@ -133,8 +133,7 @@ export async function POST(request: NextRequest) {
         file_type: fileExtension === 'xls' ? 'xlsx' : fileExtension,
         file_url: publicUrl,
         row_count: rows.length,
-        status: 'draft',
-        uploaded_by: user.email
+        status: 'draft'
       })
       .select()
       .single();

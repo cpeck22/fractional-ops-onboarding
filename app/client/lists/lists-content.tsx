@@ -13,7 +13,6 @@ interface List {
   type: 'account' | 'prospect';
   file_type: 'csv' | 'xlsx';
   file_url: string;
-  uploaded_by: string;
   uploaded_at: string;
   row_count: number;
   status: 'draft' | 'approved';
