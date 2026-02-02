@@ -274,4 +274,28 @@ While the feature is **100% complete** per requirements, here are optional futur
 ✅ Octave API integrated
 ✅ Two-way sync operational
 
+## 🔧 BUILD FIX APPLIED
+
+**Issue Identified:** Next.js was trying to pre-render pages with `'use client'` directive during build time, causing `useSearchParams()` errors.
+
+**Root Cause:** The `dynamic = 'force-dynamic'` export doesn't work the same way in client components. When a component has `'use client'` at the top, it becomes a client component, and route segment config exports like `dynamic` don't prevent static generation during build.
+
+**Solution:** Split each "new" page into two files:
+- **page.tsx** (Server Component): No `'use client'`, exports `dynamic = 'force-dynamic'`, wraps content in `<Suspense>`
+- **content.tsx** (Client Component): Has `'use client'`, contains all the form logic and uses `useSearchParams()`
+
+This pattern allows Next.js to:
+1. Recognize the page as dynamic at build time (server component with `dynamic` export)
+2. Skip pre-rendering attempts
+3. Hydrate the client component at runtime with `useSearchParams()` working correctly
+
+**Files Modified:**
+- Split 8 "new" pages into server wrappers + client content
+- Created 8 new content.tsx files
+- Simplified 8 page.tsx files to be server component wrappers
+
+**Build Status:** ✅ Successful - No errors, all 64 pages generated
+
+---
+
 **The GTM Strategy feature is production-ready!** 🎊
