@@ -43,7 +43,7 @@ export default function OutboundPlaysPageContent() {
   const [plays, setPlays] = useState<PlayWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
   const loadPlays = useCallback(async () => {
     try {
@@ -137,45 +137,39 @@ export default function OutboundPlaysPageContent() {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-fo-dark mb-2">Outbound Campaigns</h1>
-          <p className="text-fo-text-secondary">Create and manage your outbound campaigns</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* View Toggle */}
-          <div className="inline-flex rounded-lg border border-fo-border bg-white shadow-sm">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`px-4 py-2 flex items-center gap-2 rounded-l-lg transition-colors ${
-                viewMode === 'grid'
-                  ? 'bg-fo-primary text-white'
-                  : 'text-fo-text-secondary hover:bg-fo-light'
-              }`}
-            >
-              <LayoutGrid className="w-4 h-4" />
-              <span className="text-sm font-medium">Icon View</span>
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-4 py-2 flex items-center gap-2 rounded-r-lg border-l border-fo-border transition-colors ${
-                viewMode === 'list'
-                  ? 'bg-fo-primary text-white'
-                  : 'text-fo-text-secondary hover:bg-fo-light'
-              }`}
-            >
-              <List className="w-4 h-4" />
-              <span className="text-sm font-medium">List View</span>
-            </button>
-          </div>
-          
-          <Link
-            href={createCampaignUrl}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark transition-colors"
+        {/* View Toggle */}
+        <div className="inline-flex rounded-lg border border-fo-border bg-white shadow-sm">
+          <button
+            onClick={() => setViewMode('list')}
+            className={`px-4 py-2 flex items-center gap-2 rounded-l-lg transition-colors ${
+              viewMode === 'list'
+                ? 'bg-fo-primary text-white'
+                : 'text-fo-text-secondary hover:bg-fo-light'
+            }`}
           >
-            <Plus className="w-4 h-4" />
-            Create Campaign
-          </Link>
+            <List className="w-4 h-4" />
+            <span className="text-sm font-medium">List View</span>
+          </button>
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`px-4 py-2 flex items-center gap-2 rounded-r-lg border-l border-fo-border transition-colors ${
+              viewMode === 'grid'
+                ? 'bg-fo-primary text-white'
+                : 'text-fo-text-secondary hover:bg-fo-light'
+            }`}
+          >
+            <LayoutGrid className="w-4 h-4" />
+            <span className="text-sm font-medium">Icon View</span>
+          </button>
         </div>
+        
+        <Link
+          href={createCampaignUrl}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-fo-primary text-white rounded-lg hover:bg-fo-primary-dark transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Create Campaign
+        </Link>
       </div>
 
       {/* Grid View (Icon View) */}

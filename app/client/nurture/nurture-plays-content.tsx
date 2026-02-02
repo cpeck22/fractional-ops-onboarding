@@ -43,7 +43,7 @@ export default function NurturePlaysPageContent() {
   const [plays, setPlays] = useState<PlayWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
   const loadPlays = useCallback(async () => {
     try {
@@ -129,22 +129,11 @@ export default function NurturePlaysPageContent() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* View Toggle */}
-      <div className="mb-6 flex justify-end items-center">
+      <div className="mb-6 flex justify-start items-center">
         <div className="inline-flex rounded-lg border border-fo-border bg-white shadow-sm">
           <button
-            onClick={() => setViewMode('grid')}
-            className={`px-4 py-2 flex items-center gap-2 rounded-l-lg transition-colors ${
-              viewMode === 'grid'
-                ? 'bg-fo-primary text-white'
-                : 'text-fo-text-secondary hover:bg-fo-light'
-            }`}
-          >
-            <LayoutGrid className="w-4 h-4" />
-            <span className="text-sm font-medium">Icon View</span>
-          </button>
-          <button
             onClick={() => setViewMode('list')}
-            className={`px-4 py-2 flex items-center gap-2 rounded-r-lg border-l border-fo-border transition-colors ${
+            className={`px-4 py-2 flex items-center gap-2 rounded-l-lg transition-colors ${
               viewMode === 'list'
                 ? 'bg-fo-primary text-white'
                 : 'text-fo-text-secondary hover:bg-fo-light'
@@ -152,6 +141,17 @@ export default function NurturePlaysPageContent() {
           >
             <List className="w-4 h-4" />
             <span className="text-sm font-medium">List View</span>
+          </button>
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`px-4 py-2 flex items-center gap-2 rounded-r-lg border-l border-fo-border transition-colors ${
+              viewMode === 'grid'
+                ? 'bg-fo-primary text-white'
+                : 'text-fo-text-secondary hover:bg-fo-light'
+            }`}
+          >
+            <LayoutGrid className="w-4 h-4" />
+            <span className="text-sm font-medium">Icon View</span>
           </button>
         </div>
       </div>
