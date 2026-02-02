@@ -192,6 +192,15 @@ export async function GET(request: NextRequest) {
       products: products.length
     });
     
+    // Debug: Log actual product data
+    console.log('🔍 Products from Octave:', JSON.stringify(products, null, 2));
+    console.log('🔍 Products response structure:', {
+      hasData: !!productsResponse.data,
+      hasDataArray: !!productsResponse.data?.data,
+      dataType: typeof productsResponse.data?.data,
+      isArray: Array.isArray(productsResponse.data?.data)
+    });
+    
     return NextResponse.json({
       success: true,
       workspace: {
