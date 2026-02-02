@@ -57,7 +57,7 @@ export default function ConfirmDeleteModal({
 
           <div className="mb-6">
             <p className="text-fo-text-secondary mb-2">
-              Are you sure you want to delete <span className="font-semibold text-fo-dark">"{itemName}"</span>?
+              Are you sure you want to delete <span className="font-semibold text-fo-dark">&ldquo;{itemName}&rdquo;</span>?
             </p>
             <p className="text-sm text-fo-text-secondary mb-4">
               This action cannot be undone. Please type <span className="font-mono font-bold text-red-600">DELETE</span> to confirm.
