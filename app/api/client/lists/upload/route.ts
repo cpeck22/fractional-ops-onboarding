@@ -145,25 +145,40 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
     
-    if (!dbError && listRecord) {
-      console.log('✅ List saved successfully:', {
-        id: listRecord.id,
-        user_id: listRecord.user_id,
-        name: listRecord.name
-      });
-    }
-
     if (dbError) {
-      console.error('Database insert error:', dbError);
+      console.error('❌ Database insert error:', {
+        error: dbError,
+        code: dbError.code,
+        message: dbError.message,
+        details: dbError.details,
+        hint: dbError.hint
+      });
       // Try to clean up uploaded file
       await supabaseAdmin.storage.from('campaign-lists').remove([storagePath]);
       
       return NextResponse.json({ 
         success: false, 
         error: 'Failed to save list metadata',
-        details: dbError.message
+        details: dbError.message,
+        code: dbError.code
       }, { status: 500 });
     }
+
+    if (!listRecord) {
+      console.error('❌ No list record returned after insert (no error, but no data)');
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Failed to save list - no record returned' 
+      }, { status: 500 });
+    }
+
+    console.log('✅ List saved successfully to database:', {
+      id: listRecord.id,
+      user_id: listRecord.user_id,
+      name: listRecord.name,
+      type: listRecord.type,
+      row_count: listRecord.row_count
+    });
 
     return NextResponse.json({
       success: true,
