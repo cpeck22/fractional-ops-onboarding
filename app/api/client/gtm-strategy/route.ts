@@ -97,7 +97,8 @@ export async function GET(request: NextRequest) {
       playbooksResponse,
       competitorsResponse,
       proofPointsResponse,
-      productsResponse
+      productsResponse,
+      servicesResponse
     ] = await Promise.all([
       // Personas - fetch ALL data
       axios.get('https://app.octavehq.com/api/v2/persona/list', {
@@ -162,12 +163,21 @@ export async function GET(request: NextRequest) {
         return { data: { data: [] } };
       }),
       
-      // Products/Services - NEW: fetch ALL products (not just one)
+      // Products - fetch ALL products
       axios.get('https://app.octavehq.com/api/v2/product/list', {
         headers: { 'api_key': workspaceApiKey },
         params: { limit: 100 }
       }).catch((error: any) => {
         console.error('❌ Error fetching products from Octave:', error.response?.status, error.response?.data || error.message);
+        return { data: { data: [] } };
+      }),
+      
+      // Services - fetch ALL services (Octave distinguishes between Products and Services)
+      axios.get('https://app.octavehq.com/api/v2/service/list', {
+        headers: { 'api_key': workspaceApiKey },
+        params: { limit: 100 }
+      }).catch((error: any) => {
+        console.error('❌ Error fetching services from Octave:', error.response?.status, error.response?.data || error.message);
         return { data: { data: [] } };
       })
     ]);
@@ -180,6 +190,10 @@ export async function GET(request: NextRequest) {
     const competitors = competitorsResponse.data?.data || [];
     const proofPoints = proofPointsResponse.data?.data || [];
     const products = productsResponse.data?.data || [];
+    const services = servicesResponse.data?.data || [];
+    
+    // Combine products and services into a single array
+    const allServices = [...products, ...services];
     
     console.log('📊 Octave API Results:', {
       personas: personas.length,
@@ -189,17 +203,15 @@ export async function GET(request: NextRequest) {
       playbooks: playbooks.length,
       competitors: competitors.length,
       proofPoints: proofPoints.length,
-      products: products.length
+      products: products.length,
+      services: services.length,
+      totalServices: allServices.length
     });
     
-    // Debug: Log actual product data
+    // Debug: Log actual service data
     console.log('🔍 Products from Octave:', JSON.stringify(products, null, 2));
-    console.log('🔍 Products response structure:', {
-      hasData: !!productsResponse.data,
-      hasDataArray: !!productsResponse.data?.data,
-      dataType: typeof productsResponse.data?.data,
-      isArray: Array.isArray(productsResponse.data?.data)
-    });
+    console.log('🔍 Services from Octave:', JSON.stringify(services, null, 2));
+    console.log('🔍 Combined services:', JSON.stringify(allServices, null, 2));
     
     return NextResponse.json({
       success: true,
@@ -321,20 +333,20 @@ export async function GET(request: NextRequest) {
         user: pp.user,
         workspace: pp.workspace
       })),
-      // Return ALL products/services (max 3 for UI)
-      services: products.map((p: any) => ({
-        oId: p.oId,
-        name: p.name,
-        internalName: p.internalName,
-        description: p.description,
-        primaryUrl: p.primaryUrl,
-        createdAt: p.createdAt,
-        updatedAt: p.updatedAt,
-        active: p.active,
-        data: p.data, // Full data object
-        qualifyingQuestions: p.qualifyingQuestions,
-        user: p.user,
-        workspace: p.workspace
+      // Return ALL products/services (combined, max 3 for UI)
+      services: allServices.map((s: any) => ({
+        oId: s.oId,
+        name: s.name,
+        internalName: s.internalName,
+        description: s.description,
+        primaryUrl: s.primaryUrl,
+        createdAt: s.createdAt,
+        updatedAt: s.updatedAt,
+        active: s.active,
+        data: s.data, // Full data object
+        qualifyingQuestions: s.qualifyingQuestions,
+        user: s.user,
+        workspace: s.workspace
       }))
     });
     
