@@ -7,7 +7,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Image from 'next/image';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { LayoutDashboard, RefreshCw, Send, Heart, CheckCircle2, ChevronLeft, ChevronRight, Menu, X, Settings, ChevronDown, ChevronUp, Target, FileText, BarChart3, Users, ListChecks, Building2, MessageCircle, Rocket } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Send, Heart, CheckCircle2, ChevronLeft, ChevronRight, Menu, X, Settings, ChevronDown, ChevronUp, Target, FileText, BarChart3, Users, ListChecks, Building2, MessageCircle, Rocket, FileSpreadsheet } from 'lucide-react';
 
 // Admin emails that can impersonate clients
 const ADMIN_EMAILS = [
@@ -215,6 +215,7 @@ export default function ClientLayout({
       icon: ListChecks,
       items: [
         { href: '/client/outbound-campaigns', label: 'Launch Status', icon: Rocket },
+        { href: '/client/lists', label: 'Lists', icon: FileSpreadsheet },
       ],
     },
   ];
@@ -399,6 +400,7 @@ export default function ClientLayout({
                   {pathname === '/client/outbound' && 'Campaigns'}
                   {pathname === '/client/nurture' && 'CRM Nurture'}
                   {pathname === '/client/outbound-campaigns' && 'Launch Status'}
+                  {pathname === '/client/lists' && 'Lists'}
                   {pathname === '/client/account-based-marketing' && 'ABM'}
                   {pathname === '/client/approvals' && 'Reviews & Approvals'}
                   {pathname?.startsWith('/client/approve/') && 'Review Approval'}
