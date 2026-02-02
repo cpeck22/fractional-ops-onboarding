@@ -203,10 +203,10 @@ export default function ClientLayout({
       label: 'Allbound Tactic Builder',
       icon: RefreshCw,
       items: [
-        { href: '/client/allbound', label: 'Signal Based (Always On)', icon: RefreshCw },
-        { href: '/client/outbound', label: 'Outbound Campaigns', icon: Send },
+        { href: '/client/allbound', label: 'Always On Signals', icon: RefreshCw },
+        { href: '/client/outbound', label: 'Campaigns', icon: Send },
         { href: '/client/nurture', label: 'CRM Nurture', icon: Heart },
-        { href: '/client/account-based-marketing', label: 'Account-Based Marketing', icon: Building2, comingSoon: true },
+        { href: '/client/account-based-marketing', label: 'ABM', icon: Building2, comingSoon: true },
       ],
     },
     {
@@ -278,11 +278,15 @@ export default function ClientLayout({
                   {/* Section Header */}
                   <button
                     onClick={() => toggleSection(section.id)}
-                    className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-all"
+                    className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-all ${
+                      isExpanded 
+                        ? 'bg-gray-700/50 text-white' 
+                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    }`}
                   >
                     <div className="flex items-center gap-3">
-                      <SectionIcon className="w-5 h-5 flex-shrink-0" strokeWidth={2} />
                       {sidebarOpen && <span className="text-sm font-semibold">{section.label}</span>}
+                      {!sidebarOpen && <SectionIcon className="w-5 h-5 flex-shrink-0" strokeWidth={2} />}
                     </div>
                     {sidebarOpen && (
                       isExpanded ? (
@@ -400,11 +404,11 @@ export default function ClientLayout({
                   {pathname === '/client/sales-plan' && 'Sales Plan'}
                   {pathname === '/client/gtm-strategy' && 'GTM Strategy'}
                   {pathname === '/client/sales-intelligence' && 'Sales Intelligence'}
-                  {pathname === '/client/allbound' && 'Signal Based (Always On)'}
-                  {pathname === '/client/outbound' && 'Outbound Campaigns'}
+                  {pathname === '/client/allbound' && 'Always On Signals'}
+                  {pathname === '/client/outbound' && 'Campaigns'}
                   {pathname === '/client/nurture' && 'CRM Nurture'}
                   {pathname === '/client/outbound-campaigns' && 'Launch Status'}
-                  {pathname === '/client/account-based-marketing' && 'Account-Based Marketing'}
+                  {pathname === '/client/account-based-marketing' && 'ABM'}
                   {pathname === '/client/approvals' && 'Reviews & Approvals'}
                   {pathname?.startsWith('/client/approve/') && 'Review Approval'}
                   {pathname?.match(/\/client\/(allbound|outbound|nurture)\/\d+/) && 'Play Execution'}
