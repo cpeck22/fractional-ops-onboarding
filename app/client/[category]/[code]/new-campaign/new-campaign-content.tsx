@@ -6,8 +6,10 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import { addImpersonateParam } from '@/lib/client-api-helpers';
-import { ChevronLeft, Loader2, ChevronRight, FileText, MessageSquare, Lightbulb, List, Mail, CheckCircle, Upload } from 'lucide-react';
+import { ChevronLeft, Loader2, ChevronRight, FileText, MessageSquare, Lightbulb, List, Mail, CheckCircle, Upload, Phone } from 'lucide-react';
 import { renderHighlightedContent } from '@/lib/render-highlights';
+import CollapsibleCampaignSection from '@/components/CollapsibleCampaignSection';
+import CampaignNavigationSidebar from '@/components/CampaignNavigationSidebar';
 
 type Step = 'brief' | 'intermediary' | 'list-questions' | 'copy';
 
@@ -60,6 +62,9 @@ export default function NewCampaignContent() {
   const [editedCopy, setEditedCopy] = useState('');
   const [emailSequence, setEmailSequence] = useState<any[]>([]);
   const [isSequenceAgent, setIsSequenceAgent] = useState(false);
+  
+  // Section visibility management (for collapsible/deletable sections)
+  const [visibleSections, setVisibleSections] = useState<{ [key: string]: boolean }>({});
   
   // Loading states
   const [loading, setLoading] = useState(false);
@@ -447,6 +452,29 @@ export default function NewCampaignContent() {
       toast.error('Failed to generate copy');
       setLoading(false);
     }
+  };
+
+  // Initialize visible sections when email sequence changes
+  useEffect(() => {
+    if (emailSequence.length > 0) {
+      const sections: { [key: string]: boolean } = {};
+      emailSequence.forEach((_, index) => {
+        sections[`email-${index}`] = true;
+      });
+      // Also add sections for other content types if they exist
+      sections['full-copy'] = true;
+      sections['highlight-legend'] = true;
+      setVisibleSections(sections);
+    }
+  }, [emailSequence]);
+
+  // Handle section deletion
+  const handleDeleteSection = (sectionId: string) => {
+    setVisibleSections(prev => ({
+      ...prev,
+      [sectionId]: false
+    }));
+    toast.success('Section removed from campaign output');
   };
 
   // Step 4 (final): Approve copy
@@ -1042,128 +1070,167 @@ export default function NewCampaignContent() {
           <div>
             <h1 className="text-3xl font-bold text-fo-dark mb-2">Campaign Copy</h1>
             <p className="text-fo-text-secondary mb-8">
-              Review and edit the generated campaign copy. Highlights show personalization, proof points, and key elements.
+              Review and edit the generated campaign copy. Click sections to expand/collapse. Delete sections you don&apos;t need.
             </p>
 
-            <div className="space-y-6">
-              {/* Email Sequence Display (for SEQUENCE agents) */}
+            {/* Layout with sidebar and content */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Navigation Sidebar */}
               {isSequenceAgent && emailSequence.length > 0 && (
-                <div>
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <p className="text-sm text-blue-900">
-                      <span className="font-semibold">📧 Email Sequence Detected!</span> This campaign includes <span className="font-bold">{emailSequence.length} emails</span> with highlighting applied.
-                    </p>
-                  </div>
-
-                  {/* Highlighted Full Sequence Preview */}
-                  <div className="mb-6 border-2 border-fo-primary rounded-lg p-6 bg-white">
-                    <h4 className="text-sm font-semibold text-fo-dark mb-4 flex items-center gap-2">
-                      <span className="bg-fo-primary text-white px-3 py-1 rounded-full text-xs">HIGHLIGHTED PREVIEW</span>
-                      Full Sequence with AI Highlights
-                    </h4>
-                    <div 
-                      className="text-sm text-fo-text whitespace-pre-wrap max-h-96 overflow-y-auto"
-                      dangerouslySetInnerHTML={{ __html: renderHighlightedContent(highlightedCopy) }}
-                    />
-                  </div>
-
-                  {/* Individual Email Cards */}
-                  <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-fo-dark">Email Breakdown:</h4>
-                    {emailSequence.map((email: any, index: number) => (
-                      <div key={index} className="border border-fo-border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="bg-gradient-to-r from-fo-primary to-indigo-600 text-white px-6 py-3 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Mail className="w-5 h-5" />
-                            <span className="font-semibold text-lg">Email {index + 1}</span>
-                          </div>
-                          <span className="text-xs bg-white/20 px-3 py-1 rounded-full">
-                            {emailSequence.length > 1 ? `Step ${index + 1} of ${emailSequence.length}` : 'Single Email'}
-                          </span>
-                        </div>
-                        
-                        <div className="p-6 bg-white space-y-4">
-                          {/* Subject Line */}
-                          <div>
-                            <label className="block text-xs font-bold text-fo-text-secondary uppercase tracking-wide mb-2">Subject Line</label>
-                            <p className="text-lg font-semibold text-fo-dark bg-amber-50 border border-amber-200 px-4 py-3 rounded">
-                              {email.subject}
-                            </p>
-                          </div>
-
-                          {/* Email Body - Handle both sectioned and non-sectioned formats */}
-                          <div className="space-y-3">
-                            {/* Check if email has sections (Play 2001 structure) */}
-                            {email.sections && Object.keys(email.sections).length > 0 ? (
-                              <>
-                                {email.sections?.greeting && (
-                                  <div className="bg-fo-light px-4 py-2 rounded">
-                                    <span className="text-xs font-semibold text-fo-text-secondary uppercase">Greeting:</span>
-                                    <p className="text-sm text-fo-dark mt-1">{email.sections.greeting}</p>
-                                  </div>
-                                )}
-                                {email.sections?.opening && (
-                                  <div className="bg-fo-light px-4 py-2 rounded">
-                                    <span className="text-xs font-semibold text-fo-text-secondary uppercase">Opening:</span>
-                                    <p className="text-sm text-fo-dark mt-1">{email.sections.opening}</p>
-                                  </div>
-                                )}
-                                {email.sections?.body && (
-                                  <div className="bg-fo-light px-4 py-2 rounded">
-                                    <span className="text-xs font-semibold text-fo-text-secondary uppercase">Body:</span>
-                                    <p className="text-sm text-fo-dark mt-1 whitespace-pre-wrap">{email.sections.body}</p>
-                                  </div>
-                                )}
-                                {email.sections?.closing && (
-                                  <div className="bg-fo-light px-4 py-2 rounded">
-                                    <span className="text-xs font-semibold text-fo-text-secondary uppercase">Closing:</span>
-                                    <p className="text-sm text-fo-dark mt-1">{email.sections.closing}</p>
-                                  </div>
-                                )}
-                                {email.sections?.cta && (
-                                  <div className="bg-green-50 border border-green-200 px-4 py-2 rounded">
-                                    <span className="text-xs font-semibold text-green-700 uppercase">Call to Action:</span>
-                                    <p className="text-sm text-fo-dark font-semibold mt-1">{email.sections.cta}</p>
-                                  </div>
-                                )}
-                                {email.sections?.ps && (
-                                  <div className="bg-fo-light px-4 py-2 rounded">
-                                    <span className="text-xs font-semibold text-fo-text-secondary uppercase">P.S.:</span>
-                                    <p className="text-sm text-fo-dark mt-1 italic">{email.sections.ps}</p>
-                                  </div>
-                                )}
-                                {email.sections?.signature && (
-                                  <div className="bg-fo-light px-4 py-2 rounded">
-                                    <span className="text-xs font-semibold text-fo-text-secondary uppercase">Signature:</span>
-                                    <p className="text-sm text-fo-dark mt-1">{email.sections.signature}</p>
-                                  </div>
-                                )}
-                              </>
-                            ) : email.email ? (
-                              /* Single email body field (Play 2008 structure) */
-                              <div className="bg-fo-light px-4 py-2 rounded">
-                                <span className="text-xs font-semibold text-fo-text-secondary uppercase">Email Body:</span>
-                                <p className="text-sm text-fo-dark mt-1 whitespace-pre-wrap">{email.email}</p>
-                              </div>
-                            ) : (
-                              /* No email content found */
-                              <div className="bg-red-50 border border-red-200 px-4 py-2 rounded">
-                                <p className="text-sm text-red-600">No email content found</p>
-                              </div>
-                            )}
-                            
-                            {/* Signature placeholder */}
-                            <div className="bg-blue-50 border border-blue-200 px-4 py-2 rounded">
-                              <span className="text-xs font-semibold text-blue-700 uppercase">Signature:</span>
-                              <p className="text-sm text-fo-dark mt-1 italic">%signature%</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                <div className="lg:col-span-1">
+                  <CampaignNavigationSidebar
+                    sections={[
+                      {
+                        id: 'highlighted-preview',
+                        title: 'Highlighted Preview',
+                        icon: <Lightbulb className="w-4 h-4" />,
+                        isVisible: visibleSections['highlighted-preview'] !== false
+                      },
+                      ...emailSequence.map((email, index) => ({
+                        id: `email-${index}`,
+                        title: `Email ${index + 1}`,
+                        icon: <Mail className="w-4 h-4" />,
+                        isVisible: visibleSections[`email-${index}`] !== false
+                      })),
+                      {
+                        id: 'full-copy',
+                        title: 'Full Editable Copy',
+                        icon: <FileText className="w-4 h-4" />,
+                        isVisible: visibleSections['full-copy'] !== false
+                      },
+                      {
+                        id: 'highlight-legend',
+                        title: 'Highlight Legend',
+                        icon: <Lightbulb className="w-4 h-4" />,
+                        isVisible: visibleSections['highlight-legend'] !== false
+                      }
+                    ]}
+                  />
                 </div>
               )}
+
+              {/* Main Content */}
+              <div className={isSequenceAgent && emailSequence.length > 0 ? 'lg:col-span-3 space-y-6' : 'lg:col-span-4 space-y-6'}>
+                {/* Email Sequence Display (for SEQUENCE agents) */}
+                {isSequenceAgent && emailSequence.length > 0 && (
+                  <>
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-sm text-blue-900">
+                        <span className="font-semibold">📧 Email Sequence Detected!</span> This campaign includes <span className="font-bold">{emailSequence.length} emails</span> with highlighting applied. Click to expand/collapse sections, or delete sections you don&apos;t need.
+                      </p>
+                    </div>
+
+                    {/* Highlighted Full Sequence Preview */}
+                    {visibleSections['highlighted-preview'] !== false && (
+                      <CollapsibleCampaignSection
+                        id="highlighted-preview"
+                        title="Full Sequence Preview (Highlighted)"
+                        icon={<Lightbulb className="w-5 h-5" />}
+                        defaultExpanded={false}
+                        onDelete={handleDeleteSection}
+                        isDeletable={true}
+                      >
+                        <div 
+                          className="text-sm text-fo-text whitespace-pre-wrap max-h-96 overflow-y-auto bg-white p-4 rounded"
+                          dangerouslySetInnerHTML={{ __html: renderHighlightedContent(highlightedCopy) }}
+                        />
+                      </CollapsibleCampaignSection>
+                    )}
+
+                    {/* Individual Email Cards as Collapsible Sections */}
+                    {emailSequence.map((email: any, index: number) => (
+                      visibleSections[`email-${index}`] !== false && (
+                        <CollapsibleCampaignSection
+                          key={index}
+                          id={`email-${index}`}
+                          title={`Email ${index + 1}${emailSequence.length > 1 ? ` - Step ${index + 1} of ${emailSequence.length}` : ''}`}
+                          icon={<Mail className="w-5 h-5" />}
+                          defaultExpanded={index === 0}
+                          onDelete={handleDeleteSection}
+                          isDeletable={true}
+                        >
+                          <div className="space-y-4">
+                            {/* Subject Line */}
+                            <div>
+                              <label className="block text-xs font-bold text-fo-text-secondary uppercase tracking-wide mb-2">Subject Line</label>
+                              <p className="text-lg font-semibold text-fo-dark bg-amber-50 border border-amber-200 px-4 py-3 rounded">
+                                {email.subject}
+                              </p>
+                            </div>
+
+                            {/* Email Body - Handle both sectioned and non-sectioned formats */}
+                            <div className="space-y-3">
+                              {/* Check if email has sections (Play 2001 structure) */}
+                              {email.sections && Object.keys(email.sections).length > 0 ? (
+                                <>
+                                  {email.sections?.greeting && (
+                                    <div className="bg-fo-light px-4 py-2 rounded">
+                                      <span className="text-xs font-semibold text-fo-text-secondary uppercase">Greeting:</span>
+                                      <p className="text-sm text-fo-dark mt-1">{email.sections.greeting}</p>
+                                    </div>
+                                  )}
+                                  {email.sections?.opening && (
+                                    <div className="bg-fo-light px-4 py-2 rounded">
+                                      <span className="text-xs font-semibold text-fo-text-secondary uppercase">Opening:</span>
+                                      <p className="text-sm text-fo-dark mt-1">{email.sections.opening}</p>
+                                    </div>
+                                  )}
+                                  {email.sections?.body && (
+                                    <div className="bg-fo-light px-4 py-2 rounded">
+                                      <span className="text-xs font-semibold text-fo-text-secondary uppercase">Body:</span>
+                                      <p className="text-sm text-fo-dark mt-1 whitespace-pre-wrap">{email.sections.body}</p>
+                                    </div>
+                                  )}
+                                  {email.sections?.closing && (
+                                    <div className="bg-fo-light px-4 py-2 rounded">
+                                      <span className="text-xs font-semibold text-fo-text-secondary uppercase">Closing:</span>
+                                      <p className="text-sm text-fo-dark mt-1">{email.sections.closing}</p>
+                                    </div>
+                                  )}
+                                  {email.sections?.cta && (
+                                    <div className="bg-green-50 border border-green-200 px-4 py-2 rounded">
+                                      <span className="text-xs font-semibold text-green-700 uppercase">Call to Action:</span>
+                                      <p className="text-sm text-fo-dark font-semibold mt-1">{email.sections.cta}</p>
+                                    </div>
+                                  )}
+                                  {email.sections?.ps && (
+                                    <div className="bg-fo-light px-4 py-2 rounded">
+                                      <span className="text-xs font-semibold text-fo-text-secondary uppercase">P.S.:</span>
+                                      <p className="text-sm text-fo-dark mt-1 italic">{email.sections.ps}</p>
+                                    </div>
+                                  )}
+                                  {email.sections?.signature && (
+                                    <div className="bg-fo-light px-4 py-2 rounded">
+                                      <span className="text-xs font-semibold text-fo-text-secondary uppercase">Signature:</span>
+                                      <p className="text-sm text-fo-dark mt-1">{email.sections.signature}</p>
+                                    </div>
+                                  )}
+                                </>
+                              ) : email.email ? (
+                                /* Single email body field (Play 2008 structure) */
+                                <div className="bg-fo-light px-4 py-2 rounded">
+                                  <span className="text-xs font-semibold text-fo-text-secondary uppercase">Email Body:</span>
+                                  <p className="text-sm text-fo-dark mt-1 whitespace-pre-wrap">{email.email}</p>
+                                </div>
+                              ) : (
+                                /* No email content found */
+                                <div className="bg-red-50 border border-red-200 px-4 py-2 rounded">
+                                  <p className="text-sm text-red-600">No email content found</p>
+                                </div>
+                              )}
+                              
+                              {/* Signature placeholder */}
+                              <div className="bg-blue-50 border border-blue-200 px-4 py-2 rounded">
+                                <span className="text-xs font-semibold text-blue-700 uppercase">Signature:</span>
+                                <p className="text-sm text-fo-dark mt-1 italic">%signature%</p>
+                              </div>
+                            </div>
+                          </div>
+                        </CollapsibleCampaignSection>
+                      )
+                    ))}
+                  </>
+                )}
 
               {/* Single Copy Editor (for CONTENT agents or final edit) */}
               {!isSequenceAgent && (
@@ -1194,48 +1261,63 @@ export default function NewCampaignContent() {
                 </div>
               )}
 
-              {/* Full Editable Copy (always show for final approval) */}
-              {isSequenceAgent && (
-                <div className="border-t-2 border-fo-border pt-6">
-                  <label className="block text-sm font-semibold text-fo-dark mb-2">
-                    Full Campaign Copy (Editable)
-                  </label>
-                  <p className="text-xs text-fo-text-secondary mb-2">
-                    Edit the entire sequence below. Make sure to keep email separators and placeholders intact.
-                  </p>
-                  
-                  <textarea
-                    value={editedCopy}
-                    onChange={(e) => setEditedCopy(e.target.value)}
-                    rows={30}
-                    className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent font-mono text-sm"
-                  />
-                </div>
-              )}
+                {/* Full Editable Copy (always show for final approval) */}
+                {isSequenceAgent && visibleSections['full-copy'] !== false && (
+                  <CollapsibleCampaignSection
+                    id="full-copy"
+                    title="Full Campaign Copy (Editable)"
+                    icon={<FileText className="w-5 h-5" />}
+                    defaultExpanded={false}
+                    onDelete={handleDeleteSection}
+                    isDeletable={false}
+                  >
+                    <div>
+                      <p className="text-xs text-fo-text-secondary mb-4">
+                        Edit the entire sequence below. Make sure to keep email separators and placeholders intact.
+                      </p>
+                      
+                      <textarea
+                        value={editedCopy}
+                        onChange={(e) => setEditedCopy(e.target.value)}
+                        rows={30}
+                        className="w-full px-4 py-2 border border-fo-border rounded-lg focus:ring-2 focus:ring-fo-primary focus:border-transparent font-mono text-sm"
+                      />
+                    </div>
+                  </CollapsibleCampaignSection>
+                )}
 
-              {/* Highlight Legend */}
-              <div className="border border-fo-border rounded-lg p-4 bg-fo-light">
-                <h4 className="text-sm font-semibold text-fo-dark mb-3">Highlight Legend:</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-highlight-persona px-2 py-1 rounded font-semibold">Persona</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-highlight-outcome px-2 py-1 rounded font-semibold">Use Case</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-highlight-blocker px-2 py-1 rounded font-semibold">Problem</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-highlight-cta px-2 py-1 rounded font-semibold">CTA</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-highlight-resource px-2 py-1 rounded font-semibold">Resource</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-highlight-personalized px-2 py-1 rounded font-semibold">Personalization</span>
-                  </div>
-                </div>
+                {/* Highlight Legend */}
+                {visibleSections['highlight-legend'] !== false && (
+                  <CollapsibleCampaignSection
+                    id="highlight-legend"
+                    title="Highlight Legend"
+                    icon={<Lightbulb className="w-5 h-5" />}
+                    defaultExpanded={false}
+                    onDelete={handleDeleteSection}
+                    isDeletable={true}
+                  >
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-highlight-persona px-2 py-1 rounded font-semibold">Persona</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="bg-highlight-outcome px-2 py-1 rounded font-semibold">Use Case</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="bg-highlight-blocker px-2 py-1 rounded font-semibold">Problem</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="bg-highlight-cta px-2 py-1 rounded font-semibold">CTA</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="bg-highlight-resource px-2 py-1 rounded font-semibold">Resource</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="bg-highlight-personalized px-2 py-1 rounded font-semibold">Personalization</span>
+                      </div>
+                    </div>
+                  </CollapsibleCampaignSection>
+                )}
               </div>
             </div>
 
