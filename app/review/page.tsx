@@ -545,8 +545,8 @@ export default function ReviewPage() {
                 </p>
                 <p className="text-sm text-blue-800">
                   If the issue persists, please contact Fractional Ops at{' '}
-                  <a href="mailto:support@fractionalops.com" className="underline font-semibold">
-                    support@fractionalops.com
+                  <a href="mailto:revops@fractionalops.com" className="underline font-semibold">
+                    revops@fractionalops.com
                   </a>
                 </p>
               </div>
